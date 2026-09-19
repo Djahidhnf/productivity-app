@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model TaskList {
+  id        String   @id @default(cuid())
+  name      String
+  order     Int
+  createdAt DateTime @default(now())
+  tasks     Task[]
+
+  @@map("task_lists")
+}
+
+enum Priority {
+  RED
+  AMBER
+  BLUE
+  GREEN
+}
+
+model Task {
+  id        String    @id @default(cuid())
+  text      String
+  list      TaskList  @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId    String
+  priority  Priority?
+  due       DateTime? @db.Date
+  dueTime   Int?
+  duration  Int       @default(60)
+  done      Boolean   @default(false)
+  order     Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([listId])
+  @@map("tasks")
+}
+
+enum FreqType {
+  DAILY
+  WEEKLY
+}
+
+model Habit {
+  id           String     @id @default(cuid())
+  name         String
+  color        String
+  freqType     FreqType
+  timesPerWeek Int?
+  startDate    DateTime   @db.Date
+  order        Int
+  createdAt    DateTime   @default(now())
+  logs         HabitLog[]
+
+  @@map("habits")
+}
+
+model HabitLog {
+  id      String   @id @default(cuid())
+  habit   Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  habitId String
+  date    DateTime @db.Date
+
+  @@unique([habitId, date])
+  @@map("habit_logs")
+}
+
+enum Mood {
+  GREAT
+  GOOD
+  OKAY
+  LOW
+  ROUGH
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  text      String
+  mood      Mood     @default(OKAY)
+  updatedAt DateTime @updatedAt
+
+  @@map("journal_entries")
+}

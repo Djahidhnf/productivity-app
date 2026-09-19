@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 
 process.env.SESSION_SECRET ??= 'test-session-secret-please-do-not-use-in-prod';
