@@ -1445,11 +1445,12 @@ git commit -m "feat: add shared icon set"
 ## Task 12: Button component
 
 **Files:**
+- Create: `app/components/ui/button-variants.ts`
 - Create: `app/components/ui/button.tsx`
 - Test: `app/components/ui/button.test.tsx`
 
 **Interfaces:**
-- Produces: `Button({ variant, size, children, ...buttonProps })`, `variant: 'primary' | 'secondary' | 'ghost' | 'outline'` (default `'primary'`), `size: 'sm' | 'md'` (default `'md'`) — used throughout later phases.
+- Produces: `type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline'` and `BUTTON_VARIANT_STYLES: Record<ButtonVariant, CSSProperties>` from `@/app/components/ui/button-variants` — the single source of the four variant color combinations, reused by Task 13's IconButton so the two components can never drift apart. Also produces `Button({ variant, size, children, ...buttonProps })`, `size: 'sm' | 'md'` (default `'md'`) — used throughout later phases.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1493,13 +1494,29 @@ describe('Button', () => {
 Run: `npx vitest run app/components/ui/button.test.tsx`
 Expected: FAIL — `Cannot find module '@/app/components/ui/button'`.
 
-- [ ] **Step 3: Write the implementation**
+- [ ] **Step 3: Write the shared variant styles**
+
+Create `app/components/ui/button-variants.ts`:
+```ts
+import type { CSSProperties } from 'react';
+
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
+
+export const BUTTON_VARIANT_STYLES: Record<ButtonVariant, CSSProperties> = {
+  primary: { background: 'var(--accent)', color: 'var(--on-accent)' },
+  secondary: { background: 'var(--surface-3)', color: 'var(--text-primary)' },
+  ghost: { background: 'transparent', color: 'var(--text-secondary)' },
+  outline: { background: 'transparent', color: 'var(--text-primary)', borderColor: 'var(--border-strong)' },
+};
+```
+
+- [ ] **Step 4: Write the implementation**
 
 Create `app/components/ui/button.tsx`:
 ```tsx
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react';
+import { BUTTON_VARIANT_STYLES, type ButtonVariant } from './button-variants';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'outline';
 type Size = 'sm' | 'md';
 
 const base: CSSProperties = {
@@ -1519,37 +1536,30 @@ const sizes: Record<Size, CSSProperties> = {
   md: { height: 40, padding: '0 16px', fontSize: 'var(--text-sm)' },
 };
 
-const variants: Record<Variant, CSSProperties> = {
-  primary: { background: 'var(--accent)', color: 'var(--on-accent)' },
-  secondary: { background: 'var(--surface-3)', color: 'var(--text-primary)' },
-  ghost: { background: 'transparent', color: 'var(--text-secondary)' },
-  outline: { background: 'transparent', color: 'var(--text-primary)', borderColor: 'var(--border-strong)' },
-};
-
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
+  variant?: ButtonVariant;
   size?: Size;
   children: ReactNode;
 }
 
 export function Button({ variant = 'primary', size = 'md', style, children, type, ...rest }: ButtonProps) {
   return (
-    <button type={type ?? 'button'} style={{ ...base, ...sizes[size], ...variants[variant], ...style }} {...rest}>
+    <button type={type ?? 'button'} style={{ ...base, ...sizes[size], ...BUTTON_VARIANT_STYLES[variant], ...style }} {...rest}>
       {children}
     </button>
   );
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [ ] **Step 5: Run test to verify it passes**
 
 Run: `npx vitest run app/components/ui/button.test.tsx`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add app/components/ui/button.tsx app/components/ui/button.test.tsx
+git add app/components/ui/button-variants.ts app/components/ui/button.tsx app/components/ui/button.test.tsx
 git commit -m "feat: add shared Button component"
 ```
 
@@ -1562,6 +1572,7 @@ git commit -m "feat: add shared Button component"
 - Test: `app/components/ui/icon-button.test.tsx`
 
 **Interfaces:**
+- Consumes: `BUTTON_VARIANT_STYLES`, `ButtonVariant` from `@/app/components/ui/button-variants` (Task 12) — reused as-is so Button and IconButton can never have mismatched variant colors.
 - Produces: `IconButton({ label, variant, size, children, ...buttonProps })` — a square icon-only button; `label` is required and becomes the `aria-label`/`title`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1605,23 +1616,16 @@ Expected: FAIL — `Cannot find module '@/app/components/ui/icon-button'`.
 
 Create `app/components/ui/icon-button.tsx`:
 ```tsx
-import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { BUTTON_VARIANT_STYLES, type ButtonVariant } from './button-variants';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'outline';
 type Size = 'sm' | 'md';
 
 const dimensions: Record<Size, number> = { sm: 32, md: 40 };
 
-const variants: Record<Variant, CSSProperties> = {
-  primary: { background: 'var(--accent)', color: 'var(--on-accent)' },
-  secondary: { background: 'var(--surface-3)', color: 'var(--text-primary)' },
-  ghost: { background: 'transparent', color: 'var(--text-secondary)' },
-  outline: { background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-strong)' },
-};
-
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
-  variant?: Variant;
+  variant?: ButtonVariant;
   size?: Size;
   children: ReactNode;
 }
@@ -1643,7 +1647,7 @@ export function IconButton({ label, variant = 'secondary', size = 'md', style, c
         borderRadius: 'var(--radius-md)',
         border: '1px solid transparent',
         cursor: 'pointer',
-        ...variants[variant],
+        ...BUTTON_VARIANT_STYLES[variant],
         ...style,
       }}
       {...rest}
@@ -2857,6 +2861,7 @@ git commit -m "feat: add AppShell and the authenticated route group layout"
 ## Task 23: Stub route pages and root redirect
 
 **Files:**
+- Create: `app/components/shell/stub-page.tsx`
 - Create: `app/(app)/dashboard/page.tsx`
 - Create: `app/(app)/tasks/page.tsx`
 - Create: `app/(app)/calendar/page.tsx`
@@ -2868,7 +2873,7 @@ git commit -m "feat: add AppShell and the authenticated route group layout"
 
 **Interfaces:**
 - Consumes: `getSession` (Task 6).
-- Produces: a fully navigable (if mostly placeholder) app — every Sidebar/BottomNav link in Task 20/21 now resolves to a real page.
+- Produces: `StubPage({ title })` from `@/app/components/shell/stub-page` (a placeholder later phases replace one route at a time) and a fully navigable (if mostly placeholder) app — every Sidebar/BottomNav link in Task 20/21 now resolves to a real page.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2905,77 +2910,71 @@ describe('stub route pages', () => {
 Run: `npx vitest run "app/(app)/stub-pages.test.tsx"`
 Expected: FAIL — `Cannot find module './dashboard/page'`.
 
-- [ ] **Step 3: Write the six stub pages**
+- [ ] **Step 3: Write the shared stub page and the six route pages**
 
-Create `app/(app)/dashboard/page.tsx`:
+Create `app/components/shell/stub-page.tsx`:
 ```tsx
-export default function DashboardPage() {
+export function StubPage({ title }: { title: string }) {
   return (
     <div style={{ maxWidth: 1440, padding: '0 clamp(16px, 3vw, 32px)' }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)' }}>Dashboard</h1>
+      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)' }}>{title}</h1>
       <p style={{ color: 'var(--text-muted)' }}>Coming in a later phase.</p>
     </div>
   );
+}
+```
+
+Create `app/(app)/dashboard/page.tsx`:
+```tsx
+import { StubPage } from '@/app/components/shell/stub-page';
+
+export default function DashboardPage() {
+  return <StubPage title="Dashboard" />;
 }
 ```
 
 Create `app/(app)/tasks/page.tsx`:
 ```tsx
+import { StubPage } from '@/app/components/shell/stub-page';
+
 export default function TasksPage() {
-  return (
-    <div style={{ maxWidth: 1440, padding: '0 clamp(16px, 3vw, 32px)' }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)' }}>Tasks</h1>
-      <p style={{ color: 'var(--text-muted)' }}>Coming in a later phase.</p>
-    </div>
-  );
+  return <StubPage title="Tasks" />;
 }
 ```
 
 Create `app/(app)/calendar/page.tsx`:
 ```tsx
+import { StubPage } from '@/app/components/shell/stub-page';
+
 export default function CalendarPage() {
-  return (
-    <div style={{ maxWidth: 1440, padding: '0 clamp(16px, 3vw, 32px)' }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)' }}>Calendar</h1>
-      <p style={{ color: 'var(--text-muted)' }}>Coming in a later phase.</p>
-    </div>
-  );
+  return <StubPage title="Calendar" />;
 }
 ```
 
 Create `app/(app)/matrix/page.tsx`:
 ```tsx
+import { StubPage } from '@/app/components/shell/stub-page';
+
 export default function MatrixPage() {
-  return (
-    <div style={{ maxWidth: 1440, padding: '0 clamp(16px, 3vw, 32px)' }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)' }}>Matrix</h1>
-      <p style={{ color: 'var(--text-muted)' }}>Coming in a later phase.</p>
-    </div>
-  );
+  return <StubPage title="Matrix" />;
 }
 ```
 
 Create `app/(app)/habits/page.tsx`:
 ```tsx
+import { StubPage } from '@/app/components/shell/stub-page';
+
 export default function HabitsPage() {
-  return (
-    <div style={{ maxWidth: 1440, padding: '0 clamp(16px, 3vw, 32px)' }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)' }}>Habits</h1>
-      <p style={{ color: 'var(--text-muted)' }}>Coming in a later phase.</p>
-    </div>
-  );
+  return <StubPage title="Habits" />;
 }
 ```
 
 Create `app/(app)/journal/page.tsx`:
 ```tsx
+import { StubPage } from '@/app/components/shell/stub-page';
+
 export default function JournalPage() {
-  return (
-    <div style={{ maxWidth: 1440, padding: '0 clamp(16px, 3vw, 32px)' }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)' }}>Journal</h1>
-      <p style={{ color: 'var(--text-muted)' }}>Coming in a later phase.</p>
-    </div>
-  );
+  return <StubPage title="Journal" />;
 }
 ```
 
@@ -3016,7 +3015,7 @@ Expected: every test across all 23 tasks passes.
 - [ ] **Step 8: Commit**
 
 ```bash
-git add "app/(app)" app/page.tsx
+git add app/components/shell/stub-page.tsx "app/(app)" app/page.tsx
 git commit -m "feat: add stub route pages and session-based root redirect"
 ```
 
