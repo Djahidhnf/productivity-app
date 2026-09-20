@@ -836,7 +836,7 @@ Create `app/(app)/tasks/task-dialog.tsx`:
 ```tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
 import { Select } from '@/app/components/ui/select';
@@ -872,10 +872,15 @@ const PRIORITY_OPTIONS: { key: PriorityKey | null; label: string }[] = [
 
 export function TaskDialog({ open, mode, lists, initialValues, onClose, onSave, onDelete }: TaskDialogProps) {
   const [values, setValues] = useState(initialValues);
-
-  useEffect(() => {
+  // This project's ESLint config flags setState-inside-useEffect
+  // (react-hooks/set-state-in-effect). Use React's documented render-time
+  // state-adjustment pattern instead: reset `values` whenever the
+  // `initialValues` reference changes, without an effect.
+  const [prevInitialValues, setPrevInitialValues] = useState(initialValues);
+  if (initialValues !== prevInitialValues) {
+    setPrevInitialValues(initialValues);
     setValues(initialValues);
-  }, [initialValues]);
+  }
 
   return (
     <Dialog open={open} onClose={onClose} title={mode === 'create' ? 'New task' : 'Edit task'}>
