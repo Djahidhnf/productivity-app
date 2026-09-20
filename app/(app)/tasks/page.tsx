@@ -1,5 +1,7 @@
-import { StubPage } from '@/app/components/shell/stub-page';
+import { getTaskLists } from './queries';
+import { TasksBoard } from './tasks-board';
 
-export default function TasksPage() {
-  return <StubPage title="Tasks" />;
+export default async function TasksPage() {
+  const lists = await getTaskLists();
+  return <TasksBoard initialLists={lists} />;
 }
