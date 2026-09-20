@@ -1,26 +1,23 @@
+/* NOTE: The brief's Step 5 specifies:
+     @import "tailwindcss";
+     @import "./styles/klivr/styles.css";
+     @import "./styles/layout.css";
+   That literal wiring 500s in this Next 16.3.5 Turbopack + @tailwindcss/postcss v4
+   toolchain: the CSS bundler flattens nested relative @import chains incorrectly
+   (resolves ./tokens/*.css against app/globals.css's directory instead of
+   styles.css's own directory once spliced two levels deep -> "Module not found"),
+   and separately, @import "tailwindcss" expanding to real rules before any
+   still-literal @import (fonts.css's external Google Fonts @import) violates
+   "@import rules must precede all rules" once flattened.
+   Fix used here: import the same five token files directly (one hop from this
+   file, matching the order inside klivr/styles.css) and put fonts.css - the only
+   file with unresolvable (external) imports - first, before "tailwindcss" expands.
+   klivr/styles.css itself is left untouched/verbatim; app/styles/tokens.test.ts
+   still guards its content even though it is not the literal import target here. */
+@import "./styles/klivr/tokens/fonts.css";
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+@import "./styles/klivr/tokens/colors.css";
+@import "./styles/klivr/tokens/typography.css";
+@import "./styles/klivr/tokens/spacing.css";
+@import "./styles/klivr/tokens/effects.css";
+@import "./styles/layout.css";
