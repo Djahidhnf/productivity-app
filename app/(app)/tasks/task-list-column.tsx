@@ -59,6 +59,7 @@ export function TaskListColumn({
         onDragOver={allowDrop}
         onDrop={(event) => {
           event.preventDefault();
+          event.stopPropagation();
           onColumnDrop();
         }}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, cursor: 'grab', padding: '2px 0' }}
