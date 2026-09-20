@@ -1136,6 +1136,7 @@ export function TaskListColumn({
         onDragOver={allowDrop}
         onDrop={(event) => {
           event.preventDefault();
+          event.stopPropagation();
           onColumnDrop();
         }}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, cursor: 'grab', padding: '2px 0' }}
@@ -1342,13 +1343,13 @@ git commit -m "feat: add NewListColumn component"
 - Consumes: `TaskDTO`, `TaskListDTO` (types) from `./queries` (Task 1); all 8 functions from `./actions` (Task 2) — imported directly (not passed as props) and mocked wholesale in the test via `vi.mock('./actions', ...)`, since threading 8 callbacks through props would be more awkward than mocking the module, and the module boundary is exactly what needs mocking to keep this a DB-free unit test; `moveTaskInLists`, `taskIdsForList`, `moveListInLists` from `./task-reorder` (Task 3); `TaskListColumn` from `./task-list-column` (Task 6); `NewListColumn` from `./new-list-column` (Task 7); `TaskDialog`, `TaskDialogValues` from `./task-dialog` (Task 5).
 - Produces: `TasksBoard({ initialLists })` — the full client-side board, used by Task 9 (`page.tsx`).
 
-This test covers every interaction reachable without a real drag gesture (quick-add, toggle-done, open/save/delete via dialog, create list) since jsdom cannot simulate real `DragEvent`/`DataTransfer`. The drag paths themselves are covered by Task 3's pure-function tests (the math) and Task 9's manual walkthrough (the actual gesture, verified as thoroughly as the sandbox allows).
+This test covers every interaction reachable without a real drag gesture (quick-add, toggle-done, open/save/delete via dialog, create list) since jsdom cannot simulate real `DragEvent`/`DataTransfer`. The drag paths themselves are covered by Task 3's pure-function tests (the math) and Task 9's manual walkthrough (the actual gesture, verified as thoroughly as the sandbox allows). One drag-related behavior *is* tested here directly, since it only needs simple event dispatch, not full `DataTransfer` simulation: Task 6's review found that dropping a dragged column on another column's header calls both `onColumnDrop` and (via event bubbling) `onTaskDrop`, which is harmless only because `dragTaskId` happens to be `null` at that point — but a drag *abandoned* outside any valid drop target (released over the browser chrome, say) never reaches an `onDrop` handler at all, so `dragTaskId`/`dragListId` would otherwise stay stale until the next drag and could cause a later, unrelated drop to incorrectly move a task. `TasksBoard` listens for the native `dragend` event on `window` (which always fires when a drag concludes, successful or not) to clear both, and the last test below verifies exactly that.
 
 - [ ] **Step 1: Write the failing test**
 
 Create `app/(app)/tasks/tasks-board.test.tsx`:
 ```tsx
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { TasksBoard } from './tasks-board';
@@ -1463,6 +1464,16 @@ describe('TasksBoard', () => {
     expect(actions.createList).toHaveBeenCalledWith('Home');
     expect(await screen.findByText('Home')).toBeInTheDocument();
   });
+
+  test('an abandoned drag (dragend fired without a drop) clears drag state, so a later drop is a no-op', () => {
+    render(<TasksBoard initialLists={makeLists()} />);
+    const card = screen.getByText('Buy milk').closest('div')!;
+    fireEvent.dragStart(card);
+    window.dispatchEvent(new Event('dragend'));
+    const column = screen.getByText('Work').closest('.pw-list-col') as HTMLElement;
+    fireEvent.drop(column);
+    expect(actions.reorderTasks).not.toHaveBeenCalled();
+  });
 });
 ```
 
@@ -1477,7 +1488,7 @@ Create `app/(app)/tasks/tasks-board.tsx`:
 ```tsx
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { TaskListColumn } from './task-list-column';
 import { NewListColumn } from './new-list-column';
 import { TaskDialog, type TaskDialogValues } from './task-dialog';
@@ -1518,6 +1529,23 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
   const [dragListId, setDragListId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ task: TaskDTO; values: TaskDialogValues } | null>(null);
   const [, startTransition] = useTransition();
+
+  // A drag abandoned outside any valid drop target (e.g. released over the
+  // browser chrome) never reaches an onDrop handler, so dragTaskId/dragListId
+  // would otherwise stay stale until the next drag. The native `dragend`
+  // event always fires on the drag source when a drag operation concludes,
+  // successful or not, and bubbles to window - listen there to always clear
+  // both. This subscribes to an external system's events and calls setState
+  // from the event callback, not synchronously in the effect body, so it
+  // does not trip this project's react-hooks/set-state-in-effect rule.
+  useEffect(() => {
+    function clearDragState() {
+      setDragTaskId(null);
+      setDragListId(null);
+    }
+    window.addEventListener('dragend', clearDragState);
+    return () => window.removeEventListener('dragend', clearDragState);
+  }, []);
 
   function handleToggleDone(taskId: string) {
     setLists((prev) =>
@@ -1658,7 +1686,7 @@ Note: `emptyDialogValues` is defined for future use (e.g. a later phase's dashbo
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run app/\(app\)/tasks/tasks-board.test.tsx`
-Expected: PASS (6 tests).
+Expected: PASS (7 tests).
 
 - [ ] **Step 5: Commit**
 
@@ -1750,3 +1778,5 @@ git commit -m "feat: wire the Tasks kanban board into /tasks"
 - **Type consistency check:** `TaskDTO`/`TaskListDTO` (Task 1) are the single types used by every later task — Task 2's actions, Task 3's pure functions, and every component all import them from `./queries`, never redefine them. `TaskDialogValues` (Task 5) is used identically by Task 8. The `reorderTasks({ listId, orderedTaskIds })` shape (Task 2) matches exactly what `taskIdsForList` (Task 3) produces and what Task 8 passes.
 - **Known testability gap, addressed rather than ignored:** jsdom cannot simulate real HTML5 `DragEvent`/`DataTransfer`, so no task in this plan attempts to unit-test a drag gesture. Instead, Task 3 unit-tests the reorder *math* directly (the part that actually has logic worth verifying), and Task 9's manual walkthrough is the only place the actual gesture gets exercised — explicitly calling out that this may not be fully verifiable in a browser-less sandbox, consistent with how the foundation phase handled the same constraint for its own manual checks.
 - **Dead-code check (caught during self-review, fixed inline):** an earlier draft of Task 8 gave `TasksBoard`'s dialog state a `mode: 'create' | 'edit'` field and a matching create-vs-update branch in `handleSaveDialog`, copied from `TaskDialog`'s own (correctly) dual-mode design. But `TasksBoard` only ever opens the dialog via `handleOpenTask` (always edit), since this screen creates tasks through inline quick-add, not the dialog — so the "create" branch could never execute. Simplified `dialog` to `{ task, values }` and `handleSaveDialog` to update-only; `TaskDialog` itself still fully supports create mode for later phases (Dashboard/Calendar) that will open it blank.
+- **Lint-driven fix (caught during Task 5's implementation, verified real by the controller):** this project's ESLint config enables `react-hooks/set-state-in-effect`, which flags the `useEffect(() => setValues(initialValues), [initialValues])` pattern this plan originally specified for `TaskDialog`. Replaced with React's documented render-time state-adjustment pattern (compare against a `prevInitialValues` snapshot, update both during render, no effect) — same public API, verified behaviorally equivalent (and strictly better: no stale-value flash) by task review.
+- **Drag-state cleanup fix (caught during Task 6's review, closed before Task 8 was built):** the column header's `onDrop` was missing `stopPropagation()`, so a drop there would bubble and double-fire `onColumnDrop()` plus the outer column's `onTaskDrop(list.id, null)` — harmless only because `dragTaskId` is normally `null` during a pure column drag. But a task-drag *abandoned* outside any valid drop target never reaches an `onDrop` handler, leaving `dragTaskId` stale — combined with the header bug, a later unrelated column drop could incorrectly move that stale task. Fixed the header's missing `stopPropagation()` directly in the already-shipped Task 6 file, and closed the root cause in Task 8's design with a `window`-level `dragend` listener (fires on every drag's conclusion, successful or not) that clears both `dragTaskId` and `dragListId` — plus a test verifying an abandoned drag doesn't leave state that causes a later drop to act.
