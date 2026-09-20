@@ -21,3 +21,11 @@
 @import "./styles/klivr/tokens/spacing.css";
 @import "./styles/klivr/tokens/effects.css";
 @import "./styles/layout.css";
+
+/* Not part of the copied design source: lets native form controls and
+   scrollbars (date/time pickers, select dropdowns, etc.) follow the app's
+   theme instead of always rendering light. Whole-branch review found the
+   design tokens never declared this, so browser chrome stayed light-only
+   even under [data-theme="dark"]. */
+:root { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }

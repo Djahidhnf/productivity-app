@@ -2,9 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { SESSION_COOKIE_NAME } from '@/app/lib/session-cookie';
 import { resolveProxyRedirect } from '@/app/lib/proxy-logic';
+import { decryptSession } from '@/app/lib/session';
 
-export function proxy(request: NextRequest) {
-  const hasSession = Boolean(request.cookies.get(SESSION_COOKIE_NAME)?.value);
+export async function proxy(request: NextRequest) {
+  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const session = await decryptSession(token);
+  const hasSession = session !== null;
   const target = resolveProxyRedirect(request.nextUrl.pathname, hasSession);
 
   if (target) {

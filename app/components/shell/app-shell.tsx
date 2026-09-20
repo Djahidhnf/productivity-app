@@ -19,6 +19,11 @@ export function AppShell({ initialTheme, initialSidebarOpen, children }: AppShel
 
   useEffect(() => {
     document.cookie = `daybook_theme=${theme}; path=/; max-age=31536000`;
+    // The root <html> element's data-theme (set server-side from the cookie
+    // in app/layout.tsx, so /login also renders correctly) needs live
+    // updates too, otherwise color-scheme and any UI outside this shell
+    // stay on the theme from the last page load.
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   useEffect(() => {

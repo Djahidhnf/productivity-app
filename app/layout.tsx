@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,9 +7,12 @@ export const metadata: Metadata = {
   description: "Personal productivity: tasks, matrix, calendar, habits, journal.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const store = await cookies();
+  const theme = store.get("daybook_theme")?.value === "light" ? "light" : "dark";
+
   return (
-    <html lang="en">
+    <html lang="en" data-theme={theme}>
       <body>{children}</body>
     </html>
   );

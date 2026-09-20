@@ -22,4 +22,18 @@ describe('Klivr design tokens', () => {
       expect(css).toContain(file);
     }
   });
+
+  test('globals.css imports every token file styles.css imports, even though it does not import styles.css directly', () => {
+    // app/globals.css imports the 5 token files itself instead of going
+    // through klivr/styles.css (see the comment at the top of globals.css
+    // for why) - so if the design system ever adds a new token file to
+    // styles.css, this test catches globals.css not picking it up too.
+    const stylesCss = readFileSync(path.join(stylesDir, 'styles.css'), 'utf-8');
+    const globalsCss = readFileSync(path.resolve(__dirname, '../globals.css'), 'utf-8');
+    const importedFiles = [...stylesCss.matchAll(/@import url\('\.\/tokens\/([^']+)'\)/g)].map((m) => m[1]);
+    expect(importedFiles.length).toBeGreaterThan(0);
+    for (const file of importedFiles) {
+      expect(globalsCss).toContain(`tokens/${file}`);
+    }
+  });
 });
