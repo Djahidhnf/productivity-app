@@ -3,22 +3,8 @@
 import type { DragEvent } from 'react';
 import { CheckToggle } from '@/app/components/ui/check-toggle';
 import { PriorityFlag, PRIORITY_COLORS } from '@/app/components/ui/priority-flag';
+import { formatDueLabel } from '@/app/lib/date-format';
 import type { TaskDTO } from './queries';
-
-function formatDueLabel(due: string | null, dueTime: number | null): string | null {
-  if (!due) return null;
-  const today = new Date().toISOString().slice(0, 10);
-  const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
-  let label = due === today ? 'Today' : due === tomorrow ? 'Tomorrow' : due.slice(5);
-  if (dueTime != null) {
-    const hours = Math.floor(dueTime / 60);
-    const minutes = dueTime % 60;
-    const period = hours < 12 ? 'AM' : 'PM';
-    const hours12 = hours % 12 === 0 ? 12 : hours % 12;
-    label += ` ${hours12}:${String(minutes).padStart(2, '0')}${period}`;
-  }
-  return label;
-}
 
 export interface TaskCardProps {
   task: TaskDTO;

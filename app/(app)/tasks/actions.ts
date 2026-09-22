@@ -4,31 +4,7 @@ import { prisma } from '@/app/lib/prisma';
 import { verifySession } from '@/app/lib/dal';
 import { revalidatePath } from 'next/cache';
 import type { Priority } from '@prisma/client';
-import type { TaskDTO } from './queries';
-
-function serializeTask(task: {
-  id: string;
-  text: string;
-  listId: string;
-  priority: Priority | null;
-  due: Date | null;
-  dueTime: number | null;
-  duration: number;
-  done: boolean;
-  order: number;
-}): TaskDTO {
-  return {
-    id: task.id,
-    text: task.text,
-    listId: task.listId,
-    priority: task.priority,
-    due: task.due ? task.due.toISOString().slice(0, 10) : null,
-    dueTime: task.dueTime,
-    duration: task.duration,
-    done: task.done,
-    order: task.order,
-  };
-}
+import { serializeTask, type TaskDTO } from '@/app/lib/task-dto';
 
 export async function createList(name: string): Promise<{ id: string; name: string; order: number }> {
   await verifySession();
