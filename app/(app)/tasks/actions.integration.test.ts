@@ -1,7 +1,7 @@
 /**
  * @vitest-environment node
  */
-import { describe, test, expect, afterEach, beforeAll, vi } from 'vitest';
+import { describe, test, expect, afterEach, beforeAll, beforeEach, vi } from 'vitest';
 
 // These are Server Actions: every one of them calls verifySession(), which
 // calls next/headers' cookies(). Outside an actual Next.js request (i.e.
@@ -25,15 +25,16 @@ vi.mock('next/navigation', () => ({
 
 // revalidatePath() also needs a Next.js request/render store that doesn't
 // exist under plain vitest ("static generation store missing"). Every
-// action calls it on success per the spec, so stub it out as a no-op here
+// action calls it on success per the spec, so stub it out as a spy here
 // rather than weakening the production code.
 vi.mock('next/cache', () => ({
-  revalidatePath: () => {},
+  revalidatePath: vi.fn(),
 }));
 
 import { prisma } from '@/app/lib/prisma';
 import { encryptSession } from '@/app/lib/session';
 import { SESSION_COOKIE_NAME } from '@/app/lib/session-cookie';
+import { revalidatePath } from 'next/cache';
 import {
   createList,
   deleteList,
@@ -49,6 +50,10 @@ describe('task/list server actions', () => {
   beforeAll(async () => {
     const token = await encryptSession({ sub: 'owner', expiresAt: Date.now() + 60_000 });
     cookieStore.set(SESSION_COOKIE_NAME, token);
+  });
+
+  beforeEach(() => {
+    vi.mocked(revalidatePath).mockClear();
   });
 
   afterEach(async () => {
@@ -148,5 +153,31 @@ describe('task/list server actions', () => {
     const t3 = await createTask({ text: 'ActionTest OrderTask3', listId: list.id });
     expect(t3.order).toBeGreaterThan(t2.order);
     await prisma.taskList.delete({ where: { id: list.id } });
+  });
+
+  test('deleteList, createTask, updateTask, deleteTask, and toggleTaskDone all revalidate /matrix in addition to /tasks', async () => {
+    const list = await createList('ActionTest RevalidateList');
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks');
+    expect(revalidatePath).not.toHaveBeenCalledWith('/matrix');
+
+    vi.mocked(revalidatePath).mockClear();
+    const task = await createTask({ text: 'ActionTest revalidate task', listId: list.id });
+    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+
+    vi.mocked(revalidatePath).mockClear();
+    await updateTask({ id: task.id, text: 'ActionTest revalidate task edited', listId: list.id, priority: null, due: null, dueTime: null });
+    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+
+    vi.mocked(revalidatePath).mockClear();
+    await toggleTaskDone(task.id);
+    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+
+    vi.mocked(revalidatePath).mockClear();
+    await deleteTask(task.id);
+    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+
+    vi.mocked(revalidatePath).mockClear();
+    await deleteList(list.id);
+    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
   });
 });

@@ -20,6 +20,7 @@ export async function deleteList(listId: string): Promise<void> {
   await verifySession();
   await prisma.taskList.delete({ where: { id: listId } });
   revalidatePath('/tasks');
+  revalidatePath('/matrix');
 }
 
 export async function reorderLists(orderedIds: string[]): Promise<void> {
@@ -44,6 +45,7 @@ export async function createTask(input: CreateTaskInput): Promise<TaskDTO> {
     data: { text: trimmed, listId: input.listId, order: (maxOrder._max.order ?? -1) + 1 },
   });
   revalidatePath('/tasks');
+  revalidatePath('/matrix');
   return serializeTask(task);
 }
 
@@ -71,6 +73,7 @@ export async function updateTask(input: UpdateTaskInput): Promise<TaskDTO> {
     },
   });
   revalidatePath('/tasks');
+  revalidatePath('/matrix');
   return serializeTask(task);
 }
 
@@ -78,6 +81,7 @@ export async function deleteTask(taskId: string): Promise<void> {
   await verifySession();
   await prisma.task.delete({ where: { id: taskId } });
   revalidatePath('/tasks');
+  revalidatePath('/matrix');
 }
 
 export async function toggleTaskDone(taskId: string): Promise<TaskDTO> {
@@ -85,6 +89,7 @@ export async function toggleTaskDone(taskId: string): Promise<TaskDTO> {
   const existing = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
   const task = await prisma.task.update({ where: { id: taskId }, data: { done: !existing.done } });
   revalidatePath('/tasks');
+  revalidatePath('/matrix');
   return serializeTask(task);
 }
 
