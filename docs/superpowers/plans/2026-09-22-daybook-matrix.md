@@ -1565,7 +1565,7 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run "app/(app)/matrix/matrix-board.test.tsx"`
-Expected: PASS, 8/8 tests.
+Expected: PASS, 9/9 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -1752,7 +1752,7 @@ touchDragTaskId={touchDragTaskId}
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run "app/(app)/matrix/matrix-board.test.tsx"`
-Expected: PASS, 13/13 tests (8 from Task 7 + 5 new touch tests).
+Expected: PASS, 14/14 tests (9 from Task 7 + 5 new touch tests).
 
 - [ ] **Step 5: Commit**
 
@@ -1986,7 +1986,7 @@ return (
 - [ ] **Step 8: Run tests to verify they pass**
 
 Run: `npx vitest run "app/(app)/matrix/matrix-board.test.tsx"`
-Expected: PASS, 16/16 tests (13 from Tasks 7–8 + 3 new responsive tests).
+Expected: PASS, 17/17 tests (14 from Tasks 7–8 + 3 new responsive tests).
 
 - [ ] **Step 9: Commit**
 
