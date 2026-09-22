@@ -2,16 +2,15 @@ import { render, screen } from '@testing-library/react';
 import { describe, test, expect } from 'vitest';
 import DashboardPage from './dashboard/page';
 import CalendarPage from './calendar/page';
-import MatrixPage from './matrix/page';
 import HabitsPage from './habits/page';
 import JournalPage from './journal/page';
 
-// Tasks is no longer a stub page (see ./tasks/page.tsx and ./tasks/tasks-board.test.tsx)
-// so it is intentionally excluded from this table-driven stub-page test.
+// Tasks and Matrix are no longer stub pages (see ./tasks/tasks-board.test.tsx
+// and ./matrix/matrix-board.test.tsx) so both are intentionally excluded from
+// this table-driven stub-page test.
 const pages: Array<{ Component: () => React.JSX.Element; heading: string }> = [
   { Component: DashboardPage, heading: 'Dashboard' },
   { Component: CalendarPage, heading: 'Calendar' },
-  { Component: MatrixPage, heading: 'Matrix' },
   { Component: HabitsPage, heading: 'Habits' },
   { Component: JournalPage, heading: 'Journal' },
 ];
