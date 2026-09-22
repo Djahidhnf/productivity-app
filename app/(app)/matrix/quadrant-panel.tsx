@@ -19,11 +19,13 @@ export interface QuadrantPanelProps {
   onOpen: (task: TaskDTO) => void;
   onTaskDragStart: (task: TaskDTO) => void;
   onDragOver: (event: DragEvent) => void;
+  onDragLeave?: (event: DragEvent) => void;
   onDrop: (event: DragEvent) => void;
   onTaskTouchStart: (task: TaskDTO, event: TouchEvent) => void;
   onTaskTouchMove: (event: TouchEvent) => void;
   onTaskTouchEnd: (event: TouchEvent) => void;
   touchDragTaskId: string | null;
+  isDropTarget?: boolean;
 }
 
 export function QuadrantPanel({
@@ -33,11 +35,13 @@ export function QuadrantPanel({
   onOpen,
   onTaskDragStart,
   onDragOver,
+  onDragLeave,
   onDrop,
   onTaskTouchStart,
   onTaskTouchMove,
   onTaskTouchEnd,
   touchDragTaskId,
+  isDropTarget = false,
 }: QuadrantPanelProps) {
   const { title, subtitle } = QUADRANT_INFO[priorityKey];
   const color = PRIORITY_COLORS[priorityKey];
@@ -46,13 +50,17 @@ export function QuadrantPanel({
     <div
       data-quad={priorityKey}
       onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
       onDrop={onDrop}
       style={{
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
         borderRadius: 'var(--radius-lg)',
-        border: `1px solid color-mix(in srgb, ${color} 30%, var(--border))`,
+        border: isDropTarget
+          ? `2px solid ${color}`
+          : `1px solid color-mix(in srgb, ${color} 30%, var(--border))`,
+        boxShadow: isDropTarget ? `0 0 0 2px color-mix(in srgb, ${color} 25%, transparent)` : 'none',
         background: `color-mix(in srgb, ${color} 5%, var(--surface))`,
       }}
     >

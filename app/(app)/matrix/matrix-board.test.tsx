@@ -217,6 +217,32 @@ describe('MatrixBoard mobile long-press drag', () => {
     fireEvent.touchEnd(card);
     expect(actions.updateTask).not.toHaveBeenCalled();
   });
+
+  test('a click on a different task right after a completed touch-drag does not open its edit dialog', () => {
+    const quadrantEl = document.createElement('div');
+    quadrantEl.setAttribute('data-quad', 'RED');
+    document.elementFromPoint = vi.fn().mockReturnValue(quadrantEl);
+
+    render(
+      <MatrixBoard
+        initialTasks={[makeTask(), makeTask({ id: 't2', text: 'Buy eggs' })]}
+        lists={lists}
+      />
+    );
+    const card = screen.getByText('Buy milk').closest('div')!;
+    fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
+    act(() => {
+      vi.advanceTimersByTime(280);
+    });
+    fireEvent.touchMove(card, { touches: [{ clientX: 10, clientY: 10 }] });
+    fireEvent.touchEnd(card);
+    expect(actions.updateTask).toHaveBeenCalledWith(expect.objectContaining({ id: 't1', priority: 'RED' }));
+
+    // A synthesized click landing on a different row right after the drag
+    // completed must not pop open that row's edit dialog.
+    fireEvent.click(screen.getByText('Buy eggs'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
 });
 
 describe('MatrixBoard responsive tabs', () => {
@@ -251,5 +277,31 @@ describe('MatrixBoard responsive tabs', () => {
     await userEvent.click(screen.getByRole('tab', { name: /Unflagged/ }));
     expect(screen.getByText('Unflagged')).toBeInTheDocument();
     expect(screen.queryByText('Do first')).not.toBeInTheDocument();
+  });
+
+  test('an engaged touch-drag shows both panels even though the Matrix tab is active', () => {
+    vi.useFakeTimers();
+    try {
+      mockNarrow(true);
+      render(<MatrixBoard initialTasks={[makeTask({ priority: 'RED' }), makeTask({ id: 't2', text: 'Buy eggs' })]} lists={lists} />);
+      // Default tab is 'matrix', so the Unflagged panel is not visible yet.
+      expect(screen.queryByText('Unflagged')).not.toBeInTheDocument();
+
+      const card = screen.getByText('Buy milk').closest('div')!;
+      fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
+      act(() => {
+        vi.advanceTimersByTime(280);
+      });
+
+      // Once the long-press has engaged (touchDragTaskId is set), both the
+      // quadrant grid and the Unflagged panel must be visible so the drag
+      // can reach either one.
+      expect(screen.getByText('Do first')).toBeInTheDocument();
+      expect(screen.getByText('Unflagged')).toBeInTheDocument();
+
+      fireEvent.touchEnd(card);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -52,4 +52,20 @@ describe('UnflaggedPanel', () => {
     fireEvent.drop(screen.getByText('Unflagged').closest('[data-quad]')!);
     expect(onDrop).toHaveBeenCalled();
   });
+
+  test('isDropTarget renders a stronger accent-colored border', () => {
+    const { rerender } = render(
+      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={false} />
+    );
+    // jsdom/jest-dom's toHaveStyle can't reliably resolve custom-property
+    // (`var(...)`) values inside a border shorthand, so assert the raw
+    // inline style string directly instead.
+    const container = screen.getByText('Unflagged').closest('[data-quad]')! as HTMLElement;
+    expect(container.style.borderLeft).toBe('1px solid var(--border)');
+
+    rerender(
+      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={true} />
+    );
+    expect(container.style.borderLeft).toBe('2px solid var(--accent)');
+  });
 });

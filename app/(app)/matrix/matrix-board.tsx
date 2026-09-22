@@ -40,6 +40,7 @@ function parseDueTime(value: string): number | null {
 export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [dragTaskId, setDragTaskId] = useState<string | null>(null);
+  const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ task: TaskDTO; values: TaskDialogValues } | null>(null);
   const isNarrow = useMediaQuery('(max-width: 860px)');
   const [activeTab, setActiveTab] = useState<'matrix' | 'unflagged'>('matrix');
@@ -47,11 +48,13 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
   const [touchHoverTarget, setTouchHoverTarget] = useState<string | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const justDraggedRef = useRef(false);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
     function clearDragState() {
       setDragTaskId(null);
+      setDragOverTarget(null);
     }
     window.addEventListener('dragend', clearDragState);
     return () => window.removeEventListener('dragend', clearDragState);
@@ -62,6 +65,15 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
       if (longPressTimer.current) clearTimeout(longPressTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!touchDragTaskId) return;
+    function preventScroll(event: globalThis.TouchEvent) {
+      event.preventDefault();
+    }
+    document.addEventListener('touchmove', preventScroll, { passive: false });
+    return () => document.removeEventListener('touchmove', preventScroll);
+  }, [touchDragTaskId]);
 
   function applyPriorityChange(taskId: string, priority: Priority | null) {
     const target = tasks.find((t) => t.id === taskId);
@@ -113,8 +125,10 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
       }
       return;
     }
-    // A long-press has engaged: this is now a drag, not a scroll.
-    event.preventDefault();
+    // Scroll suppression is handled by the native, non-passive touchmove
+    // listener effect above — React's synthetic onTouchMove is registered
+    // passively at the root (since React 17), so calling preventDefault()
+    // here would be a no-op.
     const target = (document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement | null)?.closest<HTMLElement>(
       '[data-quad]'
     );
@@ -130,6 +144,10 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
     if (touchDragTaskId && touchHoverTarget) {
       const priority = touchHoverTarget === 'none' ? null : (touchHoverTarget as Priority);
       applyPriorityChange(touchDragTaskId, priority);
+      justDraggedRef.current = true;
+      setTimeout(() => {
+        justDraggedRef.current = false;
+      }, 300);
     }
     setTouchDragTaskId(null);
     setTouchHoverTarget(null);
@@ -154,6 +172,7 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
   }
 
   function handleOpenTask(task: TaskDTO) {
+    if (justDraggedRef.current) return;
     setDialog({ task, values: taskToDialogValues(task) });
   }
 
@@ -215,7 +234,7 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
           />
         </div>
       )}
-      {(!isNarrow || activeTab === 'matrix') && (
+      {(!isNarrow || activeTab === 'matrix' || touchDragTaskId) && (
         <div className="pw-matrix-left pw-scroll" style={{ flex: 65, minWidth: 0, overflow: 'auto', padding: '0 var(--space-4) 24px clamp(16px, 3vw, 32px)' }}>
           <div className="pw-quadgrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-3)', alignContent: 'start' }}>
             {QUADRANT_KEYS.map((key) => (
@@ -226,35 +245,47 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
                 onToggleDone={handleToggleDone}
                 onOpen={handleOpenTask}
                 onTaskDragStart={(task) => setDragTaskId(task.id)}
-                onDragOver={(event: DragEvent) => event.preventDefault()}
+                onDragOver={(event: DragEvent) => {
+                  event.preventDefault();
+                  setDragOverTarget(key);
+                }}
+                onDragLeave={() => setDragOverTarget((prev) => (prev === key ? null : prev))}
                 onDrop={(event: DragEvent) => {
                   event.preventDefault();
                   handleDrop(key);
+                  setDragOverTarget(null);
                 }}
                 onTaskTouchStart={handleTaskTouchStart}
                 onTaskTouchMove={handleTaskTouchMove}
                 onTaskTouchEnd={handleTaskTouchEnd}
                 touchDragTaskId={touchDragTaskId}
+                isDropTarget={dragOverTarget === key || touchHoverTarget === key}
               />
             ))}
           </div>
         </div>
       )}
-      {(!isNarrow || activeTab === 'unflagged') && (
+      {(!isNarrow || activeTab === 'unflagged' || touchDragTaskId) && (
         <UnflaggedPanel
           tasks={groups.unflagged}
           onToggleDone={handleToggleDone}
           onOpen={handleOpenTask}
           onTaskDragStart={(task) => setDragTaskId(task.id)}
-          onDragOver={(event) => event.preventDefault()}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setDragOverTarget('none');
+          }}
+          onDragLeave={() => setDragOverTarget((prev) => (prev === 'none' ? null : prev))}
           onDrop={(event) => {
             event.preventDefault();
             handleDrop(null);
+            setDragOverTarget(null);
           }}
           onTaskTouchStart={handleTaskTouchStart}
           onTaskTouchMove={handleTaskTouchMove}
           onTaskTouchEnd={handleTaskTouchEnd}
           touchDragTaskId={touchDragTaskId}
+          isDropTarget={dragOverTarget === 'none' || touchHoverTarget === 'none'}
         />
       )}
       {dialog && (

@@ -63,4 +63,18 @@ describe('QuadrantPanel', () => {
     fireEvent.dragStart(screen.getByText('Buy milk').closest('div')!);
     expect(onTaskDragStart).toHaveBeenCalledWith(task);
   });
+
+  test('isDropTarget renders a stronger, opaque border and a highlight box-shadow', () => {
+    const { rerender } = render(
+      <QuadrantPanel priorityKey="RED" tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={false} />
+    );
+    const container = screen.getByText('Do first').closest('[data-quad]')!;
+    expect(container).toHaveStyle({ boxShadow: 'none' });
+
+    rerender(
+      <QuadrantPanel priorityKey="RED" tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={true} />
+    );
+    expect(container).toHaveStyle({ border: '2px solid #f87171' });
+    expect(container).not.toHaveStyle({ boxShadow: 'none' });
+  });
 });

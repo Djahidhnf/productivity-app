@@ -106,4 +106,5 @@ export async function reorderTasks(input: ReorderTasksInput): Promise<void> {
     )
   );
   revalidatePath('/tasks');
+  revalidatePath('/matrix');
 }

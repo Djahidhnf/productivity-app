@@ -173,6 +173,10 @@ describe('task/list server actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/matrix');
 
     vi.mocked(revalidatePath).mockClear();
+    await reorderTasks({ listId: list.id, orderedTaskIds: [task.id] });
+    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+
+    vi.mocked(revalidatePath).mockClear();
     await deleteTask(task.id);
     expect(revalidatePath).toHaveBeenCalledWith('/matrix');
 

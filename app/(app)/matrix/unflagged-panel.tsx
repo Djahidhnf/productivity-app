@@ -10,11 +10,13 @@ export interface UnflaggedPanelProps {
   onOpen: (task: TaskDTO) => void;
   onTaskDragStart: (task: TaskDTO) => void;
   onDragOver: (event: DragEvent) => void;
+  onDragLeave?: (event: DragEvent) => void;
   onDrop: (event: DragEvent) => void;
   onTaskTouchStart: (task: TaskDTO, event: TouchEvent) => void;
   onTaskTouchMove: (event: TouchEvent) => void;
   onTaskTouchEnd: (event: TouchEvent) => void;
   touchDragTaskId: string | null;
+  isDropTarget?: boolean;
 }
 
 export function UnflaggedPanel({
@@ -23,16 +25,19 @@ export function UnflaggedPanel({
   onOpen,
   onTaskDragStart,
   onDragOver,
+  onDragLeave,
   onDrop,
   onTaskTouchStart,
   onTaskTouchMove,
   onTaskTouchEnd,
   touchDragTaskId,
+  isDropTarget = false,
 }: UnflaggedPanelProps) {
   return (
     <aside
       data-quad="none"
       onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
       onDrop={onDrop}
       className="pw-matrix-right pw-scroll"
       style={{
@@ -40,7 +45,7 @@ export function UnflaggedPanel({
         minWidth: 0,
         overflow: 'auto',
         padding: '0 clamp(16px, 3vw, 32px) 24px var(--space-4)',
-        borderLeft: '1px solid var(--border)',
+        borderLeft: isDropTarget ? '2px solid var(--accent)' : '1px solid var(--border)',
         display: 'flex',
         flexDirection: 'column',
         gap: 6,
