@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
-import type { DragEvent } from 'react';
+import { useState, useEffect, useRef, useTransition } from 'react';
+import type { DragEvent, TouchEvent } from 'react';
 import type { Priority } from '@prisma/client';
 import { QuadrantPanel } from './quadrant-panel';
 import { UnflaggedPanel } from './unflagged-panel';
@@ -10,6 +10,9 @@ import { TaskDialog, type TaskDialogValues } from '../tasks/task-dialog';
 import { updateTask, deleteTask, toggleTaskDone } from '../tasks/actions';
 import type { TaskDTO } from './queries';
 import type { TaskListDTO } from '../tasks/queries';
+
+const LONG_PRESS_MS = 280;
+const TOUCH_MOVE_CANCEL_PX = 10;
 
 const QUADRANT_KEYS: Priority[] = ['RED', 'AMBER', 'BLUE', 'GREEN'];
 
@@ -36,6 +39,11 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [dragTaskId, setDragTaskId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ task: TaskDTO; values: TaskDialogValues } | null>(null);
+  const [touchDragTaskId, setTouchDragTaskId] = useState<string | null>(null);
+  const [touchHoverTarget, setTouchHoverTarget] = useState<string | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const touchDragRef = useRef<string | null>(null);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -44,6 +52,12 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
     }
     window.addEventListener('dragend', clearDragState);
     return () => window.removeEventListener('dragend', clearDragState);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    };
   }, []);
 
   function applyPriorityChange(taskId: string, priority: Priority | null) {
@@ -72,6 +86,52 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
     if (!dragTaskId) return;
     applyPriorityChange(dragTaskId, priority);
     setDragTaskId(null);
+  }
+
+  function handleTaskTouchStart(task: TaskDTO, event: TouchEvent) {
+    const touch = event.touches[0];
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+    longPressTimer.current = setTimeout(() => {
+      touchDragRef.current = task.id;
+      setTouchDragTaskId(task.id);
+      navigator.vibrate?.(10);
+    }, LONG_PRESS_MS);
+  }
+
+  function handleTaskTouchMove(event: TouchEvent) {
+    const touch = event.touches[0];
+    if (!touchDragRef.current) {
+      if (touchStartPos.current && longPressTimer.current) {
+        const dx = touch.clientX - touchStartPos.current.x;
+        const dy = touch.clientY - touchStartPos.current.y;
+        if (Math.hypot(dx, dy) > TOUCH_MOVE_CANCEL_PX) {
+          clearTimeout(longPressTimer.current);
+          longPressTimer.current = null;
+        }
+      }
+      return;
+    }
+    // A long-press has engaged: this is now a drag, not a scroll.
+    event.preventDefault();
+    const target = (document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement | null)?.closest<HTMLElement>(
+      '[data-quad]'
+    );
+    setTouchHoverTarget(target?.dataset.quad ?? null);
+  }
+
+  function handleTaskTouchEnd() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    touchStartPos.current = null;
+    if (touchDragRef.current && touchHoverTarget) {
+      const priority = touchHoverTarget === 'none' ? null : (touchHoverTarget as Priority);
+      applyPriorityChange(touchDragRef.current, priority);
+    }
+    touchDragRef.current = null;
+    setTouchDragTaskId(null);
+    setTouchHoverTarget(null);
   }
 
   function handleToggleDone(taskId: string) {
@@ -156,10 +216,10 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
                 event.preventDefault();
                 handleDrop(key);
               }}
-              onTaskTouchStart={() => {}}
-              onTaskTouchMove={() => {}}
-              onTaskTouchEnd={() => {}}
-              touchDragTaskId={null}
+              onTaskTouchStart={handleTaskTouchStart}
+              onTaskTouchMove={handleTaskTouchMove}
+              onTaskTouchEnd={handleTaskTouchEnd}
+              touchDragTaskId={touchDragTaskId}
             />
           ))}
         </div>
@@ -174,10 +234,10 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
           event.preventDefault();
           handleDrop(null);
         }}
-        onTaskTouchStart={() => {}}
-        onTaskTouchMove={() => {}}
-        onTaskTouchEnd={() => {}}
-        touchDragTaskId={null}
+        onTaskTouchStart={handleTaskTouchStart}
+        onTaskTouchMove={handleTaskTouchMove}
+        onTaskTouchEnd={handleTaskTouchEnd}
+        touchDragTaskId={touchDragTaskId}
       />
       {dialog && (
         <TaskDialog

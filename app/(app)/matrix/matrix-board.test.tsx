@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MatrixBoard } from './matrix-board';
 import type { TaskDTO } from './queries';
 import type { TaskListDTO } from '../tasks/queries';
@@ -133,5 +133,71 @@ describe('MatrixBoard', () => {
       expect(screen.getByText('Unflagged').closest('[data-quad]')).toContainElement(screen.getByText('Buy milk'));
     });
     expect(alertSpy).toHaveBeenCalled();
+  });
+});
+
+describe('MatrixBoard mobile long-press drag', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test('a long press (280ms) followed by a release over a quadrant sets the new priority', () => {
+    const quadrantEl = document.createElement('div');
+    quadrantEl.setAttribute('data-quad', 'RED');
+    document.elementFromPoint = vi.fn().mockReturnValue(quadrantEl);
+
+    render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
+    const card = screen.getByText('Buy milk').closest('div')!;
+    fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
+    vi.advanceTimersByTime(280);
+    fireEvent.touchMove(card, { touches: [{ clientX: 10, clientY: 10 }] });
+    fireEvent.touchEnd(card);
+
+    expect(actions.updateTask).toHaveBeenCalledWith(expect.objectContaining({ id: 't1', priority: 'RED' }));
+  });
+
+  test('releasing before 280ms does not trigger a drag (acts as a normal tap)', () => {
+    render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
+    const card = screen.getByText('Buy milk').closest('div')!;
+    fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
+    vi.advanceTimersByTime(100);
+    fireEvent.touchEnd(card);
+    expect(actions.updateTask).not.toHaveBeenCalled();
+  });
+
+  test('moving more than 10px before 280ms cancels the long-press (treated as a scroll)', () => {
+    render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
+    const card = screen.getByText('Buy milk').closest('div')!;
+    fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
+    fireEvent.touchMove(card, { touches: [{ clientX: 30, clientY: 10 }] });
+    vi.advanceTimersByTime(280);
+    fireEvent.touchEnd(card);
+    expect(actions.updateTask).not.toHaveBeenCalled();
+  });
+
+  test('calls navigator.vibrate when the long-press engages', () => {
+    const vibrateSpy = vi.fn();
+    Object.defineProperty(navigator, 'vibrate', { value: vibrateSpy, configurable: true });
+    render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
+    const card = screen.getByText('Buy milk').closest('div')!;
+    fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
+    vi.advanceTimersByTime(280);
+    expect(vibrateSpy).toHaveBeenCalledWith(10);
+    fireEvent.touchEnd(card);
+  });
+
+  test('releasing over no valid target does not change the task', () => {
+    document.elementFromPoint = vi.fn().mockReturnValue(null);
+    render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
+    const card = screen.getByText('Buy milk').closest('div')!;
+    fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
+    vi.advanceTimersByTime(280);
+    fireEvent.touchMove(card, { touches: [{ clientX: 10, clientY: 10 }] });
+    fireEvent.touchEnd(card);
+    expect(actions.updateTask).not.toHaveBeenCalled();
   });
 });
