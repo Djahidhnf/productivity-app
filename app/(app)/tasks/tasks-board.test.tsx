@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { TasksBoard } from './tasks-board';
@@ -55,6 +55,7 @@ function makeLists(): TaskListDTO[] {
       order: 0,
       tasks: [
         { id: 't1', text: 'Buy milk', listId: 'list1', priority: null, due: null, dueTime: null, duration: 60, done: false, order: 0 },
+        { id: 't2', text: 'Buy eggs', listId: 'list1', priority: null, due: null, dueTime: null, duration: 60, done: false, order: 1 },
       ],
     },
   ];
@@ -81,7 +82,7 @@ describe('TasksBoard', () => {
 
   test('toggling a task calls toggleTaskDone optimistically', async () => {
     render(<TasksBoard initialLists={makeLists()} />);
-    await userEvent.click(screen.getByRole('checkbox'));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Buy milk' }));
     expect(actions.toggleTaskDone).toHaveBeenCalledWith('t1');
     expect(screen.getByText('Buy milk')).toHaveStyle({ textDecoration: 'line-through' });
   });
@@ -124,5 +125,33 @@ describe('TasksBoard', () => {
     const column = screen.getByText('Work').closest('.pw-list-col') as HTMLElement;
     fireEvent.drop(column);
     expect(actions.reorderTasks).not.toHaveBeenCalled();
+  });
+
+  test('a failed toggle reverts the optimistic update and alerts the user', async () => {
+    vi.mocked(actions.toggleTaskDone).mockRejectedValueOnce(new Error('network error'));
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    render(<TasksBoard initialLists={makeLists()} />);
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Buy milk' }));
+    await waitFor(() => {
+      expect(screen.getByText('Buy milk')).not.toHaveStyle({ textDecoration: 'line-through' });
+    });
+    expect(alertSpy).toHaveBeenCalled();
+  });
+
+  test('dragging a task onto another reorders them within the list', () => {
+    render(<TasksBoard initialLists={makeLists()} />);
+    const dragged = screen.getByText('Buy eggs').closest('div')!;
+    const target = screen.getByText('Buy milk').closest('div')!;
+    fireEvent.dragStart(dragged);
+    fireEvent.drop(target);
+    expect(actions.reorderTasks).toHaveBeenCalledWith({ listId: 'list1', orderedTaskIds: ['t2', 't1'] });
+  });
+
+  test('dragging a task onto itself is a no-op (does not move it to the end)', () => {
+    render(<TasksBoard initialLists={makeLists()} />);
+    const card = screen.getByText('Buy milk').closest('div')!;
+    fireEvent.dragStart(card);
+    fireEvent.drop(card);
+    expect(actions.reorderTasks).toHaveBeenCalledWith({ listId: 'list1', orderedTaskIds: ['t1', 't2'] });
   });
 });

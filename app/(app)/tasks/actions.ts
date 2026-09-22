@@ -34,8 +34,8 @@ export async function createList(name: string): Promise<{ id: string; name: stri
   await verifySession();
   const trimmed = name.trim();
   if (!trimmed) throw new Error('List name is required');
-  const count = await prisma.taskList.count();
-  const list = await prisma.taskList.create({ data: { name: trimmed, order: count } });
+  const maxOrder = await prisma.taskList.aggregate({ _max: { order: true } });
+  const list = await prisma.taskList.create({ data: { name: trimmed, order: (maxOrder._max.order ?? -1) + 1 } });
   revalidatePath('/tasks');
   return { id: list.id, name: list.name, order: list.order };
 }
@@ -63,8 +63,10 @@ export async function createTask(input: CreateTaskInput): Promise<TaskDTO> {
   await verifySession();
   const trimmed = input.text.trim();
   if (!trimmed) throw new Error('Task text is required');
-  const count = await prisma.task.count({ where: { listId: input.listId } });
-  const task = await prisma.task.create({ data: { text: trimmed, listId: input.listId, order: count } });
+  const maxOrder = await prisma.task.aggregate({ where: { listId: input.listId }, _max: { order: true } });
+  const task = await prisma.task.create({
+    data: { text: trimmed, listId: input.listId, order: (maxOrder._max.order ?? -1) + 1 },
+  });
   revalidatePath('/tasks');
   return serializeTask(task);
 }

@@ -10,6 +10,7 @@ export function moveTaskInLists(
   targetListId: string,
   targetTaskId: string | null
 ): TaskListDTO[] {
+  if (draggedTaskId === targetTaskId) return lists;
   const sourceList = lists.find((l) => l.tasks.some((t) => t.id === draggedTaskId));
   if (!sourceList) return lists;
   const draggedTask = sourceList.tasks.find((t) => t.id === draggedTaskId)!;

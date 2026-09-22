@@ -1,4 +1,6 @@
-﻿import { prisma } from '@/app/lib/prisma';
+import 'server-only';
+import { prisma } from '@/app/lib/prisma';
+import { verifySession } from '@/app/lib/dal';
 import type { Priority } from '@prisma/client';
 
 export interface TaskDTO {
@@ -26,6 +28,7 @@ function toDateKey(date: Date | null): string | null {
 }
 
 export async function getTaskLists(): Promise<TaskListDTO[]> {
+  await verifySession();
   const lists = await prisma.taskList.findMany({
     orderBy: { order: 'asc' },
     include: { tasks: { orderBy: { order: 'asc' } } },

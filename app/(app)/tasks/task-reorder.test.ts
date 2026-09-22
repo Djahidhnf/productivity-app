@@ -43,6 +43,12 @@ describe('moveTaskInLists', () => {
     const result = moveTaskInLists(lists, 'nonexistent', 'listA', null);
     expect(result).toBe(lists);
   });
+
+  test('is a no-op when dropping a task back onto itself', () => {
+    const lists = makeLists();
+    const result = moveTaskInLists(lists, 't1', 'listA', 't1');
+    expect(result).toBe(lists);
+  });
 });
 
 describe('moveListInLists', () => {

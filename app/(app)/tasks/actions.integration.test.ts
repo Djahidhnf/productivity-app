@@ -57,10 +57,19 @@ describe('task/list server actions', () => {
   });
 
   test('createList creates a list at the next order position', async () => {
-    const before = await prisma.taskList.count();
+    const maxBefore = await prisma.taskList.aggregate({ _max: { order: true } });
     const list = await createList('ActionTest List');
     expect(list.name).toBe('ActionTest List');
-    expect(list.order).toBe(before);
+    expect(list.order).toBe((maxBefore._max.order ?? -1) + 1);
+  });
+
+  test('createList assigns an order past the current max, even after a mid-sequence delete', async () => {
+    const a = await createList('ActionTest OrderA');
+    const b = await createList('ActionTest OrderB');
+    await deleteList(a.id);
+    const c = await createList('ActionTest OrderC');
+    expect(c.order).toBeGreaterThan(b.order);
+    await prisma.taskList.deleteMany({ where: { id: { in: [b.id, c.id] } } });
   });
 
   test('deleteList cascades to delete its tasks', async () => {
@@ -129,5 +138,15 @@ describe('task/list server actions', () => {
 
     await prisma.task.deleteMany({ where: { id: { in: [t1.id, t2.id] } } });
     await prisma.taskList.deleteMany({ where: { id: { in: [listA.id, listB.id] } } });
+  });
+
+  test('createTask assigns an order past the current max within a list, even after a mid-sequence delete', async () => {
+    const list = await createList('ActionTest OrderTaskList');
+    const t1 = await createTask({ text: 'ActionTest OrderTask1', listId: list.id });
+    const t2 = await createTask({ text: 'ActionTest OrderTask2', listId: list.id });
+    await deleteTask(t1.id);
+    const t3 = await createTask({ text: 'ActionTest OrderTask3', listId: list.id });
+    expect(t3.order).toBeGreaterThan(t2.order);
+    await prisma.taskList.delete({ where: { id: list.id } });
   });
 });

@@ -60,11 +60,17 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
   }, []);
 
   function handleToggleDone(taskId: string) {
+    const prevLists = lists;
     setLists((prev) =>
       prev.map((list) => ({ ...list, tasks: list.tasks.map((t) => (t.id === taskId ? { ...t, done: !t.done } : t)) }))
     );
-    startTransition(() => {
-      toggleTaskDone(taskId);
+    startTransition(async () => {
+      try {
+        await toggleTaskDone(taskId);
+      } catch {
+        setLists(prevLists);
+        window.alert('Could not update the task. Please try again.');
+      }
     });
   }
 
@@ -74,23 +80,39 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
 
   function handleQuickAdd(listId: string, text: string) {
     startTransition(async () => {
-      const task = await createTask({ text, listId });
-      setLists((prev) => prev.map((list) => (list.id === listId ? { ...list, tasks: [...list.tasks, task] } : list)));
+      try {
+        const task = await createTask({ text, listId });
+        setLists((prev) =>
+          prev.map((list) => (list.id === listId ? { ...list, tasks: [...list.tasks, task] } : list))
+        );
+      } catch {
+        window.alert('Could not add the task. Please try again.');
+      }
     });
   }
 
   function handleDeleteList(listId: string) {
     if (!confirm('Delete this list and all its tasks?')) return;
+    const prevLists = lists;
     setLists((prev) => prev.filter((l) => l.id !== listId));
-    startTransition(() => {
-      deleteList(listId);
+    startTransition(async () => {
+      try {
+        await deleteList(listId);
+      } catch {
+        setLists(prevLists);
+        window.alert('Could not delete the list. Please try again.');
+      }
     });
   }
 
   function handleCreateList(name: string) {
     startTransition(async () => {
-      const list = await createList(name);
-      setLists((prev) => [...prev, { ...list, tasks: [] }]);
+      try {
+        const list = await createList(name);
+        setLists((prev) => [...prev, { ...list, tasks: [] }]);
+      } catch {
+        window.alert('Could not create the list. Please try again.');
+      }
     });
   }
 
@@ -99,23 +121,32 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
     const taskId = dialog.task.id;
     const dueTime = parseDueTime(values.dueTime);
     startTransition(async () => {
-      const updated = await updateTask({
-        id: taskId,
-        text: values.text,
-        listId: values.listId,
-        priority: values.priority,
-        due: values.due || null,
-        dueTime,
-      });
-      setLists((prev) =>
-        prev.map((list) => ({
-          ...list,
-          tasks:
-            list.id === updated.listId
-              ? [...list.tasks.filter((t) => t.id !== taskId), updated]
-              : list.tasks.filter((t) => t.id !== taskId),
-        }))
-      );
+      try {
+        const updated = await updateTask({
+          id: taskId,
+          text: values.text,
+          listId: values.listId,
+          priority: values.priority,
+          due: values.due || null,
+          dueTime,
+        });
+        setLists((prev) =>
+          prev.map((list) => {
+            if (list.id === updated.listId) {
+              const hasTask = list.tasks.some((t) => t.id === taskId);
+              return {
+                ...list,
+                tasks: hasTask
+                  ? list.tasks.map((t) => (t.id === taskId ? updated : t))
+                  : [...list.tasks, updated],
+              };
+            }
+            return { ...list, tasks: list.tasks.filter((t) => t.id !== taskId) };
+          })
+        );
+      } catch {
+        window.alert('Could not save the task. Please try again.');
+      }
     });
     setDialog(null);
   }
@@ -123,9 +154,15 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
   function handleDeleteFromDialog() {
     if (!dialog?.task) return;
     const taskId = dialog.task.id;
+    const prevLists = lists;
     setLists((prev) => prev.map((list) => ({ ...list, tasks: list.tasks.filter((t) => t.id !== taskId) })));
-    startTransition(() => {
-      deleteTask(taskId);
+    startTransition(async () => {
+      try {
+        await deleteTask(taskId);
+      } catch {
+        setLists(prevLists);
+        window.alert('Could not delete the task. Please try again.');
+      }
     });
     setDialog(null);
   }
@@ -135,25 +172,37 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
     const sourceList = lists.find((l) => l.tasks.some((t) => t.id === dragTaskId));
     if (!sourceList) return;
     const sourceListId = sourceList.id;
+    const prevLists = lists;
 
     const next = moveTaskInLists(lists, dragTaskId, targetListId, targetTaskId);
     setLists(next);
 
-    startTransition(() => {
-      if (sourceListId !== targetListId) {
-        reorderTasks({ listId: sourceListId, orderedTaskIds: taskIdsForList(next, sourceListId) });
+    startTransition(async () => {
+      try {
+        if (sourceListId !== targetListId) {
+          await reorderTasks({ listId: sourceListId, orderedTaskIds: taskIdsForList(next, sourceListId) });
+        }
+        await reorderTasks({ listId: targetListId, orderedTaskIds: taskIdsForList(next, targetListId) });
+      } catch {
+        setLists(prevLists);
+        window.alert('Could not save the new order. Please try again.');
       }
-      reorderTasks({ listId: targetListId, orderedTaskIds: taskIdsForList(next, targetListId) });
     });
     setDragTaskId(null);
   }
 
   function handleColumnDrop(targetListId: string) {
     if (!dragListId) return;
+    const prevLists = lists;
     const next = moveListInLists(lists, dragListId, targetListId);
     setLists(next);
-    startTransition(() => {
-      reorderLists(next.map((l) => l.id));
+    startTransition(async () => {
+      try {
+        await reorderLists(next.map((l) => l.id));
+      } catch {
+        setLists(prevLists);
+        window.alert('Could not save the new order. Please try again.');
+      }
     });
     setDragListId(null);
   }
