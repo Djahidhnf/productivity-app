@@ -153,7 +153,9 @@ describe('MatrixBoard mobile long-press drag', () => {
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
     const card = screen.getByText('Buy milk').closest('div')!;
     fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
-    vi.advanceTimersByTime(280);
+    act(() => {
+      vi.advanceTimersByTime(280);
+    });
     fireEvent.touchMove(card, { touches: [{ clientX: 10, clientY: 10 }] });
     fireEvent.touchEnd(card);
 
@@ -185,7 +187,9 @@ describe('MatrixBoard mobile long-press drag', () => {
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
     const card = screen.getByText('Buy milk').closest('div')!;
     fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
-    vi.advanceTimersByTime(280);
+    act(() => {
+      vi.advanceTimersByTime(280);
+    });
     expect(vibrateSpy).toHaveBeenCalledWith(10);
     fireEvent.touchEnd(card);
   });
@@ -195,7 +199,9 @@ describe('MatrixBoard mobile long-press drag', () => {
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
     const card = screen.getByText('Buy milk').closest('div')!;
     fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
-    vi.advanceTimersByTime(280);
+    act(() => {
+      vi.advanceTimersByTime(280);
+    });
     fireEvent.touchMove(card, { touches: [{ clientX: 10, clientY: 10 }] });
     fireEvent.touchEnd(card);
     expect(actions.updateTask).not.toHaveBeenCalled();

@@ -43,7 +43,6 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
   const [touchHoverTarget, setTouchHoverTarget] = useState<string | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
-  const touchDragRef = useRef<string | null>(null);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -92,7 +91,6 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
     const touch = event.touches[0];
     touchStartPos.current = { x: touch.clientX, y: touch.clientY };
     longPressTimer.current = setTimeout(() => {
-      touchDragRef.current = task.id;
       setTouchDragTaskId(task.id);
       navigator.vibrate?.(10);
     }, LONG_PRESS_MS);
@@ -100,7 +98,7 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
 
   function handleTaskTouchMove(event: TouchEvent) {
     const touch = event.touches[0];
-    if (!touchDragRef.current) {
+    if (!touchDragTaskId) {
       if (touchStartPos.current && longPressTimer.current) {
         const dx = touch.clientX - touchStartPos.current.x;
         const dy = touch.clientY - touchStartPos.current.y;
@@ -125,11 +123,10 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
       longPressTimer.current = null;
     }
     touchStartPos.current = null;
-    if (touchDragRef.current && touchHoverTarget) {
+    if (touchDragTaskId && touchHoverTarget) {
       const priority = touchHoverTarget === 'none' ? null : (touchHoverTarget as Priority);
-      applyPriorityChange(touchDragRef.current, priority);
+      applyPriorityChange(touchDragTaskId, priority);
     }
-    touchDragRef.current = null;
     setTouchDragTaskId(null);
     setTouchHoverTarget(null);
   }
