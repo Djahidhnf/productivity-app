@@ -50,8 +50,19 @@ function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
 
 const lists: TaskListDTO[] = [{ id: 'list1', name: 'Work', order: 0, tasks: [] }];
 
+function stubMatchMedia(matches: boolean) {
+  const mockMql = {
+    matches,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  };
+  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue(mockMql));
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  // Mock matchMedia as wide by default for existing tests
+  stubMatchMedia(false);
 });
 
 describe('MatrixBoard', () => {
@@ -205,5 +216,40 @@ describe('MatrixBoard mobile long-press drag', () => {
     fireEvent.touchMove(card, { touches: [{ clientX: 10, clientY: 10 }] });
     fireEvent.touchEnd(card);
     expect(actions.updateTask).not.toHaveBeenCalled();
+  });
+});
+
+describe('MatrixBoard responsive tabs', () => {
+  function mockNarrow(matches: boolean) {
+    stubMatchMedia(matches);
+  }
+
+  afterEach(() => {
+    // Restore to wide state (matches: false) for other tests
+    stubMatchMedia(false);
+  });
+
+  test('shows both panels with no tab switcher when wide', () => {
+    mockNarrow(false);
+    render(<MatrixBoard initialTasks={[makeTask({ priority: 'RED' }), makeTask({ id: 't2', text: 'Buy eggs' })]} lists={lists} />);
+    expect(screen.getByText('Do first')).toBeInTheDocument();
+    expect(screen.getByText('Unflagged')).toBeInTheDocument();
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+  });
+
+  test('shows only the Matrix tab content by default when narrow', () => {
+    mockNarrow(true);
+    render(<MatrixBoard initialTasks={[makeTask({ priority: 'RED' }), makeTask({ id: 't2', text: 'Buy eggs' })]} lists={lists} />);
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(screen.getByText('Do first')).toBeInTheDocument();
+    expect(screen.queryByText('Unflagged')).not.toBeInTheDocument();
+  });
+
+  test('switching to the Unflagged tab shows the unflagged panel instead', async () => {
+    mockNarrow(true);
+    render(<MatrixBoard initialTasks={[makeTask({ priority: 'RED' }), makeTask({ id: 't2', text: 'Buy eggs' })]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: /Unflagged/ }));
+    expect(screen.getByText('Unflagged')).toBeInTheDocument();
+    expect(screen.queryByText('Do first')).not.toBeInTheDocument();
   });
 });

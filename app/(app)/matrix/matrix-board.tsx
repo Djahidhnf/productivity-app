@@ -8,6 +8,8 @@ import { UnflaggedPanel } from './unflagged-panel';
 import { groupTasksByPriority } from './matrix-groups';
 import { TaskDialog, type TaskDialogValues } from '../tasks/task-dialog';
 import { updateTask, deleteTask, toggleTaskDone } from '../tasks/actions';
+import { PillToggle } from '@/app/components/ui/pill-toggle';
+import { useMediaQuery } from '@/app/lib/use-media-query';
 import type { TaskDTO } from './queries';
 import type { TaskListDTO } from '../tasks/queries';
 
@@ -39,6 +41,8 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [dragTaskId, setDragTaskId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ task: TaskDTO; values: TaskDialogValues } | null>(null);
+  const isNarrow = useMediaQuery('(max-width: 860px)');
+  const [activeTab, setActiveTab] = useState<'matrix' | 'unflagged'>('matrix');
   const [touchDragTaskId, setTouchDragTaskId] = useState<string | null>(null);
   const [touchHoverTarget, setTouchHoverTarget] = useState<string | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -198,44 +202,61 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
 
   return (
     <div className="pw-matrix">
-      <div className="pw-matrix-left pw-scroll" style={{ flex: 65, minWidth: 0, overflow: 'auto', padding: '0 var(--space-4) 24px clamp(16px, 3vw, 32px)' }}>
-        <div className="pw-quadgrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-3)', alignContent: 'start' }}>
-          {QUADRANT_KEYS.map((key) => (
-            <QuadrantPanel
-              key={key}
-              priorityKey={key}
-              tasks={groups[key]}
-              onToggleDone={handleToggleDone}
-              onOpen={handleOpenTask}
-              onTaskDragStart={(task) => setDragTaskId(task.id)}
-              onDragOver={(event: DragEvent) => event.preventDefault()}
-              onDrop={(event: DragEvent) => {
-                event.preventDefault();
-                handleDrop(key);
-              }}
-              onTaskTouchStart={handleTaskTouchStart}
-              onTaskTouchMove={handleTaskTouchMove}
-              onTaskTouchEnd={handleTaskTouchEnd}
-              touchDragTaskId={touchDragTaskId}
-            />
-          ))}
+      {isNarrow && (
+        <div style={{ display: 'flex', gap: 6, padding: '0 12px 10px', flex: 'none' }}>
+          <PillToggle
+            ariaLabel="Matrix view"
+            value={activeTab}
+            onChange={setActiveTab}
+            options={[
+              { value: 'matrix', label: 'Matrix' },
+              { value: 'unflagged', label: `Unflagged · ${groups.unflagged.length}` },
+            ]}
+          />
         </div>
-      </div>
-      <UnflaggedPanel
-        tasks={groups.unflagged}
-        onToggleDone={handleToggleDone}
-        onOpen={handleOpenTask}
-        onTaskDragStart={(task) => setDragTaskId(task.id)}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          handleDrop(null);
-        }}
-        onTaskTouchStart={handleTaskTouchStart}
-        onTaskTouchMove={handleTaskTouchMove}
-        onTaskTouchEnd={handleTaskTouchEnd}
-        touchDragTaskId={touchDragTaskId}
-      />
+      )}
+      {(!isNarrow || activeTab === 'matrix') && (
+        <div className="pw-matrix-left pw-scroll" style={{ flex: 65, minWidth: 0, overflow: 'auto', padding: '0 var(--space-4) 24px clamp(16px, 3vw, 32px)' }}>
+          <div className="pw-quadgrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 'var(--space-3)', alignContent: 'start' }}>
+            {QUADRANT_KEYS.map((key) => (
+              <QuadrantPanel
+                key={key}
+                priorityKey={key}
+                tasks={groups[key]}
+                onToggleDone={handleToggleDone}
+                onOpen={handleOpenTask}
+                onTaskDragStart={(task) => setDragTaskId(task.id)}
+                onDragOver={(event: DragEvent) => event.preventDefault()}
+                onDrop={(event: DragEvent) => {
+                  event.preventDefault();
+                  handleDrop(key);
+                }}
+                onTaskTouchStart={handleTaskTouchStart}
+                onTaskTouchMove={handleTaskTouchMove}
+                onTaskTouchEnd={handleTaskTouchEnd}
+                touchDragTaskId={touchDragTaskId}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      {(!isNarrow || activeTab === 'unflagged') && (
+        <UnflaggedPanel
+          tasks={groups.unflagged}
+          onToggleDone={handleToggleDone}
+          onOpen={handleOpenTask}
+          onTaskDragStart={(task) => setDragTaskId(task.id)}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            handleDrop(null);
+          }}
+          onTaskTouchStart={handleTaskTouchStart}
+          onTaskTouchMove={handleTaskTouchMove}
+          onTaskTouchEnd={handleTaskTouchEnd}
+          touchDragTaskId={touchDragTaskId}
+        />
+      )}
       {dialog && (
         <TaskDialog
           open
