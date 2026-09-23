@@ -1566,9 +1566,19 @@ function makeHabit(overrides: Partial<HabitDTO> = {}): HabitDTO {
   };
 }
 
+// jsdom has no window.matchMedia; HabitsBoard calls useMediaQuery directly
+// (unlike HabitList/HabitDetail, which receive isNarrow as a prop), so this
+// file needs the same stub already used identically in matrix-board.test.tsx
+// and calendar-board.test.tsx for the same hook/breakpoint.
+function stubMatchMedia(matches: boolean) {
+  const mockMql = { matches, addEventListener: vi.fn(), removeEventListener: vi.fn() };
+  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue(mockMql));
+}
+
 describe('HabitsBoard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    stubMatchMedia(false);
     window.alert = vi.fn();
   });
 
@@ -1628,7 +1638,10 @@ describe('HabitsBoard', () => {
   test('reordering via drag calls reorderHabits with the new order, reverting on failure', async () => {
     vi.mocked(actions.reorderHabits).mockRejectedValue(new Error('boom'));
     render(<HabitsBoard initialHabits={[makeHabit({ id: 'a', name: 'A', order: 0 }), makeHabit({ id: 'b', name: 'B', order: 1 })]} />);
-    const cardA = screen.getByText('A').closest('div[draggable]')!;
+    // Habit 'a' is auto-selected (first habit), so "A" renders twice — once in
+    // its HabitList card, once in HabitDetail's header — while "B" (unselected)
+    // renders only once. Disambiguate A's card by its draggable ancestor.
+    const cardA = screen.getAllByText('A').map((el) => el.closest('div[draggable]')).find(Boolean)!;
     const cardB = screen.getByText('B').closest('div[draggable]')!;
     fireEvent.dragStart(cardA);
     fireEvent.drop(cardB);
