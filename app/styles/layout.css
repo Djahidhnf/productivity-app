@@ -41,7 +41,7 @@ a:hover { color: var(--accent-hover); }
 }
 @media (max-width: 1100px) {
   .pw-today-grid { grid-template-columns: 1fr 1fr; }
-  .pw-journal-grid { grid-template-columns: minmax(0, 1fr); }
+  .pw-journal-grid { grid-template-columns: minmax(0, 1fr) !important; }
 }
 @media (max-width: 860px) {
   :root { --pw-top: 18px; --pw-bottom: 76px; }

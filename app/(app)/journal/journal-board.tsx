@@ -6,7 +6,7 @@ import { JournalHeader } from './journal-header';
 import { JournalEditor } from './journal-editor';
 import { JournalHistory } from './journal-history';
 import { buildJournalHistory } from './journal-views';
-import { saveJournalEntry } from './actions';
+import { saveJournalEntry, type SaveJournalEntryInput } from './actions';
 import { todayKey as getTodayKey } from '@/app/lib/date-format';
 import { addDays, calendarDateLabel } from '@/app/lib/calendar-dates';
 import type { JournalEntryDTO } from './queries';
@@ -23,7 +23,7 @@ export function JournalBoard({ initialEntries }: JournalBoardProps) {
   );
   const [journalDate, setJournalDate] = useState(() => getTodayKey());
 
-  const pendingSaveRef = useRef<{ date: string; text: string; mood: Mood } | null>(null);
+  const pendingSaveRef = useRef<SaveJournalEntryInput | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const flushPendingSave = useCallback(() => {
