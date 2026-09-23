@@ -23,6 +23,7 @@
 - **Calendar does not exclude done tasks** (unlike Matrix). A task completed on its scheduled day still shows there, with the same strikethrough/dimmed treatment already used by `TaskCard`/`MatrixTaskRow`.
 - **Drag identity lives in React state, not `DataTransfer`.** Matches the established, twice-proven-testable pattern from the Tasks and Matrix phases (`fireEvent.dragStart`/`fireEvent.drop` work fine against React state; no real `DataTransfer.setData`/`getData()` needed).
 - **`clientY`/`clientX` are not deliverable on synthetic `DragEvent`s in this project's test environment.** Verified directly before this plan was written: `createEvent.drop(el, { clientY: 342 })` produces a plain `Event` (not even a `MouseEvent` subclass) in this project's jsdom version, so `event.clientY` reads back `undefined` inside the handler no matter how the event is constructed. This is a testing-environment limitation only — real browsers implement `DragEvent.clientY` correctly, so the production code in this plan reads `event.clientY` exactly as it would in any other React app. The consequence is for **how these tasks are tested**: any pixel-to-minutes computation must be a pure, exported function tested with plain numbers (never by simulating a drop with a specific `clientY` and asserting the resulting minute value end-to-end) — component-level drag tests verify wiring only (the right action was called with the right task id and target date), not the exact snapped time. `fireEvent.click` **does** deliver a working `clientY` (confirmed the opposite way) — click-based interactions (grid click-to-create) do not have this limitation and are tested end-to-end normally.
+- **Always pass an explicit `'en-US'` locale to `toLocaleDateString`, never `undefined`.** Discovered during Task 2: this project's dev/CI environment has a non-English system default locale (confirmed: `new Date().toLocaleDateString(undefined, {...})` returns French text here), so `toLocaleDateString(undefined, ...)` produces locale-dependent output that both breaks tests asserting English label text AND would show the wrong language to every real user, regardless of their own browser locale, since this is a hardcoded-copy app with no i18n. Every `toLocaleDateString` call in this plan (Tasks 2, 6/7, 10, 12) uses `'en-US'` explicitly for exactly this reason — do not revert to `undefined` if refactoring any of these later.
 - No placeholders, no TODOs — every task ships working, tested code.
 
 ---
@@ -404,15 +405,15 @@ export function calendarDateLabel(key: string, todayKey: string): string {
   if (key === todayKey) return 'Today';
   if (key === addDays(todayKey, -1)) return 'Yesterday';
   if (key === addDays(todayKey, 1)) return 'Tomorrow';
-  return localDate(key).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  return localDate(key).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 export function shortDateLabel(key: string): string {
-  return localDate(key).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return localDate(key).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 export function monthYearLabel(key: string): string {
-  return localDate(key).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  return localDate(key).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 ```
 
@@ -1100,7 +1101,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 function dayHeaderParts(dateKey: string): { weekday: string; dayNum: string } {
   const d = new Date(`${dateKey}T00:00:00`);
   return {
-    weekday: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
     dayNum: String(d.getDate()),
   };
 }
@@ -1428,7 +1429,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 function dayHeaderParts(dateKey: string): { weekday: string; dayNum: string } {
   const d = new Date(`${dateKey}T00:00:00`);
   return {
-    weekday: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
     dayNum: String(d.getDate()),
   };
 }
@@ -1986,7 +1987,7 @@ function makeMonths(): YearMonthData[] {
   return Array.from({ length: 12 }, (_, m) => ({
     year: 2026,
     month: m,
-    label: new Date(2026, m, 1).toLocaleDateString(undefined, { month: 'long' }),
+    label: new Date(2026, m, 1).toLocaleDateString('en-US', { month: 'long' }),
     days: Array.from({ length: 35 }, (_, i) => ({
       dateKey: `2026-${String(m + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
       dayNum: String((i % 28) + 1),
@@ -2767,7 +2768,7 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
           Array.from({ length: 12 }, (_, m) => ({
             year: y,
             month: m,
-            label: new Date(y, m, 1).toLocaleDateString(undefined, { month: 'long' }),
+            label: new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long' }),
             days: buildMonthGrid(y, m)
               .slice(0, 35)
               .map((c) => ({ dateKey: c.dateKey, dayNum: String(Number(c.dateKey.slice(-2))), inMonth: c.inMonth })),
