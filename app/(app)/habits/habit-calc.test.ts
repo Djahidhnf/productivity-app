@@ -48,23 +48,30 @@ describe('habitMonthlyPct', () => {
 });
 
 describe('buildHeatCells', () => {
-  test('returns weeks*7 cells ending on today, in date-sequential order', () => {
+  test('returns weeks*7 cells in date-sequential order, grid aligned to the Sunday starting the current week', () => {
     const { cells } = buildHeatCells([], '2026-01-01', '2026-09-23', 4);
     expect(cells).toHaveLength(28);
-    expect(cells[cells.length - 1].dateKey).toBe('2026-09-23');
+    expect(new Date(`${cells[0].dateKey}T00:00:00`).getDay()).toBe(0); // Sunday
     for (let i = 1; i < cells.length; i++) {
       expect(cells[i].dateKey > cells[i - 1].dateKey).toBe(true);
     }
+    // 2026-09-23 is a Wednesday, so the grid's final (current) week runs through
+    // Saturday 2026-09-26 — the grid always contains today, not necessarily as
+    // its last cell, matching a real GitHub-style contribution graph where each
+    // column is a fixed calendar week and the current week's remaining days
+    // render as blank/future rather than being excluded from the grid.
+    expect(cells.some((c) => c.dateKey === '2026-09-23')).toBe(true);
   });
 
   test('marks logged, future, and beforeStart correctly', () => {
-    const { cells } = buildHeatCells(['2026-09-23'], '2026-09-20', '2026-09-23', 1);
+    const { cells } = buildHeatCells(['2026-09-23'], '2026-09-22', '2026-09-23', 1);
     const byDate = Object.fromEntries(cells.map((c) => [c.dateKey, c]));
     expect(byDate['2026-09-23'].logged).toBe(true);
     expect(byDate['2026-09-23'].future).toBe(false);
-    expect(byDate['2026-09-19']?.beforeStart ?? true).toBe(true);
-    const anyFuture = cells.some((c) => c.dateKey > '2026-09-23');
-    expect(anyFuture).toBe(false); // grid never extends past today
+    expect(byDate['2026-09-20'].beforeStart).toBe(true); // grid's Sunday start is before the habit's startDate
+    expect(byDate['2026-09-22'].beforeStart).toBe(false); // the startDate itself is not "before start"
+    expect(byDate['2026-09-24'].future).toBe(true); // this week's remaining days (after today) are future
+    expect(byDate['2026-09-26'].future).toBe(true);
   });
 
   test('startLabel matches the first cell date, formatted', () => {

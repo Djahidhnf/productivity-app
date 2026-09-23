@@ -44,7 +44,8 @@ export function buildHeatCells(
   weeks: number
 ): { cells: HeatCell[]; startLabel: string } {
   const logged = new Set(logs);
-  const gridStart = addDays(todayKey, -(weeks * 7 - 1));
+  const todayDow = new Date(`${todayKey}T00:00:00`).getDay();
+  const gridStart = addDays(addDays(todayKey, -todayDow), -(weeks - 1) * 7);
   const cells: HeatCell[] = [];
   for (let i = 0; i < weeks * 7; i++) {
     const dateKey = addDays(gridStart, i);
