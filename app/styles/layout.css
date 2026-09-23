@@ -59,3 +59,10 @@ a:hover { color: var(--accent-hover); }
   .pw-habit-left { padding: 0 12px 24px !important; }
   .pw-habit-right { padding: 0 12px 24px !important; border-top: none !important; }
 }
+.pw-calgrid { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: auto; border-top: 1px solid var(--border); }
+.pw-calgrid-header { position: sticky; top: 0; z-index: 3; display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+.pw-calgrid-gutter { flex: none; width: 56px; position: sticky; left: 0; background: var(--surface); z-index: 2; }
+.pw-calgrid-col { flex: 1; min-width: 0; border-left: 1px solid var(--border); position: relative; }
+.pw-calgrid-body { display: flex; position: relative; }
+.pw-calgrid-hourline { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); pointer-events: none; }
+.pw-calgrid-allday { display: flex; border-bottom: 1px solid var(--border); flex: none; }
