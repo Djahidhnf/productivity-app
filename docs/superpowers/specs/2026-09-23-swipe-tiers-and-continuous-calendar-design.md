@@ -98,7 +98,7 @@ Builds on: `2026-09-23-mobile-responsive-swipe-design.md` (already implemented)
 ### Reaching any month/year
 
 - Scroll window: Month view renders ±6 months around the anchor initially and
-  adds 6 when an edge sentinel comes within ~1 screen; Year view renders ±2
+  adds 6 when the scroll position comes within ~1 screen of an edge; Year view renders ±2
   years and adds 2. The window only grows during scrolling; a jump (picker,
   Today, arrows beyond the window, tapping a year-view month) resets it centered
   on the target.
@@ -123,8 +123,9 @@ Builds on: `2026-09-23-mobile-responsive-swipe-design.md` (already implemented)
 
 ### Units
 
-- `app/lib/use-scroll-window.ts` (new): owns window size, edge sentinels via
-  `IntersectionObserver`, scrollTop compensation on prepend, scroll-to-anchor and
+- `app/lib/use-scroll-window.ts` (new): owns window size, near-edge detection from
+  the scroll position (`scrollTop` vs `clientHeight` / `scrollHeight`, no edge
+  sentinels), scrollTop compensation on prepend, scroll-to-anchor and
   visible-unit reporting. Used by both views. Takes the unit type (month or year)
   as a generic pair of `shift(unitKey, n)` / `toKey` helpers so it holds no
   calendar knowledge itself.
@@ -149,7 +150,8 @@ Builds on: `2026-09-23-mobile-responsive-swipe-design.md` (already implemented)
   year-view month opens Month; picker chooses a month/year and closes on Escape;
   header title follows a simulated visible-change; window extends when a fake
   `IntersectionObserver` reports a sentinel intersecting.
-- jsdom has no layout and no `IntersectionObserver`, so tests inject a fake one;
+- jsdom has no layout, so tests stub it (`clientHeight`, `scrollHeight`,
+  `getBoundingClientRect`) instead of injecting a fake `IntersectionObserver`;
   scroll compensation and sticky stacking can only be confirmed on a real
   device/browser (manual check list).
 
