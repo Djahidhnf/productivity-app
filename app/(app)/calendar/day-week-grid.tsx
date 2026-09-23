@@ -12,6 +12,7 @@ export interface DayWeekGridProps {
   onGridClick: (dateKey: string, minutes: number) => void;
   onTaskDragStart: (task: TaskDTO) => void;
   onGridDrop: (dateKey: string, minutes: number) => void;
+  onTaskToggleDone?: (taskId: string) => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -32,6 +33,7 @@ export function DayWeekGrid({
   onGridClick,
   onTaskDragStart,
   onGridDrop,
+  onTaskToggleDone,
 }: DayWeekGridProps) {
   return (
     <div className="pw-calgrid pw-scroll">
@@ -130,6 +132,7 @@ export function DayWeekGrid({
                 key={task.id}
                 task={task}
                 onOpen={onTaskOpen}
+                onToggleDone={onTaskToggleDone}
                 draggable
                 onDragStart={() => onTaskDragStart(task)}
               />

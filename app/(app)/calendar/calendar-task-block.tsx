@@ -7,11 +7,12 @@ import type { TaskDTO } from './queries';
 export interface CalendarTaskBlockProps {
   task: TaskDTO;
   onOpen: (task: TaskDTO) => void;
+  onToggleDone?: (taskId: string) => void;
   draggable?: boolean;
   onDragStart?: () => void;
 }
 
-export function CalendarTaskBlock({ task, onOpen, draggable, onDragStart }: CalendarTaskBlockProps) {
+export function CalendarTaskBlock({ task, onOpen, onToggleDone, draggable, onDragStart }: CalendarTaskBlockProps) {
   const top = ((task.dueTime ?? 0) / 60) * HOUR_PX;
   const height = Math.max(20, (task.duration / 60) * HOUR_PX);
   const color = task.priority ? PRIORITY_COLORS[task.priority] : 'var(--text-faint)';
@@ -37,12 +38,31 @@ export function CalendarTaskBlock({ task, onOpen, draggable, onDragStart }: Cale
         padding: '2px 6px',
         cursor: 'pointer',
         fontSize: 'var(--text-xs)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
       }}
     >
+      {onToggleDone && (
+        <input
+          type="checkbox"
+          checked={task.done}
+          onChange={(event) => {
+            event.stopPropagation();
+            onToggleDone(task.id);
+          }}
+          style={{ cursor: 'pointer', flex: 0 }}
+        />
+      )}
       <span
         style={{
           textDecoration: task.done ? 'line-through' : 'none',
           color: task.done ? 'var(--text-faint)' : 'var(--text-primary)',
+          flex: 1,
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
         }}
       >
         {task.text}
