@@ -858,8 +858,13 @@ import { CalendarHeader } from './calendar-header';
 
 describe('CalendarHeader', () => {
   test('renders the given title', () => {
+    // Using "Today" as the test title collides with the header's own
+    // "Today" button — plain getByText('Today') matches both and throws.
+    // Disambiguate by tag: the title renders in a <span>, the button in a
+    // <button>.
     render(<CalendarHeader title="Today" onPrev={vi.fn()} onToday={vi.fn()} onNext={vi.fn()} onNewTask={vi.fn()} />);
-    expect(screen.getByText('Today')).toBeInTheDocument();
+    const titleEl = screen.getAllByText('Today').find((el) => el.tagName === 'SPAN');
+    expect(titleEl).toBeInTheDocument();
   });
 
   test('Prev/Today/Next/New task buttons call their handlers in order', async () => {
