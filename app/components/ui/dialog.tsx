@@ -45,7 +45,7 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
         style={{
           width: '100%',
           maxWidth: 480,
-          maxHeight: '90vh',
+          maxHeight: '90dvh',
           overflowY: 'auto',
           background: 'var(--surface)',
           border: '1px solid var(--border)',

@@ -13,7 +13,7 @@ export function BottomNav({ items, activeKey }: BottomNavProps) {
   return (
     <nav
       className="pw-bottomnav"
-      style={{ position: 'fixed', left: 0, right: 0, bottom: 0, borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '6px 4px calc(6px + env(safe-area-inset-bottom, 0px))', zIndex: 20 }}
+      style={{ position: 'fixed', left: 0, right: 0, bottom: 0, borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '6px calc(4px + env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) calc(4px + env(safe-area-inset-left, 0px))', zIndex: 20 }}
     >
       <div className="pw-bottomnav-inner">
         {items.map((item) => {
