@@ -18,4 +18,11 @@ describe('BottomNav', () => {
     expect(screen.getByRole('link', { name: /Habits/ }).style.color).toBe('var(--accent)');
     expect(screen.getByRole('link', { name: /Tasks/ }).style.color).toBe('var(--text-muted)');
   });
+
+  test('wraps the links in a centered, width-capped inner container', () => {
+    const { container } = render(<BottomNav items={NAV_ITEMS} activeKey="habits" />);
+    const inner = container.querySelector('.pw-bottomnav-inner');
+    expect(inner).not.toBeNull();
+    expect(inner?.querySelectorAll('a')).toHaveLength(NAV_ITEMS.length);
+  });
 });

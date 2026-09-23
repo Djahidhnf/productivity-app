@@ -7,11 +7,12 @@ a:hover { color: var(--accent-hover); }
 }
 :root {
   --pw-top: 28px;
-  --pw-bottom: 0px;
+  --pw-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   --pw-vh: calc(100dvh - var(--pw-top) - var(--pw-bottom));
 }
-.pw-bottomnav { display: none; }
-.pw-cal-scroll { scroll-snap-type: x mandatory; scroll-padding-left: 56px; }
+.pw-shell { display: flex; min-height: 100dvh; padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px); overflow-x: clip; background: var(--bg); color: var(--text-primary); font-family: var(--font-sans); }
+.pw-main { flex: 1; min-width: 0; max-width: 1440px; margin: 0 auto; }
+.pw-bottomnav-inner { display: flex; width: 100%; max-width: 720px; margin: 0 auto; }
 .pw-board { display: flex; align-items: flex-start; gap: var(--space-4); overflow-x: auto; overflow-y: hidden; padding: 0 14px; cursor: grab; }
 .pw-list-col { flex: none; width: 272px; display: flex; flex-direction: column; gap: var(--space-2); max-height: 100%; }
 .pw-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -20,7 +21,7 @@ a:hover { color: var(--accent-hover); }
 .pw-scroll:hover::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--text-primary) 26%, transparent); background-clip: padding-box; }
 .pw-scroll::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--accent) 60%, transparent); background-clip: padding-box; }
 .pw-scroll { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--text-primary) 16%, transparent) transparent; }
-.pw-viewpill { position: fixed; left: 50%; transform: translateX(-50%); bottom: 22px; z-index: 18; display: flex; gap: 2px; padding: 4px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--border); box-shadow: var(--shadow-lg); backdrop-filter: var(--blur-sm); }
+.pw-viewpill { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 18; display: flex; gap: 2px; padding: 4px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--border); box-shadow: var(--shadow-lg); backdrop-filter: var(--blur-sm); }
 .pw-viewpill button { appearance: none; border: none; background: transparent; color: var(--text-secondary); font-family: var(--font-sans); font-weight: var(--weight-medium); font-size: var(--text-xs); padding: 7px 14px; border-radius: var(--radius-pill); cursor: pointer; white-space: nowrap; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
 .pw-viewpill button:hover { color: var(--text-primary); background: var(--surface-3); }
 .pw-viewpill button[data-on="1"] { color: var(--on-accent); background: var(--accent); }
@@ -44,11 +45,9 @@ a:hover { color: var(--accent-hover); }
   .pw-journal-grid { grid-template-columns: minmax(0, 1fr) !important; }
 }
 @media (max-width: 860px) {
-  :root { --pw-top: 18px; --pw-bottom: 76px; }
-  .pw-sidebar { display: none; }
-  .pw-bottomnav { display: flex; }
+  :root { --pw-top: 18px; }
   .pw-today-grid { grid-template-columns: 1fr; }
-  .pw-viewpill { bottom: calc(84px + env(safe-area-inset-bottom)); max-width: calc(100vw - 20px); overflow-x: auto; justify-content: flex-start; }
+  .pw-viewpill { max-width: calc(100vw - 20px); overflow-x: auto; justify-content: flex-start; }
   .pw-viewpill button { padding: 7px 11px; }
   .pw-calhead { gap: var(--space-2) !important; }
   .pw-board { padding: 0 !important; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; gap: 0 !important; }
