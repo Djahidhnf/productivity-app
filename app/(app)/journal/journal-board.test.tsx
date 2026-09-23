@@ -70,6 +70,12 @@ describe('JournalBoard', () => {
     expect(screen.getByPlaceholderText('Write about your day…')).toHaveValue('risky');
   });
 
+  test('clicking the already-selected mood does not save (no-op, avoids creating an empty row)', () => {
+    render(<JournalBoard initialEntries={[]} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Okay' }));
+    expect(actions.saveJournalEntry).not.toHaveBeenCalled();
+  });
+
   test('clicking a history-card entry navigates the editor to that date', () => {
     const older = makeEntry({ date: '2026-09-20', text: 'Older entry text', mood: 'GOOD' });
     render(<JournalBoard initialEntries={[older]} />);

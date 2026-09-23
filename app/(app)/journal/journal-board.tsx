@@ -64,6 +64,7 @@ export function JournalBoard({ initialEntries }: JournalBoardProps) {
   }
 
   function handleMoodChange(mood: Mood) {
+    if (mood === currentEntry.mood) return;
     setEntries((prev) => ({ ...prev, [journalDate]: { ...currentEntry, mood } }));
     scheduleSave(journalDate, currentEntry.text, mood);
     flushPendingSave();
