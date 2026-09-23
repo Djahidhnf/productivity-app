@@ -1,5 +1,6 @@
 'use client';
 
+import { CheckToggle } from '@/app/components/ui/check-toggle';
 import { PRIORITY_COLORS } from '@/app/components/ui/priority-flag';
 import { HOUR_PX } from './calendar-views';
 import type { TaskDTO } from './queries';
@@ -44,15 +45,7 @@ export function CalendarTaskBlock({ task, onOpen, onToggleDone, draggable, onDra
       }}
     >
       {onToggleDone && (
-        <input
-          type="checkbox"
-          checked={task.done}
-          onChange={(event) => {
-            event.stopPropagation();
-            onToggleDone(task.id);
-          }}
-          style={{ cursor: 'pointer', flex: 0 }}
-        />
+        <CheckToggle checked={task.done} onToggle={() => onToggleDone(task.id)} label={task.text} />
       )}
       <span
         style={{
