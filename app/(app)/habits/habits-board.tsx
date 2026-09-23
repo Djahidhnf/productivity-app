@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { HabitList } from './habit-list';
 import { HabitDetail } from './habit-detail';
 import { HabitDialog, type HabitDialogValues } from './habit-dialog';
@@ -40,7 +40,7 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
 
   const todayKey = getTodayKey();
   const selectedHabit = habits.find((h) => h.id === selectedHabitId) ?? null;
-  const showHabitList = !isNarrow || !showDetailOnNarrow;
+  const showHabitList = !isNarrow || !showDetailOnNarrow || !selectedHabit;
   const showHabitDetail = !!selectedHabit && (!isNarrow || showDetailOnNarrow);
 
   function handleSelect(habitId: string) {
@@ -67,6 +67,14 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
     });
   }
 
+  useEffect(() => {
+    function clearDragState() {
+      setDragHabitId(null);
+    }
+    window.addEventListener('dragend', clearDragState);
+    return () => window.removeEventListener('dragend', clearDragState);
+  }, []);
+
   function handleDragStart(habitId: string) {
     setDragHabitId(habitId);
   }
@@ -90,16 +98,18 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
   function handleSaveDialog(values: HabitDialogValues) {
     const editingId = dialog?.habit?.id ?? null;
     const timesPerWeek = values.freqType === 'WEEKLY' ? Number(values.timesPerWeek) || 1 : null;
-    setDialog(null);
+    const startDate = values.startDate || todayKey;
     startTransition(async () => {
       try {
         if (editingId) {
-          const updated = await updateHabit({ id: editingId, name: values.name, freqType: values.freqType, timesPerWeek, startDate: values.startDate });
+          const updated = await updateHabit({ id: editingId, name: values.name, freqType: values.freqType, timesPerWeek, startDate });
           setHabits((prev) => prev.map((h) => (h.id === editingId ? updated : h)));
+          setDialog(null);
         } else {
-          const created = await createHabit({ name: values.name, freqType: values.freqType, timesPerWeek, startDate: values.startDate });
+          const created = await createHabit({ name: values.name, freqType: values.freqType, timesPerWeek, startDate });
           setHabits((prev) => [...prev, created]);
           setSelectedHabitId((prev) => prev ?? created.id);
+          setDialog(null);
         }
       } catch {
         window.alert('Could not save the habit. Please try again.');
@@ -108,7 +118,9 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
   }
 
   function handleDeleteHabit(habitId: string) {
+    if (!window.confirm('Delete this habit and all its logged days?')) return;
     const prevHabits = habits;
+    const prevSelectedHabitId = selectedHabitId;
     const remaining = habits.filter((h) => h.id !== habitId);
     setHabits(remaining);
     setDialog(null);
@@ -120,6 +132,7 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
         await deleteHabit(habitId);
       } catch {
         setHabits(prevHabits);
+        setSelectedHabitId(prevSelectedHabitId);
         window.alert('Could not delete the habit. Please try again.');
       }
     });

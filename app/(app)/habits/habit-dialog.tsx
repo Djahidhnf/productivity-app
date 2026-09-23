@@ -37,6 +37,7 @@ export function HabitDialog({ open, mode, initialValues, onClose, onSave, onDele
       <form
         onSubmit={(event) => {
           event.preventDefault();
+          if (!values.name.trim()) return;
           onSave(values);
         }}
         style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}

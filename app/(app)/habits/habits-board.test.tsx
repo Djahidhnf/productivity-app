@@ -43,6 +43,7 @@ describe('HabitsBoard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.alert = vi.fn();
+    window.confirm = vi.fn(() => true);
     stubMatchMedia(false);
   });
 
@@ -68,6 +69,17 @@ describe('HabitsBoard', () => {
     expect(await screen.findAllByText('Read')).not.toHaveLength(0);
   });
 
+  test('keeps the dialog open with the typed values when createHabit fails', async () => {
+    vi.mocked(actions.createHabit).mockRejectedValue(new Error('boom'));
+    render(<HabitsBoard initialHabits={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'New habit' }));
+    fireEvent.change(screen.getByLabelText('Habit name'), { target: { value: 'Read' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save habit' }));
+    await waitFor(() => expect(window.alert).toHaveBeenCalled());
+    expect(screen.getByLabelText('Habit name')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save habit' })).toBeInTheDocument();
+  });
+
   test('editing via the detail panel calls updateHabit and reflects the new name', async () => {
     const habit = makeHabit();
     vi.mocked(actions.updateHabit).mockResolvedValue({ ...habit, name: 'Stretch v2' });
@@ -86,6 +98,15 @@ describe('HabitsBoard', () => {
     await waitFor(() => expect(actions.deleteHabit).toHaveBeenCalledWith('a'));
     await waitFor(() => expect(screen.queryAllByText('A')).toHaveLength(0));
     expect(screen.getAllByText('B').length).toBeGreaterThan(0);
+  });
+
+  test('does not delete when window.confirm returns false', async () => {
+    window.confirm = vi.fn(() => false);
+    render(<HabitsBoard initialHabits={[makeHabit({ id: 'a', name: 'A' }), makeHabit({ id: 'b', name: 'B' })]} />);
+    fireEvent.click(screen.getByLabelText('Delete habit'));
+    expect(window.confirm).toHaveBeenCalled();
+    expect(actions.deleteHabit).not.toHaveBeenCalled();
+    expect(screen.getAllByText('A').length).toBeGreaterThan(0);
   });
 
   test('toggling a log optimistically updates, then reverts and alerts on failure', async () => {

@@ -61,6 +61,19 @@ describe('HabitCard', () => {
     expect(onToggleLog).toHaveBeenCalledWith('h1', '2026-09-21');
   });
 
+  test('clicking a future heatmap cell does not toggle it', () => {
+    const onToggleLog = vi.fn();
+    render(<HabitCard habit={habit} todayKey="2026-09-23" heatWeeks={1} selected={false} onSelect={vi.fn()} onToggleLog={onToggleLog} />);
+    // heatWeeks=1 grids the current Sun-Sat week; 2026-09-23 is a Wednesday, so
+    // the grid's final cell (Saturday 2026-09-26) is always a future date and,
+    // per HabitCard, renders with no `title` attribute (unlike past/today cells).
+    const gridDiv = screen.getByText('Today').parentElement!.previousElementSibling as HTMLElement;
+    const futureCell = gridDiv.lastElementChild as HTMLElement;
+    expect(futureCell).not.toHaveAttribute('title');
+    fireEvent.click(futureCell);
+    expect(onToggleLog).not.toHaveBeenCalled();
+  });
+
   test('clicking the card itself calls onSelect', () => {
     const onSelect = vi.fn();
     render(<HabitCard habit={habit} todayKey="2026-09-23" heatWeeks={4} selected={false} onSelect={onSelect} onToggleLog={vi.fn()} />);

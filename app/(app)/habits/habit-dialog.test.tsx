@@ -34,6 +34,13 @@ describe('HabitDialog', () => {
     expect(onDelete).toHaveBeenCalled();
   });
 
+  test('does not call onSave when the name is blank', () => {
+    const onSave = vi.fn();
+    render(<HabitDialog open mode="create" initialValues={baseValues} onClose={vi.fn()} onSave={onSave} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Save habit' }));
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   test('resets its fields when a new initialValues object is passed in', () => {
     const { rerender } = render(<HabitDialog open mode="edit" initialValues={baseValues} onClose={vi.fn()} onSave={vi.fn()} />);
     fireEvent.change(screen.getByLabelText('Habit name'), { target: { value: 'Changed' } });

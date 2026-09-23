@@ -83,12 +83,11 @@ export function buildHabitMonthCells(logs: string[], monthKey: string, todayKey:
 
 export function moveHabit<T extends { id: string }>(habits: T[], draggedId: string, targetId: string): T[] {
   if (draggedId === targetId) return habits;
-  const dragged = habits.find((h) => h.id === draggedId);
-  if (!dragged) return habits;
-  const without = habits.filter((h) => h.id !== draggedId);
-  const targetIndex = without.findIndex((h) => h.id === targetId);
-  const at = targetIndex === -1 ? without.length : targetIndex + 1;
-  const next = [...without];
-  next.splice(at, 0, dragged);
+  const from = habits.findIndex((h) => h.id === draggedId);
+  const to = habits.findIndex((h) => h.id === targetId);
+  if (from < 0 || to < 0) return habits;
+  const next = [...habits];
+  const [dragged] = next.splice(from, 1);
+  next.splice(to, 0, dragged);
   return next;
 }

@@ -115,4 +115,14 @@ describe('moveHabit', () => {
     const habits = [{ id: 'a' }, { id: 'b' }];
     expect(moveHabit(habits, 'a', 'a')).toEqual(habits);
   });
+
+  test('moves an item upward, in front of an earlier item', () => {
+    const habits = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    expect(moveHabit(habits, 'c', 'a').map((h) => h.id)).toEqual(['c', 'a', 'b']);
+  });
+
+  test('moves an item upward by one position, in front of its immediate predecessor', () => {
+    const habits = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    expect(moveHabit(habits, 'b', 'a').map((h) => h.id)).toEqual(['b', 'a', 'c']);
+  });
 });
