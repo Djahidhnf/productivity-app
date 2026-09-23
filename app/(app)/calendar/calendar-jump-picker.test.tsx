@@ -55,6 +55,20 @@ describe('CalendarJumpPicker (month mode)', () => {
     expect(screen.getByRole('button', { name: 'Jan' })).toBeDisabled();
   });
 
+  test('month buttons stay disabled until the year field holds a full four-digit year', async () => {
+    const onPick = vi.fn();
+    render(<CalendarJumpPicker mode="month" value="2026-09-23" onPick={onPick} onClose={vi.fn()} />);
+    const year = screen.getByLabelText('Year');
+    await userEvent.clear(year);
+    await userEvent.type(year, '20');
+    expect(screen.getByRole('button', { name: 'Jan' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: 'Jan' }));
+    expect(onPick).not.toHaveBeenCalled();
+    await userEvent.type(year, '26');
+    expect(year).toHaveValue('2026');
+    expect(screen.getByRole('button', { name: 'Jan' })).toBeEnabled();
+  });
+
   test('Escape and a backdrop click close it', async () => {
     const onClose = vi.fn();
     const { container } = render(<CalendarJumpPicker mode="month" value="2026-09-23" onPick={vi.fn()} onClose={onClose} />);

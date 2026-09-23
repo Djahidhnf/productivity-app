@@ -44,6 +44,7 @@ export function useScrollWindow({ anchor, min, max, span, scrollOffset = 0, onVi
   }
 
   useLayoutEffect(() => {
+    restore.current = null; // a pending prepend-compensation must not override an explicit jump
     const el = containerRef.current;
     const target = el?.querySelector<HTMLElement>(`[data-unit="${scrollTarget.index}"]`);
     if (!el || !target) return;

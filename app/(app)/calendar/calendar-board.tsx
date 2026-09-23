@@ -11,7 +11,14 @@ import { TaskDialog, type TaskDialogValues } from '../tasks/task-dialog';
 import { createTask, updateTask, deleteTask, toggleTaskDone } from '../tasks/actions';
 import type { SwipeStrength } from '@/app/lib/use-swipe';
 import { todayKey } from '@/app/lib/date-format';
-import { monthIndexOfDateKey, yearOfDateKey } from '@/app/lib/calendar-units';
+import {
+  MAX_MONTH_INDEX,
+  MAX_YEAR,
+  MIN_MONTH_INDEX,
+  MIN_YEAR,
+  monthIndexOfDateKey,
+  yearOfDateKey,
+} from '@/app/lib/calendar-units';
 import {
   addDays,
   addMonths,
@@ -53,6 +60,19 @@ function minutesToTimeInput(minutes: number): string {
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 }
 
+// Header arrows stop at the 1900-2100 bounds instead of moving calDate past them.
+function stepMonth(dateKey: string, delta: 1 | -1): string {
+  const next = addMonths(dateKey, delta);
+  const index = monthIndexOfDateKey(next);
+  return index < MIN_MONTH_INDEX || index > MAX_MONTH_INDEX ? dateKey : next;
+}
+
+function stepYear(dateKey: string, delta: 1 | -1): string {
+  const next = addYears(dateKey, delta);
+  const year = yearOfDateKey(next);
+  return year < MIN_YEAR || year > MAX_YEAR ? dateKey : next;
+}
+
 export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [calView, setCalView] = useState<CalView>('day');
@@ -73,8 +93,8 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
     if (calView === 'day') setCalDate((d) => addDays(d, -1));
     else if (calView === '3day') setCalDate((d) => addDays(d, -3));
     else if (calView === 'week') setCalDate((d) => addDays(d, -7));
-    else if (calView === 'month') setCalDate((d) => addMonths(d, -1));
-    else if (calView === 'year') setCalDate((d) => addYears(d, -1));
+    else if (calView === 'month') setCalDate((d) => stepMonth(d, -1));
+    else if (calView === 'year') setCalDate((d) => stepYear(d, -1));
     else setCalDate((d) => addDays(d, -60));
   }
 
@@ -82,8 +102,8 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
     if (calView === 'day') setCalDate((d) => addDays(d, 1));
     else if (calView === '3day') setCalDate((d) => addDays(d, 3));
     else if (calView === 'week') setCalDate((d) => addDays(d, 7));
-    else if (calView === 'month') setCalDate((d) => addMonths(d, 1));
-    else if (calView === 'year') setCalDate((d) => addYears(d, 1));
+    else if (calView === 'month') setCalDate((d) => stepMonth(d, 1));
+    else if (calView === 'year') setCalDate((d) => stepYear(d, 1));
     else setCalDate((d) => addDays(d, 60));
   }
 

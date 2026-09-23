@@ -29,8 +29,9 @@ export function CalendarJumpPicker({ mode, value, onPick, onClose }: CalendarJum
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  const parsed = Number.parseInt(yearText, 10);
-  const year = Number.isFinite(parsed) ? clampYear(parsed) : null;
+  // Only a full four-digit year applies, so a half-typed "20" never jumps to 1900.
+  const trimmedYear = yearText.trim();
+  const year = /^\d{4}$/.test(trimmedYear) ? clampYear(Number(trimmedYear)) : null;
 
   function stepYear(delta: number) {
     setYearText(String(clampYear((year ?? currentYear) + delta)));

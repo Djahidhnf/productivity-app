@@ -350,3 +350,48 @@ describe('CalendarBoard continuous Year view', () => {
     expect(screen.getByRole('button', { name: /March 2026/ })).toBeInTheDocument();
   }, 10000);
 });
+
+describe('CalendarBoard range limits', () => {
+  async function jumpMonth(yearText: string, monthLabel: string) {
+    await userEvent.click(screen.getByRole('tab', { name: 'Month' }));
+    await userEvent.click(screen.getByRole('button', { name: /September 2026/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Jump to date' });
+    const year = within(dialog).getByLabelText('Year');
+    await userEvent.clear(year);
+    await userEvent.type(year, yearText);
+    await userEvent.click(within(dialog).getByRole('button', { name: monthLabel }));
+  }
+
+  test('Month: Next does not move past December 2100', async () => {
+    render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await jumpMonth('2100', 'Dec');
+    expect(screen.getByRole('button', { name: /December 2100/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('button', { name: /December 2100/ })).toBeInTheDocument();
+    expect(screen.queryByText(/January 2101/)).not.toBeInTheDocument();
+  }, 10000);
+
+  test('Month: Previous does not move before January 1900', async () => {
+    render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await jumpMonth('1900', 'Jan');
+    expect(screen.getByRole('button', { name: /January 1900/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Previous' }));
+    expect(screen.getByRole('button', { name: /January 1900/ })).toBeInTheDocument();
+    expect(screen.queryByText(/December 1899/)).not.toBeInTheDocument();
+  }, 10000);
+
+  test('Year: Next does not move past 2100', async () => {
+    render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Year' }));
+    await userEvent.click(screen.getByRole('button', { name: '2026' }));
+    const dialog = screen.getByRole('dialog', { name: 'Jump to date' });
+    const year = within(dialog).getByLabelText('Year');
+    await userEvent.clear(year);
+    await userEvent.type(year, '2100');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Go' }));
+    expect(screen.getByRole('button', { name: '2100' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('button', { name: '2100' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '2101' })).not.toBeInTheDocument();
+  }, 10000);
+});
