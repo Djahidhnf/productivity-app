@@ -1,9 +1,14 @@
 'use client';
 
+import { CalendarTaskBlock } from './calendar-task-block';
 import { HOUR_PX } from './calendar-views';
+import type { TaskDTO } from './queries';
 
 export interface DayWeekGridProps {
   dateKeys: string[];
+  timedTasksFor: (dateKey: string) => TaskDTO[];
+  untimedTasksFor: (dateKey: string) => TaskDTO[];
+  onTaskOpen: (task: TaskDTO) => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -16,7 +21,7 @@ function dayHeaderParts(dateKey: string): { weekday: string; dayNum: string } {
   };
 }
 
-export function DayWeekGrid({ dateKeys }: DayWeekGridProps) {
+export function DayWeekGrid({ dateKeys, timedTasksFor, untimedTasksFor, onTaskOpen }: DayWeekGridProps) {
   return (
     <div className="pw-calgrid pw-scroll">
       <div className="pw-calgrid-header">
@@ -32,6 +37,40 @@ export function DayWeekGrid({ dateKeys }: DayWeekGridProps) {
             </div>
           );
         })}
+      </div>
+      <div className="pw-calgrid-allday">
+        <div
+          className="pw-calgrid-gutter"
+          style={{ display: 'flex', alignItems: 'center', fontSize: 'var(--text-2xs)', color: 'var(--text-muted)', paddingLeft: 4 }}
+        >
+          All day
+        </div>
+        {dateKeys.map((key) => (
+          <div key={key} style={{ flex: 1, minWidth: 0, borderLeft: '1px solid var(--border)', padding: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {untimedTasksFor(key).map((task) => (
+              <div
+                key={task.id}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onTaskOpen(task);
+                }}
+                style={{
+                  fontSize: 'var(--text-2xs)',
+                  padding: '2px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'var(--surface-2)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  textDecoration: task.done ? 'line-through' : 'none',
+                }}
+              >
+                {task.text}
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
       <div className="pw-calgrid-body" style={{ height: HOUR_PX * 24 }}>
         <div className="pw-calgrid-gutter">
@@ -58,6 +97,9 @@ export function DayWeekGrid({ dateKeys }: DayWeekGridProps) {
           <div key={key} className="pw-calgrid-col" data-daykey={key}>
             {HOURS.map((h) => (
               <div key={h} className="pw-calgrid-hourline" style={{ top: h * HOUR_PX }} />
+            ))}
+            {timedTasksFor(key).map((task) => (
+              <CalendarTaskBlock key={task.id} task={task} onOpen={onTaskOpen} />
             ))}
           </div>
         ))}
