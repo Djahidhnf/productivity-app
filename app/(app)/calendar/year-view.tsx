@@ -21,33 +21,10 @@ const WEEKDAY_INITIALS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 export function YearView({ months, tasksByDate, onMonthOpen, todayKey }: YearViewProps) {
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-        gap: 'var(--space-4)',
-        padding: '0 clamp(16px, 3vw, 32px) 24px',
-        overflowY: 'auto',
-        flex: 1,
-        minHeight: 0,
-      }}
-    >
+    <div className="pw-yearview">
       {months.map((m) => (
-        <div key={`${m.year}-${m.month}`} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 8 }}>
-          <button
-            type="button"
-            onClick={() => onMonthOpen(m.year, m.month)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-display)',
-              fontWeight: 'var(--weight-semibold)',
-              fontSize: 'var(--text-sm)',
-              padding: 0,
-              marginBottom: 4,
-            }}
-          >
+        <div key={`${m.year}-${m.month}`} className="pw-yearview-card">
+          <button type="button" className="pw-yearview-label" onClick={() => onMonthOpen(m.year, m.month)}>
             {m.label}
           </button>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 1 }}>

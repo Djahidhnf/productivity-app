@@ -60,3 +60,12 @@ describe('YearView', () => {
     expect(cell.getAttribute('draggable')).toBeNull();
   });
 });
+
+describe('YearView responsive hooks', () => {
+  test('uses the year-view classes so CSS can compact the grid on phones', () => {
+    const { container } = render(<YearView months={makeMonths()} tasksByDate={() => []} onMonthOpen={vi.fn()} todayKey="2026-09-23" />);
+    expect(container.querySelector('.pw-yearview')).not.toBeNull();
+    expect(container.querySelectorAll('.pw-yearview-card')).toHaveLength(12);
+    expect(container.querySelectorAll('.pw-yearview-label')).toHaveLength(12);
+  });
+});
