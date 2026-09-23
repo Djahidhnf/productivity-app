@@ -268,7 +268,9 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'var(--pw-vh)' }}>
-      <CalendarHeader title={title} onPrev={handlePrev} onToday={handleToday} onNext={handleNext} onNewTask={handleNewTask} />
+      <CalendarHeader title={title} onPrev={handlePrev} onToday={handleToday} onNext={handleNext} onNewTask={handleNewTask}
+        picker={calView === 'month' || calView === 'year' ? { mode: calView, value: calDate, onPick: setCalDate } : undefined}
+      />
       {calView === 'day' || calView === '3day' || calView === 'week' ? (
         <DayWeekGrid
           dateKeys={dateKeysForGrid}

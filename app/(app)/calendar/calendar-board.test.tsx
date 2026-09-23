@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CalendarBoard } from './calendar-board';
@@ -267,4 +267,37 @@ describe('CalendarBoard swipe navigation', () => {
     swipeGrid(container, -20);
     expect(screen.queryByText('Tomorrow')).not.toBeInTheDocument();
   }, 10000);
+});
+
+describe('CalendarBoard jump picker', () => {
+  test('in Month view the title opens a picker that jumps to any month and year', async () => {
+    render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Month' }));
+    await userEvent.click(screen.getByRole('button', { name: /September 2026/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Jump to date' });
+    const year = within(dialog).getByLabelText('Year');
+    await userEvent.clear(year);
+    await userEvent.type(year, '2030');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Feb' }));
+    expect(screen.getByRole('button', { name: /February 2030/ })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Jump to date' })).not.toBeInTheDocument();
+  }, 10000);
+
+  test('in Year view the picker jumps to a year', async () => {
+    render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Year' }));
+    await userEvent.click(screen.getByRole('button', { name: '2026' }));
+    const dialog = screen.getByRole('dialog', { name: 'Jump to date' });
+    const year = within(dialog).getByLabelText('Year');
+    await userEvent.clear(year);
+    await userEvent.type(year, '2031');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Go' }));
+    expect(screen.getByRole('button', { name: '2031' })).toBeInTheDocument();
+  }, 10000);
+
+  test('in Day view the title is plain text', () => {
+    render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    expect(screen.queryByRole('dialog', { name: 'Jump to date' })).not.toBeInTheDocument();
+    expect(screen.getAllByText('Today').find((el) => el.tagName === 'SPAN')).toBeInTheDocument();
+  });
 });
