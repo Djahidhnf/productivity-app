@@ -80,7 +80,7 @@ the Calendar's Day, 3-day and Week views.
 
 ### Compact week on phones
 
-Below 560px the time gutter shrinks from 56px to ~36px, and hour labels,
+Below 560px the time gutter shrinks from 56px to 40px, and hour labels,
 header and paddings tighten. Task blocks in narrow columns show single-line
 truncated text (ellipsis) on their existing priority-colored background.
 Tapping a block opens the task dialog as today.
