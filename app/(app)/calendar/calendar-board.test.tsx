@@ -82,7 +82,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  vi.setSystemTime(undefined);
+  vi.useRealTimers();
 });
 
 describe('CalendarBoard', () => {

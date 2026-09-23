@@ -1,5 +1,8 @@
-import { StubPage } from '@/app/components/shell/stub-page';
+import { getCalendarTasks } from './queries';
+import { getTaskLists } from '../tasks/queries';
+import { CalendarBoard } from './calendar-board';
 
-export default function CalendarPage() {
-  return <StubPage title="Calendar" />;
+export default async function CalendarPage() {
+  const [tasks, lists] = await Promise.all([getCalendarTasks(), getTaskLists()]);
+  return <CalendarBoard initialTasks={tasks} lists={lists} />;
 }
