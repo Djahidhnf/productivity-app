@@ -5,20 +5,18 @@ import { CalendarHeader } from './calendar-header';
 import { CalendarViewPill, type CalView } from './calendar-view-pill';
 import { DayWeekGrid } from './day-week-grid';
 import { MonthView } from './month-view';
-import { YearView, type YearMonthData } from './year-view';
+import { YearView } from './year-view';
 import { AgendaView } from './agenda-view';
 import { TaskDialog, type TaskDialogValues } from '../tasks/task-dialog';
 import { createTask, updateTask, deleteTask, toggleTaskDone } from '../tasks/actions';
-import { useMediaQuery } from '@/app/lib/use-media-query';
 import type { SwipeStrength } from '@/app/lib/use-swipe';
 import { todayKey } from '@/app/lib/date-format';
-import { monthIndexOfDateKey } from '@/app/lib/calendar-units';
+import { monthIndexOfDateKey, yearOfDateKey } from '@/app/lib/calendar-units';
 import {
   addDays,
   addMonths,
   addYears,
   weekDates,
-  buildMonthGrid,
   calendarDateLabel,
   shortDateLabel,
   monthYearLabel,
@@ -26,7 +24,6 @@ import {
 import {
   timedTasksByDate,
   untimedTasksByDate,
-  tasksByDate,
   buildAgendaGroups,
   swipeStepDays,
 } from './calendar-views';
@@ -62,7 +59,6 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
   const [calDate, setCalDate] = useState(todayKey());
   const [dragTaskId, setDragTaskId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ mode: 'create' | 'edit'; task?: TaskDTO; values: TaskDialogValues } | null>(null);
-  const isNarrow = useMediaQuery('(max-width: 860px)');
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -97,6 +93,10 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
 
   function handleVisibleMonthChange(dateKey: string) {
     setCalDate((prev) => (monthIndexOfDateKey(prev) === monthIndexOfDateKey(dateKey) ? prev : dateKey));
+  }
+
+  function handleVisibleYearChange(dateKey: string) {
+    setCalDate((prev) => (yearOfDateKey(prev) === yearOfDateKey(dateKey) ? prev : dateKey));
   }
 
   function handleSwipe(direction: 1 | -1, strength: SwipeStrength) {
@@ -245,26 +245,6 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
   const dateKeysForGrid =
     calView === 'day' ? [calDate] : calView === '3day' ? [calDate, addDays(calDate, 1), addDays(calDate, 2)] : weekDates(calDate);
 
-  const [yearStr] = calDate.split('-');
-  const year = Number(yearStr);
-
-  const yearsToShow = isNarrow ? [year - 2, year - 1, year, year + 1, year + 2] : [year];
-  const yearMonths: YearMonthData[] =
-    calView === 'year'
-      ? yearsToShow.flatMap((y) =>
-          Array.from({ length: 12 }, (_, m) => ({
-            year: y,
-            month: m,
-            label: new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long' }),
-            days: buildMonthGrid(y, m).map((c) => ({
-              dateKey: c.dateKey,
-              dayNum: String(Number(c.dateKey.slice(-2))),
-              inMonth: c.inMonth,
-            })),
-          }))
-        )
-      : [];
-
   const agendaGroups = calView === 'agenda' ? buildAgendaGroups(tasks, calDate, 60) : [];
 
   return (
@@ -298,13 +278,14 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
         />
       ) : calView === 'year' ? (
         <YearView
-          months={yearMonths}
-          tasksByDate={(key) => tasksByDate(tasks, key)}
+          tasks={tasks}
+          anchor={calDate}
+          todayKey={today}
+          onVisibleYearChange={handleVisibleYearChange}
           onMonthOpen={(y, m) => {
             setCalDate(`${y}-${String(m + 1).padStart(2, '0')}-01`);
             setCalView('month');
           }}
-          todayKey={today}
         />
       ) : (
         <AgendaView groups={agendaGroups} todayKey={today} onTaskOpen={handleOpenTask} />

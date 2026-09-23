@@ -1,9 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi } from 'vitest';
-import { YearView, type YearMonthData } from './year-view';
+import { YearView, type YearViewProps } from './year-view';
 import type { TaskDTO } from './queries';
-import { buildMonthGrid } from '@/app/lib/calendar-dates';
 
 function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
   return {
@@ -20,52 +19,74 @@ function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
   };
 }
 
-function makeMonths(): YearMonthData[] {
-  return Array.from({ length: 12 }, (_, m) => ({
-    year: 2026,
-    month: m,
-    label: new Date(2026, m, 1).toLocaleDateString('en-US', { month: 'long' }),
-    days: buildMonthGrid(2026, m).map((c) => ({
-      dateKey: c.dateKey,
-      dayNum: String(Number(c.dateKey.slice(-2))),
-      inMonth: c.inMonth,
-    })),
-  }));
+function makeProps(overrides: Partial<YearViewProps> = {}): YearViewProps {
+  return {
+    tasks: [],
+    anchor: '2026-09-23',
+    todayKey: '2026-09-23',
+    onVisibleYearChange: vi.fn(),
+    onMonthOpen: vi.fn(),
+    ...overrides,
+  };
 }
 
+const year = (container: HTMLElement, y: number) => container.querySelector(`section[data-unit="${y}"]`) as HTMLElement;
+
 describe('YearView', () => {
-  test('renders a label for each of the 12 months', () => {
-    render(<YearView months={makeMonths()} tasksByDate={() => []} onMonthOpen={vi.fn()} todayKey="2026-09-23" />);
-    expect(screen.getByText('January')).toBeInTheDocument();
-    expect(screen.getByText('December')).toBeInTheDocument();
+  test('renders a heading per year: the anchor year plus 2 years either side', () => {
+    render(<YearView {...makeProps()} />);
+    for (const y of ['2024', '2025', '2026', '2027', '2028']) {
+      expect(screen.getByRole('heading', { name: y })).toBeInTheDocument();
+    }
+    expect(screen.queryByRole('heading', { name: '2023' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '2029' })).not.toBeInTheDocument();
+  });
+
+  test('each year block has 12 month cards with 42 day cells each', () => {
+    const { container } = render(<YearView {...makeProps()} />);
+    const block = year(container, 2026);
+    expect(block.querySelectorAll('.pw-yearview-card')).toHaveLength(12);
+    expect(within(block).getByText('January')).toBeInTheDocument();
+    expect(within(block).getByText('December')).toBeInTheDocument();
+    expect(block.querySelectorAll('[data-datekey]')).toHaveLength(504);
   });
 
   test('clicking a month label calls onMonthOpen with that year and month', async () => {
-    const onMonthOpen = vi.fn();
-    render(<YearView months={makeMonths()} tasksByDate={() => []} onMonthOpen={onMonthOpen} todayKey="2026-09-23" />);
-    await userEvent.click(screen.getByText('March'));
-    expect(onMonthOpen).toHaveBeenCalledWith(2026, 2);
-  });
-
-  test('renders 42 day cells per month card', () => {
-    const { container } = render(<YearView months={makeMonths()} tasksByDate={() => []} onMonthOpen={vi.fn()} todayKey="2026-09-23" />);
-    // 12 months * 42 days = 504 day cells, each with a data-datekey attribute.
-    expect(container.querySelectorAll('[data-datekey]')).toHaveLength(504);
+    const props = makeProps();
+    const { container } = render(<YearView {...props} />);
+    await userEvent.click(within(year(container, 2027)).getByText('March'));
+    expect(props.onMonthOpen).toHaveBeenCalledWith(2027, 2);
   });
 
   test('day cells have no click or drag handlers (Year view has no create/drag)', () => {
-    const { container } = render(<YearView months={makeMonths()} tasksByDate={() => [makeTask()]} onMonthOpen={vi.fn()} todayKey="2026-09-23" />);
+    const { container } = render(<YearView {...makeProps({ tasks: [makeTask()] })} />);
     const cell = container.querySelector('[data-datekey="2026-09-01"]') as HTMLElement;
-    // A span with no onClick/onDrop/draggable — verify no draggable attribute is present.
     expect(cell.getAttribute('draggable')).toBeNull();
   });
-});
 
-describe('YearView responsive hooks', () => {
-  test('uses the year-view classes so CSS can compact the grid on phones', () => {
-    const { container } = render(<YearView months={makeMonths()} tasksByDate={() => []} onMonthOpen={vi.fn()} todayKey="2026-09-23" />);
-    expect(container.querySelector('.pw-yearview')).not.toBeNull();
-    expect(container.querySelectorAll('.pw-yearview-card')).toHaveLength(12);
-    expect(container.querySelectorAll('.pw-yearview-label')).toHaveLength(12);
+  test('a day with a prioritized task is colored; an empty day is not', () => {
+    const { container } = render(<YearView {...makeProps({ tasks: [makeTask({ due: '2026-09-23', priority: 'RED' })] })} />);
+    const busy = container.querySelector('section[data-unit="2026"] [data-datekey="2026-09-23"]') as HTMLElement;
+    const empty = container.querySelector('section[data-unit="2026"] [data-datekey="2026-09-24"]') as HTMLElement;
+    expect(busy.style.background).not.toBe(empty.style.background);
+  });
+
+  test('uses the year-view grid classes so CSS can compact the cards on phones', () => {
+    const { container } = render(<YearView {...makeProps()} />);
+    expect(container.querySelectorAll('.pw-yearview')).toHaveLength(5);
+    expect(container.querySelectorAll('.pw-yearview-label')).toHaveLength(60);
+  });
+
+  test('reports the year at the top of the view when scrolled', () => {
+    const props = makeProps();
+    const { container } = render(<YearView {...props} />);
+    const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      if (this.dataset.unit === undefined) return { top: 0, bottom: 600, left: 0, right: 0, width: 0, height: 600, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
+      const top = (Number(this.dataset.unit) - 2027) * 800; // 2027 starts at the top; 2026 ends there
+      return { top, bottom: top + 800, left: 0, right: 0, width: 0, height: 800, x: 0, y: top, toJSON: () => ({}) } as DOMRect;
+    });
+    fireEvent.scroll(container.querySelector('.pw-yearscroll') as HTMLElement);
+    spy.mockRestore();
+    expect(props.onVisibleYearChange).toHaveBeenCalledWith('2027-01-01');
   });
 });

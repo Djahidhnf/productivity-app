@@ -79,11 +79,15 @@ a:hover { color: var(--accent-hover); }
   .pw-calgrid[data-dense="true"] .pw-cal-block { padding: 1px 3px !important; font-size: 10px !important; }
   .pw-calgrid[data-dense="true"] .pw-cal-block-check { display: none; }
 }
-.pw-yearview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); padding: 0 clamp(16px, 3vw, 32px) 24px; overflow-y: auto; flex: 1; min-height: 0; }
+.pw-yearscroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 clamp(16px, 3vw, 32px) 24px; }
+.pw-yearblock { margin-top: var(--space-6); }
+.pw-yearblock-title { position: sticky; top: 0; z-index: 2; margin: 0 0 var(--space-3); padding: 8px 0 6px; background: var(--bg); border-bottom: 1px solid var(--border); font-family: var(--font-display); font-weight: var(--weight-semibold); font-size: var(--text-xl); }
+.pw-yearview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); }
 .pw-yearview-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 8px; }
 .pw-yearview-label { background: none; border: none; cursor: pointer; font-family: var(--font-display); font-weight: var(--weight-semibold); font-size: var(--text-sm); padding: 0; margin-bottom: 4px; }
 @media (max-width: 860px) {
-  .pw-yearview { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); padding: 0 16px 24px; }
+  .pw-yearscroll { padding: 0 16px 24px; }
+  .pw-yearview { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
   .pw-yearview-card { padding: 6px; border-radius: var(--radius-md); }
   .pw-yearview-label { font-size: var(--text-xs); }
 }

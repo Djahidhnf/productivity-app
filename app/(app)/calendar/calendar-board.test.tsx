@@ -325,3 +325,28 @@ describe('CalendarBoard continuous Month view', () => {
     expect(screen.getByRole('button', { name: /October 2026/ })).toBeInTheDocument();
   }, 10000);
 });
+
+describe('CalendarBoard continuous Year view', () => {
+  test('scrolling to another year updates the header title', async () => {
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Year' }));
+    expect(screen.getByRole('button', { name: '2026' })).toBeInTheDocument();
+    const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      if (this.dataset.unit === undefined) return { top: 0, bottom: 600, left: 0, right: 0, width: 0, height: 600, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
+      const top = (Number(this.dataset.unit) - 2027) * 800;
+      return { top, bottom: top + 800, left: 0, right: 0, width: 0, height: 800, x: 0, y: top, toJSON: () => ({}) } as DOMRect;
+    });
+    fireEvent.scroll(container.querySelector('.pw-yearscroll') as HTMLElement);
+    spy.mockRestore();
+    expect(await screen.findByRole('button', { name: '2027' })).toBeInTheDocument();
+  }, 10000);
+
+  test('tapping a month in Year view opens the Month view for that month', async () => {
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Year' }));
+    const block = container.querySelector('section[data-unit="2026"]') as HTMLElement;
+    await userEvent.click(within(block).getByText('March'));
+    expect(screen.getByRole('tab', { name: 'Month' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: /March 2026/ })).toBeInTheDocument();
+  }, 10000);
+});
