@@ -13,6 +13,7 @@ the Calendar's Day, 3-day and Week views.
 - Navigation: the existing bottom tab bar is the only navigation, at all widths.
 - Theme toggle: removed. The saved `daybook_theme` cookie still decides the theme.
 - Week view on phones: keep all 7 columns, compact styling, tap a block to open it.
+- Year view: compacted for phones (3 columns, tighter spacing), see Section 2.
 - Swipe scope: Day, 3-day and Week only. Month, Year and Agenda are unchanged.
 
 ## 1. Shell and navigation
@@ -84,6 +85,22 @@ header and paddings tighten. Task blocks in narrow columns show single-line
 truncated text (ellipsis) on their existing priority-colored background.
 Tapping a block opens the task dialog as today.
 
+### Compact year view
+
+`YearView` currently uses a fixed 4-column grid, which leaves ~10px day cells
+on a phone. Change it to a responsive grid via a CSS class (in `layout.css`,
+replacing the inline `gridTemplateColumns`):
+
+- above 860px: 4 columns, unchanged;
+- 860px and below: 3 columns, with tighter grid gap (`--space-2`), page padding
+  (16px sides) and month-card padding (6px);
+- the month label uses a smaller size, and day numbers keep the 9px size that
+  fits ~14px cells at 390px.
+
+Multi-year stacking on narrow screens (5 years x 12 months in `CalendarBoard`)
+and tap-a-month-to-open behavior are unchanged. Year view gets no swipe; it
+scrolls vertically only.
+
 ## 3. Error handling and edge cases
 
 - Multi-touch (a second pointer) cancels the swipe.
@@ -98,6 +115,9 @@ Tapping a block opens the task dialog as today.
   vertical ignored, mouse ignored, cancel snaps back, click swallowed.
 - `day-week-grid.test.tsx`: swipe callbacks fire from the grid.
 - `calendar-board.test.tsx`: a swipe moves the title by 1 / 3 / 7 days.
+- `year-view.test.tsx`: existing tests still pass with the class-based grid
+  (jsdom does not evaluate media queries, so the column counts are verified in
+  the manual browser check).
 - `app-shell.test.tsx`: updated for no sidebar / no theme toggle; bottom nav
   renders and marks the active item. `sidebar.test.tsx` deleted.
 - Manual check in a browser at 360/390/768px and desktop for the audit.
