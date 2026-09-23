@@ -1,6 +1,6 @@
 import { PRIORITY_COLORS } from '@/app/components/ui/priority-flag';
 import { formatTime } from '@/app/lib/date-format';
-import { addDays, type MonthGridCell } from '@/app/lib/calendar-dates';
+import { addDays, buildMonthGrid, type MonthGridCell } from '@/app/lib/calendar-dates';
 import type { TaskDTO } from './queries';
 import type { CalView } from './calendar-view-pill';
 import type { SwipeStrength } from '@/app/lib/use-swipe';
@@ -94,4 +94,37 @@ export function minutesFromOffset(offsetY: number, snapMinutes: number): number 
 export function swipeStepDays(view: CalView, strength: SwipeStrength): number {
   if (strength === 'short') return 1;
   return view === '3day' ? 3 : view === 'week' ? 7 : 1;
+}
+
+export function indexTasksByDate(tasks: TaskDTO[]): Map<string, TaskDTO[]> {
+  const index = new Map<string, TaskDTO[]>();
+  for (const task of tasks) {
+    if (task.due === null) continue;
+    const existing = index.get(task.due);
+    if (existing) existing.push(task);
+    else index.set(task.due, [task]);
+  }
+  return index;
+}
+
+export function buildMonthWeeks(index: Map<string, TaskDTO[]>, year: number, month: number): (MonthCellData | null)[][] {
+  const grid = buildMonthGrid(year, month);
+  const weeks: (MonthCellData | null)[][] = [];
+  for (let start = 0; start < grid.length; start += 7) {
+    const row = grid.slice(start, start + 7);
+    if (!row.some((cell) => cell.inMonth)) continue;
+    weeks.push(
+      row.map((cell) => {
+        if (!cell.inMonth) return null;
+        const dayTasks = index.get(cell.dateKey) ?? [];
+        return {
+          dateKey: cell.dateKey,
+          inMonth: true,
+          chips: dayTasks.slice(0, 3),
+          moreCount: Math.max(0, dayTasks.length - 3),
+        };
+      })
+    );
+  }
+  return weeks;
 }
