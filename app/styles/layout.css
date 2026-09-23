@@ -51,7 +51,7 @@ a:hover { color: var(--accent-hover); }
   .pw-viewpill button { padding: 7px 11px; }
   .pw-calhead { gap: var(--space-2) !important; }
   .pw-board { padding: 0 !important; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; gap: 0 !important; }
-  .pw-list-col { width: 100vw !important; box-sizing: border-box; padding: 0 14px; scroll-snap-align: center; scroll-snap-stop: always; }
+  .pw-list-col { width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) !important; box-sizing: border-box; padding: 0 14px; scroll-snap-align: center; scroll-snap-stop: always; }
   .pw-matrix-left { padding: 0 12px 24px !important; }
   .pw-matrix-right { padding: 0 12px 24px !important; border-top: none !important; padding-top: 0 !important; }
   .pw-quadgrid { gap: var(--space-2) !important; }
