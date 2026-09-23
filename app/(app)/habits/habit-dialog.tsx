@@ -18,12 +18,13 @@ export interface HabitDialogProps {
   open: boolean;
   mode: 'create' | 'edit';
   initialValues: HabitDialogValues;
+  saving?: boolean;
   onClose: () => void;
   onSave: (values: HabitDialogValues) => void;
   onDelete?: () => void;
 }
 
-export function HabitDialog({ open, mode, initialValues, onClose, onSave, onDelete }: HabitDialogProps) {
+export function HabitDialog({ open, mode, initialValues, saving, onClose, onSave, onDelete }: HabitDialogProps) {
   const [values, setValues] = useState(initialValues);
   const [prevInitialValues, setPrevInitialValues] = useState(initialValues);
 
@@ -37,7 +38,7 @@ export function HabitDialog({ open, mode, initialValues, onClose, onSave, onDele
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          if (!values.name.trim()) return;
+          if (saving || !values.name.trim()) return;
           onSave(values);
         }}
         style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}
@@ -79,13 +80,15 @@ export function HabitDialog({ open, mode, initialValues, onClose, onSave, onDele
         />
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
           {mode === 'edit' && onDelete ? (
-            <Button type="button" variant="outline" onClick={onDelete}>
+            <Button type="button" variant="outline" onClick={onDelete} disabled={saving}>
               Delete
             </Button>
           ) : (
             <span />
           )}
-          <Button type="submit">Save habit</Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Save habit'}
+          </Button>
         </div>
       </form>
     </Dialog>

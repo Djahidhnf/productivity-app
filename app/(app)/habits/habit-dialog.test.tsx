@@ -41,6 +41,15 @@ describe('HabitDialog', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
+  test('disables Save (and blocks submit) while saving is true, preventing a double-submit', () => {
+    const onSave = vi.fn();
+    render(<HabitDialog open mode="create" initialValues={{ ...baseValues, name: 'Stretch' }} saving onClose={vi.fn()} onSave={onSave} />);
+    const saveButton = screen.getByRole('button', { name: 'Saving…' });
+    expect(saveButton).toBeDisabled();
+    fireEvent.click(saveButton);
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   test('resets its fields when a new initialValues object is passed in', () => {
     const { rerender } = render(<HabitDialog open mode="edit" initialValues={baseValues} onClose={vi.fn()} onSave={vi.fn()} />);
     fireEvent.change(screen.getByLabelText('Habit name'), { target: { value: 'Changed' } });

@@ -36,7 +36,7 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
   const [dragHabitId, setDragHabitId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ habit: HabitDTO | null; values: HabitDialogValues } | null>(null);
   const isNarrow = useMediaQuery('(max-width: 860px)');
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const todayKey = getTodayKey();
   const selectedHabit = habits.find((h) => h.id === selectedHabitId) ?? null;
@@ -186,6 +186,7 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
           open
           mode={dialog.habit ? 'edit' : 'create'}
           initialValues={dialog.values}
+          saving={isPending}
           onClose={() => setDialog(null)}
           onSave={handleSaveDialog}
           onDelete={dialog.habit ? () => handleDeleteHabit(dialog.habit!.id) : undefined}
