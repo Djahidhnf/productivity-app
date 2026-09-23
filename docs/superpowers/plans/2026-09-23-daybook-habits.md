@@ -516,23 +516,30 @@ describe('habitMonthlyPct', () => {
 });
 
 describe('buildHeatCells', () => {
-  test('returns weeks*7 cells ending on today, in date-sequential order', () => {
+  test('returns weeks*7 cells in date-sequential order, grid aligned to the Sunday starting the current week', () => {
     const { cells } = buildHeatCells([], '2026-01-01', '2026-09-23', 4);
     expect(cells).toHaveLength(28);
-    expect(cells[cells.length - 1].dateKey).toBe('2026-09-23');
+    expect(new Date(`${cells[0].dateKey}T00:00:00`).getDay()).toBe(0); // Sunday
     for (let i = 1; i < cells.length; i++) {
       expect(cells[i].dateKey > cells[i - 1].dateKey).toBe(true);
     }
+    // 2026-09-23 is a Wednesday, so the grid's final (current) week runs through
+    // Saturday 2026-09-26 — the grid always contains today, not necessarily as
+    // its last cell, matching a real GitHub-style contribution graph where each
+    // column is a fixed calendar week and the current week's remaining days
+    // render as blank/future rather than being excluded from the grid.
+    expect(cells.some((c) => c.dateKey === '2026-09-23')).toBe(true);
   });
 
   test('marks logged, future, and beforeStart correctly', () => {
-    const { cells } = buildHeatCells(['2026-09-23'], '2026-09-20', '2026-09-23', 1);
+    const { cells } = buildHeatCells(['2026-09-23'], '2026-09-22', '2026-09-23', 1);
     const byDate = Object.fromEntries(cells.map((c) => [c.dateKey, c]));
     expect(byDate['2026-09-23'].logged).toBe(true);
     expect(byDate['2026-09-23'].future).toBe(false);
-    expect(byDate['2026-09-19']?.beforeStart ?? true).toBe(true);
-    const anyFuture = cells.some((c) => c.dateKey > '2026-09-23');
-    expect(anyFuture).toBe(false); // grid never extends past today
+    expect(byDate['2026-09-20'].beforeStart).toBe(true); // grid's Sunday start is before the habit's startDate
+    expect(byDate['2026-09-22'].beforeStart).toBe(false); // the startDate itself is not "before start"
+    expect(byDate['2026-09-24'].future).toBe(true); // this week's remaining days (after today) are future
+    expect(byDate['2026-09-26'].future).toBe(true);
   });
 
   test('startLabel matches the first cell date, formatted', () => {
@@ -677,12 +684,14 @@ export function moveHabit<T extends { id: string }>(habits: T[], draggedId: stri
   if (!dragged) return habits;
   const without = habits.filter((h) => h.id !== draggedId);
   const targetIndex = without.findIndex((h) => h.id === targetId);
-  const at = targetIndex === -1 ? without.length : targetIndex;
+  const at = targetIndex === -1 ? without.length : targetIndex + 1;
   const next = [...without];
   next.splice(at, 0, dragged);
   return next;
 }
 ```
+
+Note: inserting AFTER the target (`targetIndex + 1`), not before it — the test above expects dropping `'a'` onto `'c'` to produce `['b', 'c', 'a']` (a lands after c), and Task 8's own drag-reorder test independently expects the same "drop after target" semantics.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -1917,4 +1926,6 @@ Same as every prior phase's final task: a live authenticated walkthrough against
 
 **4. A deliberate deviation from the mockup, stated once here rather than repeated in every task:** the mockup's habit dialog includes an "Objective date" (`endDate`) field with no corresponding schema column; this plan drops it entirely, matching the fact that design spec §4.5's own prose never mentions an objective/end date either — this is a real product-scope narrowing versus the mockup, not an oversight, consistent with the project's established precedent (the Calendar phase similarly declined to replicate the mockup's virtualization scheme where the design spec explicitly called for a simpler approach).
 
-**5. A known, accepted asymmetry, carried over faithfully rather than "fixed":** heatmap cells (Task 5) treat both future dates and dates before a habit's `startDate` as non-interactive, while month-picker cells (Task 7) only treat future dates as non-interactive — so a user can, in the month picker only, toggle a log for a date before they say they started the habit. This exact inconsistency exists in the mockup's own `buildHeat`/`buildHabitMonth` functions (verified by reading both directly) and is preserved per this project's established practice (Calendar, Matrix) of replicating mockup behavior precisely instead of silently "improving" on it — a real whole-branch review may still flag it, at which point it is the human's call whether to keep parity with the mockup or diverge, same as any other plan-vs-review conflict.
+**5. Two genuine bugs found during Task 3's implementation, not caught by this plan's own self-review, corrected in the plan and on the branch:** (a) `moveHabit`'s originally-drafted code inserted the dragged item **before** the target (`splice(targetIndex, 0, dragged)`), but this task's own test (`moveHabit(habits, 'a', 'c')` expecting `['b', 'c', 'a']`) and Task 8's independent drag-reorder test both require inserting **after** the target — fixed to `splice(targetIndex + 1, 0, dragged)`; this is a real bug in the originally-drafted code, not a test error, since dropping a card onto another and having it land *before* rather than after the drop target would be backwards drag-and-drop UX. (b) `buildHeatCells`'s test suite, as originally drafted, asserted the heatmap grid always ends exactly on today (`cells[cells.length-1].dateKey === todayKey`, `anyFuture` always `false`) — this contradicts both the mockup's actual week-aligned `buildHeat` logic (verified by reading it directly) and design spec §4.5's "flowing week-by-week" phrasing: a real GitHub-style heatmap has fixed weekday rows (row 0 is always Sunday), which requires the grid to start on a Sunday and can therefore end a few days *after* today within the current week (graying out the "future" remainder of that week) whenever today isn't a Saturday — a sliding window ending exactly on today would instead shift which weekday occupies row 0 by one every single day, which is not a GitHub-style heatmap at all. Task 3's implementer correctly followed this plan's (buggy) test to the letter and changed `buildHeatCells`'s implementation to a sliding window to make it pass — a reasonable thing for an implementer to do, but the wrong resolution, since the bug was in the test, not the original week-aligned implementation. The controller caught this during Task 3's post-implementation review (the implementer's own deviation note flagged the change, which prompted a hand-verification of the date math against the mockup), reverted `buildHeatCells` to the original week-aligned formula, and corrected the test's assertions to expect week-alignment with trailing future days instead. **Process lesson:** an implementer's "I changed the code to make the test pass" deviation note is exactly the signal to re-derive the test's own correctness against the spec/mockup before accepting it, not just confirm the diff matches whatever the (possibly-wrong) brief said.
+
+**6. A known, accepted asymmetry, carried over faithfully rather than "fixed":** heatmap cells (Task 5) treat both future dates and dates before a habit's `startDate` as non-interactive, while month-picker cells (Task 7) only treat future dates as non-interactive — so a user can, in the month picker only, toggle a log for a date before they say they started the habit. This exact inconsistency exists in the mockup's own `buildHeat`/`buildHabitMonth` functions (verified by reading both directly) and is preserved per this project's established practice (Calendar, Matrix) of replicating mockup behavior precisely instead of silently "improving" on it — a real whole-branch review may still flag it, at which point it is the human's call whether to keep parity with the mockup or diverge, same as any other plan-vs-review conflict.
