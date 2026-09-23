@@ -193,3 +193,52 @@ describe('CalendarBoard', () => {
     await waitFor(() => expect(alertSpy).toHaveBeenCalled());
   }, 10000);
 });
+
+describe('CalendarBoard swipe navigation', () => {
+  function swipeGrid(container: HTMLElement, dx: number) {
+    const grid = container.querySelector('.pw-calgrid') as HTMLElement;
+    Object.defineProperty(grid, 'clientWidth', { value: 400, configurable: true });
+    const at = (x: number) => ({ pointerId: 1, pointerType: 'touch', clientX: x, clientY: 300 });
+    fireEvent.pointerDown(grid, at(200));
+    fireEvent.pointerMove(grid, at(200 + dx / 2));
+    fireEvent.pointerMove(grid, at(200 + dx));
+    fireEvent.pointerUp(grid, at(200 + dx));
+  }
+
+  test('swiping left in Day view moves to tomorrow; swiping right moves back', async () => {
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    swipeGrid(container, -200);
+    expect(await screen.findByText('Tomorrow')).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 400)); // let the slide-in finish
+    swipeGrid(container, 200);
+    await waitFor(() => expect(screen.queryByText('Tomorrow')).not.toBeInTheDocument());
+  }, 10000);
+
+  test('swiping right in Day view moves to yesterday', async () => {
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    swipeGrid(container, 200);
+    expect(await screen.findByText('Yesterday')).toBeInTheDocument();
+  }, 10000);
+
+  test('swiping left in 3-Day view advances by 3 days', async () => {
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: '3-Day' }));
+    expect(screen.getByText('Sep 23 – Sep 25')).toBeInTheDocument();
+    swipeGrid(container, -200);
+    expect(await screen.findByText('Sep 26 – Sep 28')).toBeInTheDocument();
+  }, 10000);
+
+  test('swiping left in Week view advances by 7 days', async () => {
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Week' }));
+    expect(screen.getByText('Sep 20 – Sep 26')).toBeInTheDocument();
+    swipeGrid(container, -200);
+    expect(await screen.findByText('Sep 27 – Oct 3')).toBeInTheDocument();
+  }, 10000);
+
+  test('a short swipe below the threshold does not change the date', async () => {
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    swipeGrid(container, -20);
+    expect(screen.queryByText('Tomorrow')).not.toBeInTheDocument();
+  }, 10000);
+});

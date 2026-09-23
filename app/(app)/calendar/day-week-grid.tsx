@@ -2,6 +2,7 @@
 
 import { CalendarTaskBlock } from './calendar-task-block';
 import { HOUR_PX, minutesFromOffset } from './calendar-views';
+import { useSwipe } from '@/app/lib/use-swipe';
 import type { TaskDTO } from './queries';
 
 export interface DayWeekGridProps {
@@ -13,6 +14,8 @@ export interface DayWeekGridProps {
   onTaskDragStart: (task: TaskDTO) => void;
   onGridDrop: (dateKey: string, minutes: number) => void;
   onTaskToggleDone?: (taskId: string) => void;
+  onSwipePrev?: () => void;
+  onSwipeNext?: () => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -34,15 +37,19 @@ export function DayWeekGrid({
   onTaskDragStart,
   onGridDrop,
   onTaskToggleDone,
+  onSwipePrev,
+  onSwipeNext,
 }: DayWeekGridProps) {
+  const { ref, handlers } = useSwipe({ onSwipeLeft: onSwipeNext, onSwipeRight: onSwipePrev });
+
   return (
-    <div className="pw-calgrid pw-scroll">
+    <div ref={ref} className="pw-calgrid pw-scroll" data-dense={dateKeys.length > 3} {...handlers}>
       <div className="pw-calgrid-header">
         <div className="pw-calgrid-gutter" />
         {dateKeys.map((key) => {
           const { weekday, dayNum } = dayHeaderParts(key);
           return (
-            <div key={key} style={{ flex: 1, minWidth: 0, textAlign: 'center', padding: '8px 4px' }}>
+            <div key={key} className="pw-swipe-follow" style={{ flex: 1, minWidth: 0, textAlign: 'center', padding: '8px 4px' }}>
               <div style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 {weekday}
               </div>
@@ -52,14 +59,13 @@ export function DayWeekGrid({
         })}
       </div>
       <div className="pw-calgrid-allday">
-        <div
-          className="pw-calgrid-gutter"
-          style={{ display: 'flex', alignItems: 'center', fontSize: 'var(--text-2xs)', color: 'var(--text-muted)', paddingLeft: 4 }}
-        >
-          All day
-        </div>
+        <div className="pw-calgrid-gutter pw-calgrid-allday-label">All day</div>
         {dateKeys.map((key) => (
-          <div key={key} style={{ flex: 1, minWidth: 0, borderLeft: '1px solid var(--border)', padding: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div
+            key={key}
+            className="pw-swipe-follow"
+            style={{ flex: 1, minWidth: 0, borderLeft: '1px solid var(--border)', padding: 4, display: 'flex', flexDirection: 'column', gap: 2 }}
+          >
             {untimedTasksFor(key).map((task) => (
               <div
                 key={task.id}
@@ -89,20 +95,7 @@ export function DayWeekGrid({
         <div className="pw-calgrid-gutter">
           {HOURS.map((h) => (
             <div key={h} style={{ height: HOUR_PX, position: 'relative' }}>
-              {h > 0 && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: -7,
-                    right: 8,
-                    fontSize: 'var(--text-2xs)',
-                    color: 'var(--text-faint)',
-                    fontFamily: 'var(--font-mono)',
-                  }}
-                >
-                  {h}:00
-                </span>
-              )}
+              {h > 0 && <span className="pw-calgrid-hour">{h}:00</span>}
             </div>
           ))}
         </div>

@@ -271,6 +271,8 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
           onTaskDragStart={(task) => setDragTaskId(task.id)}
           onGridDrop={handleGridDrop}
           onTaskToggleDone={handleToggleDone}
+          onSwipePrev={handlePrev}
+          onSwipeNext={handleNext}
         />
       ) : calView === 'month' ? (
         <MonthView

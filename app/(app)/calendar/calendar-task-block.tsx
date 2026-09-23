@@ -20,6 +20,7 @@ export function CalendarTaskBlock({ task, onOpen, onToggleDone, draggable, onDra
 
   return (
     <div
+      className="pw-cal-block"
       draggable={draggable}
       onDragStart={onDragStart}
       onClick={(event) => {
@@ -45,7 +46,9 @@ export function CalendarTaskBlock({ task, onOpen, onToggleDone, draggable, onDra
       }}
     >
       {onToggleDone && (
-        <CheckToggle checked={task.done} onToggle={() => onToggleDone(task.id)} label={task.text} />
+        <span className="pw-cal-block-check">
+          <CheckToggle checked={task.done} onToggle={() => onToggleDone(task.id)} label={task.text} />
+        </span>
       )}
       <span
         style={{
