@@ -1,6 +1,6 @@
 import { PRIORITY_COLORS } from '@/app/components/ui/priority-flag';
 import { formatTime } from '@/app/lib/date-format';
-import { addDays, buildMonthGrid, type MonthGridCell } from '@/app/lib/calendar-dates';
+import { addDays, buildMonthGrid } from '@/app/lib/calendar-dates';
 import type { TaskDTO } from './queries';
 import type { CalView } from './calendar-view-pill';
 import type { SwipeStrength } from '@/app/lib/use-swipe';
@@ -34,18 +34,6 @@ export interface MonthCellData {
   inMonth: boolean;
   chips: TaskDTO[];
   moreCount: number;
-}
-
-export function buildMonthCells(tasks: TaskDTO[], grid: MonthGridCell[]): MonthCellData[] {
-  return grid.map((cell) => {
-    const dayTasks = tasksByDate(tasks, cell.dateKey);
-    return {
-      dateKey: cell.dateKey,
-      inMonth: cell.inMonth,
-      chips: dayTasks.slice(0, 3),
-      moreCount: Math.max(0, dayTasks.length - 3),
-    };
-  });
 }
 
 export interface AgendaItem {

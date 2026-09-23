@@ -5,12 +5,10 @@ import {
   timedTasksByDate,
   untimedTasksByDate,
   dayColor,
-  buildMonthCells,
   buildAgendaGroups,
   minutesFromOffset,
 } from './calendar-views';
 import type { TaskDTO } from './queries';
-import { buildMonthGrid } from '@/app/lib/calendar-dates';
 
 function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
   return {
@@ -63,29 +61,6 @@ describe('dayColor', () => {
 
   test('returns transparent when there are no tasks', () => {
     expect(dayColor([])).toBe('transparent');
-  });
-});
-
-describe('buildMonthCells', () => {
-  test('takes up to 3 chips per cell and counts the rest as "more"', () => {
-    const tasks = [
-      makeTask({ id: 't1', due: '2026-09-23' }),
-      makeTask({ id: 't2', due: '2026-09-23' }),
-      makeTask({ id: 't3', due: '2026-09-23' }),
-      makeTask({ id: 't4', due: '2026-09-23' }),
-      makeTask({ id: 't5', due: '2026-09-23' }),
-    ];
-    const grid = buildMonthGrid(2026, 8);
-    const cells = buildMonthCells(tasks, grid);
-    const cell = cells.find((c) => c.dateKey === '2026-09-23')!;
-    expect(cell.chips.map((t) => t.id)).toEqual(['t1', 't2', 't3']);
-    expect(cell.moreCount).toBe(2);
-  });
-
-  test('a cell with no tasks has zero chips and zero moreCount', () => {
-    const grid = buildMonthGrid(2026, 8);
-    const cells = buildMonthCells([], grid);
-    expect(cells.every((c) => c.chips.length === 0 && c.moreCount === 0)).toBe(true);
   });
 });
 

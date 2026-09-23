@@ -12,6 +12,7 @@ import { createTask, updateTask, deleteTask, toggleTaskDone } from '../tasks/act
 import { useMediaQuery } from '@/app/lib/use-media-query';
 import type { SwipeStrength } from '@/app/lib/use-swipe';
 import { todayKey } from '@/app/lib/date-format';
+import { monthIndexOfDateKey } from '@/app/lib/calendar-units';
 import {
   addDays,
   addMonths,
@@ -26,7 +27,6 @@ import {
   timedTasksByDate,
   untimedTasksByDate,
   tasksByDate,
-  buildMonthCells,
   buildAgendaGroups,
   swipeStepDays,
 } from './calendar-views';
@@ -93,6 +93,10 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
 
   function handleToday() {
     setCalDate(todayKey());
+  }
+
+  function handleVisibleMonthChange(dateKey: string) {
+    setCalDate((prev) => (monthIndexOfDateKey(prev) === monthIndexOfDateKey(dateKey) ? prev : dateKey));
   }
 
   function handleSwipe(direction: 1 | -1, strength: SwipeStrength) {
@@ -241,11 +245,8 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
   const dateKeysForGrid =
     calView === 'day' ? [calDate] : calView === '3day' ? [calDate, addDays(calDate, 1), addDays(calDate, 2)] : weekDates(calDate);
 
-  const [yearStr, monthStr] = calDate.split('-');
+  const [yearStr] = calDate.split('-');
   const year = Number(yearStr);
-  const month0 = Number(monthStr) - 1;
-
-  const monthCells = calView === 'month' ? buildMonthCells(tasks, buildMonthGrid(year, month0)) : [];
 
   const yearsToShow = isNarrow ? [year - 2, year - 1, year, year + 1, year + 2] : [year];
   const yearMonths: YearMonthData[] =
@@ -286,7 +287,10 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
         />
       ) : calView === 'month' ? (
         <MonthView
-          cells={monthCells}
+          tasks={tasks}
+          anchor={calDate}
+          todayKey={today}
+          onVisibleMonthChange={handleVisibleMonthChange}
           onCellClick={handleCellClick}
           onTaskOpen={handleOpenTask}
           onTaskDragStart={(task) => setDragTaskId(task.id)}

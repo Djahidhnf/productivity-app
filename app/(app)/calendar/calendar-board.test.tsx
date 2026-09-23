@@ -301,3 +301,27 @@ describe('CalendarBoard jump picker', () => {
     expect(screen.getAllByText('Today').find((el) => el.tagName === 'SPAN')).toBeInTheDocument();
   });
 });
+
+describe('CalendarBoard continuous Month view', () => {
+  test('scrolling to another month updates the header title', async () => {
+    const OCT_2026 = 2026 * 12 + 9;
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Month' }));
+    expect(screen.getByRole('button', { name: /September 2026/ })).toBeInTheDocument();
+    const spy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      if (this.dataset.unit === undefined) return { top: 0, bottom: 600, left: 0, right: 0, width: 0, height: 600, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
+      const top = (Number(this.dataset.unit) - OCT_2026) * 500;
+      return { top, bottom: top + 500, left: 0, right: 0, width: 0, height: 500, x: 0, y: top, toJSON: () => ({}) } as DOMRect;
+    });
+    fireEvent.scroll(container.querySelector('.pw-monthscroll') as HTMLElement);
+    spy.mockRestore();
+    expect(await screen.findByRole('button', { name: /October 2026/ })).toBeInTheDocument();
+  }, 10000);
+
+  test('Next moves the title to the following month', async () => {
+    render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Month' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('button', { name: /October 2026/ })).toBeInTheDocument();
+  }, 10000);
+});
