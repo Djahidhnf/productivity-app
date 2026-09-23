@@ -1,7 +1,7 @@
 'use client';
 
 import { CalendarTaskBlock } from './calendar-task-block';
-import { HOUR_PX } from './calendar-views';
+import { HOUR_PX, minutesFromOffset } from './calendar-views';
 import type { TaskDTO } from './queries';
 
 export interface DayWeekGridProps {
@@ -9,6 +9,9 @@ export interface DayWeekGridProps {
   timedTasksFor: (dateKey: string) => TaskDTO[];
   untimedTasksFor: (dateKey: string) => TaskDTO[];
   onTaskOpen: (task: TaskDTO) => void;
+  onGridClick: (dateKey: string, minutes: number) => void;
+  onTaskDragStart: (task: TaskDTO) => void;
+  onGridDrop: (dateKey: string, minutes: number) => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -21,7 +24,15 @@ function dayHeaderParts(dateKey: string): { weekday: string; dayNum: string } {
   };
 }
 
-export function DayWeekGrid({ dateKeys, timedTasksFor, untimedTasksFor, onTaskOpen }: DayWeekGridProps) {
+export function DayWeekGrid({
+  dateKeys,
+  timedTasksFor,
+  untimedTasksFor,
+  onTaskOpen,
+  onGridClick,
+  onTaskDragStart,
+  onGridDrop,
+}: DayWeekGridProps) {
   return (
     <div className="pw-calgrid pw-scroll">
       <div className="pw-calgrid-header">
@@ -94,12 +105,34 @@ export function DayWeekGrid({ dateKeys, timedTasksFor, untimedTasksFor, onTaskOp
           ))}
         </div>
         {dateKeys.map((key) => (
-          <div key={key} className="pw-calgrid-col" data-daykey={key}>
+          <div
+            key={key}
+            className="pw-calgrid-col"
+            data-daykey={key}
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              const minutes = minutesFromOffset(event.clientY - rect.top, 30);
+              onGridClick(key, minutes);
+            }}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const rect = event.currentTarget.getBoundingClientRect();
+              const minutes = minutesFromOffset(event.clientY - rect.top, 15);
+              onGridDrop(key, minutes);
+            }}
+          >
             {HOURS.map((h) => (
               <div key={h} className="pw-calgrid-hourline" style={{ top: h * HOUR_PX }} />
             ))}
             {timedTasksFor(key).map((task) => (
-              <CalendarTaskBlock key={task.id} task={task} onOpen={onTaskOpen} />
+              <CalendarTaskBlock
+                key={task.id}
+                task={task}
+                onOpen={onTaskOpen}
+                draggable
+                onDragStart={() => onTaskDragStart(task)}
+              />
             ))}
           </div>
         ))}
