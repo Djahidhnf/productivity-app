@@ -10,19 +10,26 @@ import { AgendaView } from './agenda-view';
 import { TaskDialog, type TaskDialogValues } from '../tasks/task-dialog';
 import { createTask, updateTask, deleteTask, toggleTaskDone } from '../tasks/actions';
 import { useMediaQuery } from '@/app/lib/use-media-query';
+import type { SwipeStrength } from '@/app/lib/use-swipe';
 import { todayKey } from '@/app/lib/date-format';
 import {
   addDays,
   addMonths,
   addYears,
   weekDates,
-  startOfWeekSunday,
   buildMonthGrid,
   calendarDateLabel,
   shortDateLabel,
   monthYearLabel,
 } from '@/app/lib/calendar-dates';
-import { timedTasksByDate, untimedTasksByDate, tasksByDate, buildMonthCells, buildAgendaGroups } from './calendar-views';
+import {
+  timedTasksByDate,
+  untimedTasksByDate,
+  tasksByDate,
+  buildMonthCells,
+  buildAgendaGroups,
+  swipeStepDays,
+} from './calendar-views';
 import type { TaskDTO } from './queries';
 import type { TaskListDTO } from '../tasks/queries';
 
@@ -86,6 +93,10 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
 
   function handleToday() {
     setCalDate(todayKey());
+  }
+
+  function handleSwipe(direction: 1 | -1, strength: SwipeStrength) {
+    setCalDate((d) => addDays(d, direction * swipeStepDays(calView, strength)));
   }
 
   function handleOpenTask(task: TaskDTO) {
@@ -220,10 +231,7 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
       : calView === '3day'
         ? `${shortDateLabel(calDate)} – ${shortDateLabel(addDays(calDate, 2))}`
         : calView === 'week'
-          ? (() => {
-              const start = startOfWeekSunday(calDate);
-              return `${shortDateLabel(start)} – ${shortDateLabel(addDays(start, 6))}`;
-            })()
+          ? `${shortDateLabel(calDate)} – ${shortDateLabel(addDays(calDate, 6))}`
           : calView === 'month'
             ? monthYearLabel(calDate)
             : calView === 'year'
@@ -231,7 +239,7 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
               : `From ${calendarDateLabel(calDate, today)}`;
 
   const dateKeysForGrid =
-    calView === 'day' ? [calDate] : calView === '3day' ? [calDate, addDays(calDate, 1), addDays(calDate, 2)] : weekDates(startOfWeekSunday(calDate));
+    calView === 'day' ? [calDate] : calView === '3day' ? [calDate, addDays(calDate, 1), addDays(calDate, 2)] : weekDates(calDate);
 
   const [yearStr, monthStr] = calDate.split('-');
   const year = Number(yearStr);
@@ -271,8 +279,8 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
           onTaskDragStart={(task) => setDragTaskId(task.id)}
           onGridDrop={handleGridDrop}
           onTaskToggleDone={handleToggleDone}
-          onSwipePrev={handlePrev}
-          onSwipeNext={handleNext}
+          onSwipePrev={(strength) => handleSwipe(-1, strength)}
+          onSwipeNext={(strength) => handleSwipe(1, strength)}
         />
       ) : calView === 'month' ? (
         <MonthView

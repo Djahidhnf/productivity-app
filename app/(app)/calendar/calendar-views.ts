@@ -2,6 +2,8 @@ import { PRIORITY_COLORS } from '@/app/components/ui/priority-flag';
 import { formatTime } from '@/app/lib/date-format';
 import { addDays, type MonthGridCell } from '@/app/lib/calendar-dates';
 import type { TaskDTO } from './queries';
+import type { CalView } from './calendar-view-pill';
+import type { SwipeStrength } from '@/app/lib/use-swipe';
 
 export const HOUR_PX = 64;
 
@@ -87,4 +89,9 @@ export function minutesFromOffset(offsetY: number, snapMinutes: number): number 
   const rawMinutes = (offsetY / HOUR_PX) * 60;
   const snapped = Math.round(rawMinutes / snapMinutes) * snapMinutes;
   return Math.max(0, Math.min(24 * 60 - snapMinutes, snapped));
+}
+
+export function swipeStepDays(view: CalView, strength: SwipeStrength): number {
+  if (strength === 'short') return 1;
+  return view === '3day' ? 3 : view === 'week' ? 7 : 1;
 }

@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { useSwipe, lockAxis, resolveSwipe, SLIDE_MS } from '@/app/lib/use-swipe';
+import { useSwipe, lockAxis, resolveSwipe, swipeStrength, SLIDE_MS } from '@/app/lib/use-swipe';
 
 describe('lockAxis', () => {
   test('stays undecided until movement reaches 10px', () => {
@@ -225,5 +225,46 @@ describe('useSwipe', () => {
     expect(onLeft).toHaveBeenCalledTimes(1);
     expect(el.style.getPropertyValue('--swipe-x')).toBe('0px');
     expect(el.dataset.swipe).toBeUndefined();
+  });
+});
+
+describe('swipeStrength', () => {
+  test('is short below 60% of the width and long at or above it', () => {
+    expect(swipeStrength(-150, 400)).toBe('short');
+    expect(swipeStrength(-239, 400)).toBe('short');
+    expect(swipeStrength(-240, 400)).toBe('long');
+    expect(swipeStrength(300, 400)).toBe('long');
+  });
+});
+
+describe('useSwipe strength', () => {
+  test('a swipe under 60% of the width reports "short"', () => {
+    const onLeft = vi.fn();
+    render(<Harness onLeft={onLeft} />);
+    drag(getSurface(), { dx: -150 });
+    vi.advanceTimersByTime(SLIDE_MS);
+    expect(onLeft).toHaveBeenCalledWith('short');
+  });
+
+  test('a swipe of 60% or more reports "long" in both directions', () => {
+    const onLeft = vi.fn();
+    const onRight = vi.fn();
+    render(<Harness onLeft={onLeft} onRight={onRight} />);
+    const el = getSurface();
+    drag(el, { dx: -260 });
+    vi.advanceTimersByTime(SLIDE_MS);
+    expect(onLeft).toHaveBeenCalledWith('long');
+    vi.advanceTimersByTime(1000); // let the slide settle so the next swipe is accepted
+    drag(el, { dx: 260 });
+    vi.advanceTimersByTime(SLIDE_MS);
+    expect(onRight).toHaveBeenCalledWith('long');
+  });
+
+  test('a fast flick that travels little is short', () => {
+    const onLeft = vi.fn();
+    render(<Harness onLeft={onLeft} />);
+    drag(getSurface(), { dx: -60, ms: 80 });
+    vi.advanceTimersByTime(SLIDE_MS);
+    expect(onLeft).toHaveBeenCalledWith('short');
   });
 });

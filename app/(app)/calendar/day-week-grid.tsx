@@ -2,7 +2,7 @@
 
 import { CalendarTaskBlock } from './calendar-task-block';
 import { HOUR_PX, minutesFromOffset } from './calendar-views';
-import { useSwipe } from '@/app/lib/use-swipe';
+import { useSwipe, type SwipeStrength } from '@/app/lib/use-swipe';
 import type { TaskDTO } from './queries';
 
 export interface DayWeekGridProps {
@@ -14,8 +14,8 @@ export interface DayWeekGridProps {
   onTaskDragStart: (task: TaskDTO) => void;
   onGridDrop: (dateKey: string, minutes: number) => void;
   onTaskToggleDone?: (taskId: string) => void;
-  onSwipePrev?: () => void;
-  onSwipeNext?: () => void;
+  onSwipePrev?: (strength: SwipeStrength) => void;
+  onSwipeNext?: (strength: SwipeStrength) => void;
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);

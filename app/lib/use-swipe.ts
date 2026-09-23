@@ -9,6 +9,9 @@ export const COMMIT_RATIO = 0.25;
 export const FLING_MIN_DISTANCE_PX = 40;
 export const FLING_MIN_VELOCITY = 0.5; // px per ms
 export const SLIDE_MS = 150;
+export const LONG_SWIPE_RATIO = 0.6;
+
+export type SwipeStrength = 'short' | 'long';
 const SETTLE_DELAY_MS = 30;
 const CLICK_SWALLOW_MS = 50;
 
@@ -26,6 +29,10 @@ export function resolveSwipe({ dx, dy, dt, width }: { dx: number; dy: number; dt
   return dx < 0 ? 'next' : 'prev';
 }
 
+export function swipeStrength(dx: number, width: number): SwipeStrength {
+  return Math.abs(dx) >= width * LONG_SWIPE_RATIO ? 'long' : 'short';
+}
+
 function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
 }
@@ -39,8 +46,8 @@ interface Gesture {
 }
 
 export interface UseSwipeOptions {
-  onSwipeLeft?: () => void;
-  onSwipeRight?: () => void;
+  onSwipeLeft?: (strength: SwipeStrength) => void;
+  onSwipeRight?: (strength: SwipeStrength) => void;
 }
 
 export function useSwipe({ onSwipeLeft, onSwipeRight }: UseSwipeOptions) {
@@ -72,12 +79,12 @@ export function useSwipe({ onSwipeLeft, onSwipeRight }: UseSwipeOptions) {
     el.style.setProperty('--swipe-x', `${px}px`);
   }
 
-  function finish(direction: 'next' | 'prev') {
+  function finish(direction: 'next' | 'prev', strength: SwipeStrength) {
     const el = ref.current;
     if (!el) return;
     const fire = () => {
-      if (direction === 'next') callbacks.current.onSwipeLeft?.();
-      else callbacks.current.onSwipeRight?.();
+      if (direction === 'next') callbacks.current.onSwipeLeft?.(strength);
+      else callbacks.current.onSwipeRight?.(strength);
     };
     if (prefersReducedMotion()) {
       setOffset(0, false);
@@ -145,13 +152,10 @@ export function useSwipe({ onSwipeLeft, onSwipeRight }: UseSwipeOptions) {
     gesture.current = null;
     if (g.axis !== 'x') return;
     swallowNextClick();
-    const result = resolveSwipe({
-      dx: event.clientX - g.startX,
-      dy: event.clientY - g.startY,
-      dt: performance.now() - g.startT,
-      width: ref.current?.clientWidth || 1,
-    });
-    if (result === 'next' || result === 'prev') finish(result);
+    const dx = event.clientX - g.startX;
+    const width = ref.current?.clientWidth || 1;
+    const result = resolveSwipe({ dx, dy: event.clientY - g.startY, dt: performance.now() - g.startT, width });
+    if (result === 'next' || result === 'prev') finish(result, swipeStrength(dx, width));
     else setOffset(0, true);
   }
 
