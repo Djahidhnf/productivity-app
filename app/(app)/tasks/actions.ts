@@ -12,15 +12,14 @@ export async function createList(name: string): Promise<{ id: string; name: stri
   if (!trimmed) throw new Error('List name is required');
   const maxOrder = await prisma.taskList.aggregate({ _max: { order: true } });
   const list = await prisma.taskList.create({ data: { name: trimmed, order: (maxOrder._max.order ?? -1) + 1 } });
-  revalidatePath('/tasks');
+  revalidatePath('/tasks', 'layout');
   return { id: list.id, name: list.name, order: list.order };
 }
 
 export async function deleteList(listId: string): Promise<void> {
   await verifySession();
   await prisma.taskList.delete({ where: { id: listId } });
-  revalidatePath('/tasks');
-  revalidatePath('/matrix');
+  revalidatePath('/tasks', 'layout');
 }
 
 export async function reorderLists(orderedIds: string[]): Promise<void> {
@@ -28,7 +27,7 @@ export async function reorderLists(orderedIds: string[]): Promise<void> {
   await prisma.$transaction(
     orderedIds.map((id, index) => prisma.taskList.update({ where: { id }, data: { order: index } }))
   );
-  revalidatePath('/tasks');
+  revalidatePath('/tasks', 'layout');
 }
 
 export interface CreateTaskInput {
@@ -44,8 +43,7 @@ export async function createTask(input: CreateTaskInput): Promise<TaskDTO> {
   const task = await prisma.task.create({
     data: { text: trimmed, listId: input.listId, order: (maxOrder._max.order ?? -1) + 1 },
   });
-  revalidatePath('/tasks');
-  revalidatePath('/matrix');
+  revalidatePath('/tasks', 'layout');
   return serializeTask(task);
 }
 
@@ -72,24 +70,21 @@ export async function updateTask(input: UpdateTaskInput): Promise<TaskDTO> {
       dueTime: input.dueTime,
     },
   });
-  revalidatePath('/tasks');
-  revalidatePath('/matrix');
+  revalidatePath('/tasks', 'layout');
   return serializeTask(task);
 }
 
 export async function deleteTask(taskId: string): Promise<void> {
   await verifySession();
   await prisma.task.delete({ where: { id: taskId } });
-  revalidatePath('/tasks');
-  revalidatePath('/matrix');
+  revalidatePath('/tasks', 'layout');
 }
 
 export async function toggleTaskDone(taskId: string): Promise<TaskDTO> {
   await verifySession();
   const existing = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
   const task = await prisma.task.update({ where: { id: taskId }, data: { done: !existing.done } });
-  revalidatePath('/tasks');
-  revalidatePath('/matrix');
+  revalidatePath('/tasks', 'layout');
   return serializeTask(task);
 }
 
@@ -105,6 +100,5 @@ export async function reorderTasks(input: ReorderTasksInput): Promise<void> {
       prisma.task.update({ where: { id }, data: { listId: input.listId, order: index } })
     )
   );
-  revalidatePath('/tasks');
-  revalidatePath('/matrix');
+  revalidatePath('/tasks', 'layout');
 }

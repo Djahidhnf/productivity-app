@@ -155,33 +155,44 @@ describe('task/list server actions', () => {
     await prisma.taskList.delete({ where: { id: list.id } });
   });
 
-  test('deleteList, createTask, updateTask, deleteTask, and toggleTaskDone all revalidate /matrix in addition to /tasks', async () => {
+  test('every action revalidates the shared (app) layout with one call', async () => {
     const list = await createList('ActionTest RevalidateList');
-    expect(revalidatePath).toHaveBeenCalledWith('/tasks');
-    expect(revalidatePath).not.toHaveBeenCalledWith('/matrix');
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
 
     vi.mocked(revalidatePath).mockClear();
     const task = await createTask({ text: 'ActionTest revalidate task', listId: list.id });
-    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
 
     vi.mocked(revalidatePath).mockClear();
     await updateTask({ id: task.id, text: 'ActionTest revalidate task edited', listId: list.id, priority: null, due: null, dueTime: null });
-    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
 
     vi.mocked(revalidatePath).mockClear();
     await toggleTaskDone(task.id);
-    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
 
     vi.mocked(revalidatePath).mockClear();
     await reorderTasks({ listId: list.id, orderedTaskIds: [task.id] });
-    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
+
+    vi.mocked(revalidatePath).mockClear();
+    await reorderLists([list.id]);
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
 
     vi.mocked(revalidatePath).mockClear();
     await deleteTask(task.id);
-    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
 
     vi.mocked(revalidatePath).mockClear();
     await deleteList(list.id);
-    expect(revalidatePath).toHaveBeenCalledWith('/matrix');
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
   });
 });
