@@ -1,9 +1,17 @@
-function localDateKey(date: Date): string {
+export function localDateKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 export function todayKey(): string {
   return localDateKey(new Date());
+}
+
+export function formatTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const period = hours < 12 ? 'AM' : 'PM';
+  const hours12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${hours12}:${String(mins).padStart(2, '0')}${period}`;
 }
 
 export function formatDueLabel(due: string | null, dueTime: number | null): string | null {
@@ -14,11 +22,7 @@ export function formatDueLabel(due: string | null, dueTime: number | null): stri
   const tomorrow = localDateKey(tomorrowDate);
   let label = due === today ? 'Today' : due === tomorrow ? 'Tomorrow' : due.slice(5);
   if (dueTime != null) {
-    const hours = Math.floor(dueTime / 60);
-    const minutes = dueTime % 60;
-    const period = hours < 12 ? 'AM' : 'PM';
-    const hours12 = hours % 12 === 0 ? 12 : hours % 12;
-    label += ` ${hours12}:${String(minutes).padStart(2, '0')}${period}`;
+    label += ` ${formatTime(dueTime)}`;
   }
   return label;
 }
