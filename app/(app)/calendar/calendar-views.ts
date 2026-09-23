@@ -57,7 +57,7 @@ export interface AgendaGroup {
 }
 
 export function buildAgendaGroups(tasks: TaskDTO[], startKey: string, days: number): AgendaGroup[] {
-  const endKey = addDays(startKey, days);
+  const endKey = addDays(startKey, days - 1);
   const inRange = tasks.filter((t) => t.due !== null && t.due >= startKey && t.due <= endKey);
   const byDate = new Map<string, TaskDTO[]>();
   for (const task of inRange) {

@@ -84,7 +84,10 @@ export function MonthView({ cells, onCellClick, onTaskOpen, onTaskDragStart, onC
             </div>
           ))}
           {cell.moreCount > 0 && (
-            <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+            <span
+              onClick={(event) => event.stopPropagation()}
+              style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
+            >
               +{cell.moreCount} more
             </span>
           )}

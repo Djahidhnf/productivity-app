@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi } from 'vitest';
 import { CalendarTaskBlock } from './calendar-task-block';
 import type { TaskDTO } from './queries';
@@ -47,5 +48,14 @@ describe('CalendarTaskBlock', () => {
     fireEvent.click(screen.getByText('Standup'));
     expect(onOpen).toHaveBeenCalledWith(task);
     expect(onParentClick).not.toHaveBeenCalled();
+  });
+
+  test('toggling the checkbox calls onToggleDone but not onOpen', async () => {
+    const onToggleDone = vi.fn();
+    const onOpen = vi.fn();
+    render(<CalendarTaskBlock task={makeTask()} onOpen={onOpen} onToggleDone={onToggleDone} />);
+    await userEvent.click(screen.getByRole('checkbox'));
+    expect(onToggleDone).toHaveBeenCalledWith('t1');
+    expect(onOpen).not.toHaveBeenCalled();
   });
 });

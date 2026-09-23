@@ -161,14 +161,24 @@ describe('CalendarBoard', () => {
   }, 10000);
 
   test('dragging a task in Month view onto another cell reschedules it (date only, dueTime preserved)', async () => {
-    render(<CalendarBoard initialTasks={[makeTask()]} lists={lists} />);
+    const { container } = render(<CalendarBoard initialTasks={[makeTask()]} lists={lists} />);
     await userEvent.click(screen.getByRole('tab', { name: 'Month' }));
     fireEvent.dragStart(screen.getByText('Standup'));
-    const targetCell = document.querySelector('[data-datekey="2026-09-24"]');
-    if (targetCell) {
-      fireEvent.drop(targetCell);
-      await waitFor(() => expect(actions.updateTask).toHaveBeenCalledWith(expect.objectContaining({ id: 't1', due: '2026-09-24', dueTime: 540 })));
-    }
+    const targetCell = container.querySelector('[data-datekey="2026-09-24"]');
+    expect(targetCell).not.toBeNull();
+    fireEvent.drop(targetCell!);
+    await waitFor(() => expect(actions.updateTask).toHaveBeenCalledWith(expect.objectContaining({ id: 't1', due: '2026-09-24', dueTime: 540 })));
+  }, 10000);
+
+  test('a create that fails on the follow-up updateTask rolls back the partially-created task', async () => {
+    vi.mocked(actions.updateTask).mockRejectedValueOnce(new Error('network error'));
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('button', { name: 'New task' }));
+    await userEvent.type(screen.getByLabelText('Task'), 'New event');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(actions.deleteTask).toHaveBeenCalledWith('newtask'));
+    expect(alertSpy).toHaveBeenCalled();
   }, 10000);
 
   test('a failed reschedule reverts the optimistic move and alerts the user', async () => {

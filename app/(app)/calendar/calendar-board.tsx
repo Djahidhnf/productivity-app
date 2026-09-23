@@ -128,8 +128,9 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
       });
     } else {
       startTransition(async () => {
+        let created: TaskDTO | undefined;
         try {
-          const created = await createTask({ text: values.text, listId: values.listId });
+          created = await createTask({ text: values.text, listId: values.listId });
           const updated = await updateTask({
             id: created.id,
             text: values.text,
@@ -140,6 +141,14 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
           });
           setTasks((prev) => [...prev, updated]);
         } catch {
+          if (created) {
+            try {
+              await deleteTask(created.id);
+            } catch {
+              // Best-effort cleanup only -- the create failure below is the
+              // primary error already being reported to the user.
+            }
+          }
           window.alert('Could not create the task. Please try again.');
         }
       });
@@ -238,9 +247,11 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
             year: y,
             month: m,
             label: new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long' }),
-            days: buildMonthGrid(y, m)
-              .slice(0, 35)
-              .map((c) => ({ dateKey: c.dateKey, dayNum: String(Number(c.dateKey.slice(-2))), inMonth: c.inMonth })),
+            days: buildMonthGrid(y, m).map((c) => ({
+              dateKey: c.dateKey,
+              dayNum: String(Number(c.dateKey.slice(-2))),
+              inMonth: c.inMonth,
+            })),
           }))
         )
       : [];

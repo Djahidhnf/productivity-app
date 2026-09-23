@@ -128,6 +128,19 @@ describe('buildAgendaGroups', () => {
     const groups = buildAgendaGroups(tasks, '2026-09-23', 60);
     expect(groups.map((g) => g.dateKey)).toEqual(['2026-09-23', '2026-09-25']);
   });
+
+  test('the window is exactly `days` days long, inclusive of the start day', () => {
+    const tasks = [
+      makeTask({ id: 'in-range', due: '2026-09-23' }), // day 0 (the start day itself)
+      makeTask({ id: 'last-day', due: '2026-11-21' }), // day 59 (60th day of the window)
+      makeTask({ id: 'one-too-far', due: '2026-11-22' }), // day 60 (61st day, out of range)
+    ];
+    const groups = buildAgendaGroups(tasks, '2026-09-23', 60);
+    const allIds = groups.flatMap((g) => g.items.map((i) => i.task.id));
+    expect(allIds).toContain('in-range');
+    expect(allIds).toContain('last-day');
+    expect(allIds).not.toContain('one-too-far');
+  });
 });
 
 describe('minutesFromOffset', () => {

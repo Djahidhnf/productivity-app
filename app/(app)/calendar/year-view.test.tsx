@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi } from 'vitest';
 import { YearView, type YearMonthData } from './year-view';
 import type { TaskDTO } from './queries';
+import { buildMonthGrid } from '@/app/lib/calendar-dates';
 
 function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
   return {
@@ -24,10 +25,10 @@ function makeMonths(): YearMonthData[] {
     year: 2026,
     month: m,
     label: new Date(2026, m, 1).toLocaleDateString('en-US', { month: 'long' }),
-    days: Array.from({ length: 35 }, (_, i) => ({
-      dateKey: `2026-${String(m + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
-      dayNum: String((i % 28) + 1),
-      inMonth: i < 28,
+    days: buildMonthGrid(2026, m).map((c) => ({
+      dateKey: c.dateKey,
+      dayNum: String(Number(c.dateKey.slice(-2))),
+      inMonth: c.inMonth,
     })),
   }));
 }
@@ -46,10 +47,10 @@ describe('YearView', () => {
     expect(onMonthOpen).toHaveBeenCalledWith(2026, 2);
   });
 
-  test('renders 35 day cells per month card', () => {
+  test('renders 42 day cells per month card', () => {
     const { container } = render(<YearView months={makeMonths()} tasksByDate={() => []} onMonthOpen={vi.fn()} todayKey="2026-09-23" />);
-    // 12 months * 35 days = 420 day cells, each with a data-datekey attribute.
-    expect(container.querySelectorAll('[data-datekey]')).toHaveLength(420);
+    // 12 months * 42 days = 504 day cells, each with a data-datekey attribute.
+    expect(container.querySelectorAll('[data-datekey]')).toHaveLength(504);
   });
 
   test('day cells have no click or drag handlers (Year view has no create/drag)', () => {
