@@ -1,5 +1,7 @@
-import { StubPage } from '@/app/components/shell/stub-page';
+import { getJournalEntries } from './queries';
+import { JournalBoard } from './journal-board';
 
-export default function JournalPage() {
-  return <StubPage title="Journal" />;
+export default async function JournalPage() {
+  const entries = await getJournalEntries();
+  return <JournalBoard initialEntries={entries} />;
 }
