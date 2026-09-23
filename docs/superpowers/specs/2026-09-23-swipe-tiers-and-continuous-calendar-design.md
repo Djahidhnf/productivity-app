@@ -81,9 +81,10 @@ Builds on: `2026-09-23-mobile-responsive-swipe-design.md` (already implemented)
   dates in a continuous scroll). Fully-empty trailing week rows are dropped.
 - Cells keep click-to-create, task chips, "+N more" and drag-to-reschedule.
 - Below 560px the cell minimum height drops from 84px to 64px.
-- Implementation reuses `buildMonthGrid` and `buildMonthCells`; the view trims
-  empty week rows and blanks out-of-month cells. Tasks are indexed by date once
-  per render (a `Map<dateKey, TaskDTO[]>`) instead of filtering per cell.
+- The view uses `buildMonthWeeks` (built on `buildMonthGrid`), which drops
+  fully-empty week rows and returns `null` for out-of-month slots. Tasks are
+  indexed by date once per render (a `Map<dateKey, TaskDTO[]>`) instead of
+  filtering per cell.
 
 ### Year view
 
@@ -104,11 +105,14 @@ Builds on: `2026-09-23-mobile-responsive-swipe-design.md` (already implemented)
   on the target.
 - Prepending above compensates `scrollTop` by the added height in a layout effect
   (iOS Safari has no `overflow-anchor`).
-- Range is clamped to years 1900–2100; the sentinel is not rendered at a bound.
+- The range is clamped to years 1900–2100 (the window never grows past a bound,
+  and the header arrows do not move past it).
 - Jump picker: in Month and Year views the header title becomes a button that
   opens a small popover with a year number field (1900–2100, clamped) and, in
-  Month view, 12 month buttons. Choosing sets the anchor and scrolls there;
-  Escape or an outside click closes it.
+  Month view, 12 month buttons. The month buttons / Go are enabled only when the
+  year field holds a full four-digit year (values outside 1900–2100 are
+  clamped). Choosing sets the anchor and scrolls there; Escape or an outside
+  click closes it.
 - Arrows: Prev/Next scroll to the previous/next month (Month view) or year
   (Year view); Today scrolls to the current month/year. These keep using the
   existing `addMonths` / `addYears` on `calDate`.
@@ -126,20 +130,22 @@ Builds on: `2026-09-23-mobile-responsive-swipe-design.md` (already implemented)
 - `app/lib/use-scroll-window.ts` (new): owns window size, near-edge detection from
   the scroll position (`scrollTop` vs `clientHeight` / `scrollHeight`, no edge
   sentinels), scrollTop compensation on prepend, scroll-to-anchor and
-  visible-unit reporting. Used by both views. Takes the unit type (month or year)
-  as a generic pair of `shift(unitKey, n)` / `toKey` helpers so it holds no
-  calendar knowledge itself.
+  visible-unit reporting. Used by both views. It works on integer unit indexes
+  (month index = year*12+month, or the year itself) with props `anchor`, `min`,
+  `max`, `span`, `scrollOffset` and `onVisibleChange`, so it holds no calendar
+  knowledge itself.
 - `app/(app)/calendar/month-view.tsx`, `year-view.tsx`: rewritten in place on top
   of the hook.
 - `app/(app)/calendar/calendar-jump-picker.tsx` (new): the popover.
 - `CalendarHeader`: the title renders as a button (opens the picker) only in
   Month and Year views; otherwise it stays plain text.
-- `CalendarBoard`: passes the anchor and an `onVisibleChange` callback to the two
-  views, drops `yearsToShow` / the eager `yearMonths` build, and switches the
+- `CalendarBoard`: passes the anchor plus `onVisibleMonthChange` /
+  `onVisibleYearChange` callbacks to the two views, drops `yearsToShow` / the eager `yearMonths` build, and switches the
   Week view to the rolling window (Section 1).
-- Pure helpers (in `calendar-dates.ts` / `calendar-views.ts`): window math
-  (`monthWindow`, `yearWindow`), trimming empty week rows, `clampYear`,
-  `indexTasksByDate`.
+- Pure helpers: `app/lib/calendar-units.ts` (`clampYear`, `monthIndexOfDateKey`,
+  `monthIndexToParts`, `firstOfMonthKey`, `firstOfYearKey`, `yearOfDateKey`,
+  bounds constants), and in `calendar-views.ts` `indexTasksByDate`,
+  `buildMonthWeeks`, `swipeStepDays`.
 
 ### Tests
 
@@ -148,8 +154,8 @@ Builds on: `2026-09-23-mobile-responsive-swipe-design.md` (already implemented)
 - Component tests: month headings and blank cells render; year headings and
   12 cards per year; click / drag-to-reschedule still work in Month; tapping a
   year-view month opens Month; picker chooses a month/year and closes on Escape;
-  header title follows a simulated visible-change; window extends when a fake
-  `IntersectionObserver` reports a sentinel intersecting.
+  header title follows a simulated visible-change; window extends when the
+  stubbed scroll position comes near an edge.
 - jsdom has no layout, so tests stub it (`clientHeight`, `scrollHeight`,
   `getBoundingClientRect`) instead of injecting a fake `IntersectionObserver`;
   scroll compensation and sticky stacking can only be confirmed on a real
