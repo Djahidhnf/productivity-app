@@ -72,3 +72,13 @@ model HabitLog {
   @@map("habit_logs")
 }
 
+model Note {
+  id        String   @id @default(cuid())
+  text      String
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notes")
+}
+
