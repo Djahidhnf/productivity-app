@@ -30,6 +30,7 @@ export async function createFinanceEntry(input: CreateFinanceEntryInput): Promis
   if (!Number.isInteger(input.amount) || input.amount <= 0 || input.amount > MAX_AMOUNT) throw new Error('Invalid amount');
   if (!categoriesFor(input.type).includes(input.category)) throw new Error('Invalid category');
   if (!isRealDate(input.date)) throw new Error('Invalid date');
+  if (typeof input.note !== 'string') throw new Error('Invalid note');
   const entry = await prisma.financeEntry.create({
     data: {
       type: input.type,
