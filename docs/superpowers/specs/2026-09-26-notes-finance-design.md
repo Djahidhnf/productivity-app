@@ -70,7 +70,8 @@ updatedAt: string (ISO) }`, with `serializeNote`, following the existing
 - `filterNotes(notes, query)` — case-insensitive substring match on text;
   blank query returns all.
 - `relativeTime(iso, now)` — "just now", "5m ago", "3h ago", "2d ago", then a
-  short date ("12 Sep") for anything older than 7 days. Lives in
+  short date ("12 Sep") for anything older than 7 days, with the year added
+  when it differs from the current year ("12 Sep 2025"). Lives in
   `app/lib/date-format.ts` (generic date formatting), not in `notes-views.ts`.
 
 ### UI
@@ -169,8 +170,9 @@ writing it (per AGENTS.md). The ‹ › arrows and chart clicks navigate with
   relative to the largest (min 2%).
 - `lastSixMonths(entries, month)` → six `{ month, label, earned, spent }`,
   oldest first, ending at `month`.
-- `groupByDay(entries, month)` → days desc, each with a label (Today,
-  Yesterday, else "Tue 22 Sep"), signed day total, and its entries.
+- `groupByDay(entries, month, todayKey)` → days desc, each with a label from
+  the existing `calendarDateLabel` (Today, Yesterday, else "Tue, Sep 22"),
+  signed day total, and its entries.
 
 ### UI
 
@@ -214,8 +216,9 @@ writing it (per AGENTS.md). The ‹ › arrows and chart clicks navigate with
 ## Error handling
 
 - Server actions throw on invalid input or missing session (as existing
-  actions do). Boards apply optimistic updates and roll back with a short
-  inline error message if an action fails.
+  actions do). Boards apply optimistic updates where they can (pin, delete)
+  and, if an action fails, roll back and show `window.alert(...)` — the same
+  pattern the Tasks and Habits boards use.
 - Notes autosave failure: keep the local text and show "Couldn't save" in
   the dialog description; the next edit or close retries.
 
