@@ -5,7 +5,9 @@ import { Dialog } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
 import { Select } from '@/app/components/ui/select';
 import { Button } from '@/app/components/ui/button';
-import { PRIORITY_COLORS, type PriorityKey } from '@/app/components/ui/priority-flag';
+import { PillToggle } from '@/app/components/ui/pill-toggle';
+import { Icon } from '@/app/components/icons';
+import type { PriorityKey } from '@/app/components/ui/priority-flag';
 import type { TaskListDTO } from './queries';
 
 export interface TaskDialogValues {
@@ -14,6 +16,8 @@ export interface TaskDialogValues {
   priority: PriorityKey | null;
   due: string;
   dueTime: string;
+  /** Block length in minutes; not edited in the form, just carried through to onSave. */
+  duration?: number;
 }
 
 export interface TaskDialogProps {
@@ -26,12 +30,15 @@ export interface TaskDialogProps {
   onDelete?: () => void;
 }
 
-const PRIORITY_OPTIONS: { key: PriorityKey | null; label: string }[] = [
-  { key: null, label: 'None' },
-  { key: 'RED', label: 'Urgent & important' },
-  { key: 'AMBER', label: 'Not urgent but important' },
-  { key: 'BLUE', label: 'Urgent but unimportant' },
-  { key: 'GREEN', label: 'Not urgent & unimportant' },
+const NO_PRIORITY = 'none';
+type PriorityValue = PriorityKey | typeof NO_PRIORITY;
+
+const PRIORITY_OPTIONS: { value: PriorityValue; label: string }[] = [
+  { value: NO_PRIORITY, label: 'None' },
+  { value: 'RED', label: 'Do first' },
+  { value: 'AMBER', label: 'Schedule' },
+  { value: 'BLUE', label: 'Delegate' },
+  { value: 'GREEN', label: 'Eliminate' },
 ];
 
 export function TaskDialog({ open, mode, lists, initialValues, onClose, onSave, onDelete }: TaskDialogProps) {
@@ -52,7 +59,7 @@ export function TaskDialog({ open, mode, lists, initialValues, onClose, onSave, 
           event.preventDefault();
           onSave(values);
         }}
-        style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}
+        style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
       >
         <Input
           label="Task"
@@ -67,36 +74,9 @@ export function TaskDialog({ open, mode, lists, initialValues, onClose, onSave, 
           value={values.listId}
           onChange={(event) => setValues((v) => ({ ...v, listId: event.target.value }))}
         />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' }}>Priority</span>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {PRIORITY_OPTIONS.map((opt) => {
-              const active = values.priority === opt.key;
-              return (
-                <button
-                  key={opt.label}
-                  type="button"
-                  onClick={() => setValues((v) => ({ ...v, priority: opt.key }))}
-                  aria-pressed={active}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: 'var(--radius-pill)',
-                    border: `1px solid ${opt.key ? PRIORITY_COLORS[opt.key] : 'var(--border-strong)'}`,
-                    background: active ? (opt.key ? PRIORITY_COLORS[opt.key] : 'var(--surface-3)') : 'transparent',
-                    color: active && opt.key ? 'var(--on-accent)' : 'var(--text-primary)',
-                    fontSize: 'var(--text-xs)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <div className="pw-two" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+        <div className="pw-two" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
           <Input
-            label="Due date"
+            label="Due"
             type="date"
             value={values.due}
             onChange={(event) => setValues((v) => ({ ...v, due: event.target.value }))}
@@ -108,15 +88,26 @@ export function TaskDialog({ open, mode, lists, initialValues, onClose, onSave, 
             onChange={(event) => setValues((v) => ({ ...v, dueTime: event.target.value }))}
           />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg-2)' }}>Priority</span>
+          <PillToggle
+            ariaLabel="Priority"
+            fullWidth
+            value={values.priority ?? NO_PRIORITY}
+            onChange={(value) => setValues((v) => ({ ...v, priority: value === NO_PRIORITY ? null : value }))}
+            options={PRIORITY_OPTIONS}
+          />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, paddingTop: 8 }}>
           {mode === 'edit' && onDelete ? (
-            <Button type="button" variant="outline" onClick={onDelete}>
+            <Button type="button" variant="ghost" size="sm" onClick={onDelete}>
+              <Icon name="trash" size={15} />
               Delete
             </Button>
           ) : (
             <span />
           )}
-          <Button type="submit">Save</Button>
+          <Button type="submit" size="sm">Save</Button>
         </div>
       </form>
     </Dialog>

@@ -6,7 +6,7 @@ import { CalendarHeader } from './calendar-header';
 describe('CalendarHeader', () => {
   test('renders the given title', () => {
     render(<CalendarHeader title="Today" onPrev={vi.fn()} onToday={vi.fn()} onNext={vi.fn()} onNewTask={vi.fn()} />);
-    const titleElement = screen.getAllByText('Today').find((el) => el.tagName === 'SPAN');
+    const titleElement = screen.getByRole('heading', { level: 1, name: 'Today' });
     expect(titleElement).toBeInTheDocument();
   });
 

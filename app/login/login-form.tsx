@@ -1,21 +1,10 @@
 'use client';
 
 import { useActionState } from 'react';
+import { Button } from '@/app/components/ui/button';
 import type { LoginState } from './actions';
 
-const fieldStyle: React.CSSProperties = {
-  height: 40,
-  width: '100%',
-  boxSizing: 'border-box',
-  padding: '0 12px',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--border-strong)',
-  background: 'var(--surface)',
-  color: 'var(--text-primary)',
-  fontFamily: 'var(--font-sans)',
-  fontSize: 'var(--text-sm)',
-  outline: 'none',
-};
+const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: 'var(--fg-2)' };
 
 export interface LoginFormProps {
   action: (state: LoginState, formData: FormData) => Promise<LoginState>;
@@ -25,42 +14,27 @@ export function LoginForm({ action }: LoginFormProps) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(action, undefined);
 
   return (
-    <form action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <label htmlFor="email" style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--text-secondary)' }}>
+    <form action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <label htmlFor="email" style={labelStyle}>
           Email
         </label>
-        <input id="email" name="email" type="email" required autoComplete="username" style={fieldStyle} />
+        <input id="email" name="email" type="email" required autoComplete="username" className="st-input" />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <label htmlFor="password" style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--text-secondary)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <label htmlFor="password" style={labelStyle}>
           Password
         </label>
-        <input id="password" name="password" type="password" required autoComplete="current-password" style={fieldStyle} />
+        <input id="password" name="password" type="password" required autoComplete="current-password" className="st-input" />
       </div>
       {state?.error && (
-        <p role="alert" style={{ color: 'var(--danger)', fontSize: 'var(--text-sm)', margin: 0 }}>
+        <p role="alert" style={{ color: 'var(--danger-fg)', fontSize: 13, margin: 0 }}>
           {state.error}
         </p>
       )}
-      <button
-        type="submit"
-        disabled={pending}
-        style={{
-          height: 40,
-          borderRadius: 'var(--radius-md)',
-          border: 'none',
-          background: 'var(--accent)',
-          color: 'var(--on-accent)',
-          fontFamily: 'var(--font-sans)',
-          fontWeight: 'var(--weight-medium)',
-          fontSize: 'var(--text-sm)',
-          cursor: pending ? 'default' : 'pointer',
-          opacity: pending ? 0.6 : 1,
-        }}
-      >
+      <Button type="submit" disabled={pending} style={{ height: 36, marginTop: 4 }}>
         {pending ? 'Signing in…' : 'Sign in'}
-      </button>
+      </Button>
     </form>
   );
 }

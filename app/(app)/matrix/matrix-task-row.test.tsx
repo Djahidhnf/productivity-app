@@ -57,13 +57,13 @@ describe('MatrixTaskRow', () => {
   test('firing dragStart calls the onDragStart handler', () => {
     const onDragStart = vi.fn();
     render(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={onDragStart} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} />);
-    fireEvent.dragStart(screen.getByText('Buy milk').closest('div')!);
+    fireEvent.dragStart(screen.getByText('Buy milk').closest('[data-task-id]')!);
     expect(onDragStart).toHaveBeenCalled();
   });
 
   test('applies touch-action:none only while isTouchDragging is true', () => {
     const { rerender } = render(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} />);
-    const row = screen.getByText('Buy milk').closest('div')!;
+    const row = screen.getByText('Buy milk').closest('[data-task-id]')!;
     expect(row).not.toHaveStyle({ touchAction: 'none' });
     rerender(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} isTouchDragging />);
     expect(row).toHaveStyle({ touchAction: 'none' });

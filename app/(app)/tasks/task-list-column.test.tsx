@@ -35,9 +35,9 @@ describe('TaskListColumn', () => {
     expect(screen.getByText('Buy milk')).toBeInTheDocument();
   });
 
-  test('shows "No tasks." when the list is empty', () => {
+  test('shows "Nothing here." when the list is empty', () => {
     render(<TaskListColumn list={makeList({ tasks: [] })} {...noop} />);
-    expect(screen.getByText('No tasks.')).toBeInTheDocument();
+    expect(screen.getByText('Nothing here.')).toBeInTheDocument();
   });
 
   test('clicking the delete button calls onDeleteList with the list id', async () => {
@@ -47,27 +47,28 @@ describe('TaskListColumn', () => {
     expect(onDeleteList).toHaveBeenCalledWith('list1');
   });
 
-  test('clicking add reveals a quick-add input; typing and pressing Enter calls onQuickAdd and hides it again', async () => {
+  test('typing in the add row and pressing Enter calls onQuickAdd and clears the row for the next task', async () => {
     const onQuickAdd = vi.fn();
     render(<TaskListColumn list={makeList()} {...noop} onQuickAdd={onQuickAdd} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Add task' }));
-    const input = screen.getByPlaceholderText('Task name, Enter to add…');
+    const input = screen.getByLabelText('Add a task to Work');
     await userEvent.type(input, 'New task{Enter}');
     expect(onQuickAdd).toHaveBeenCalledWith('list1', 'New task');
-    expect(screen.queryByPlaceholderText('Task name, Enter to add…')).not.toBeInTheDocument();
+    expect(input).toHaveValue('');
   });
 
-  test('blurring the quick-add input while empty cancels without calling onQuickAdd', async () => {
+  test('pressing Enter on an empty add row does not call onQuickAdd', async () => {
     const onQuickAdd = vi.fn();
-    render(
-      <div>
-        <TaskListColumn list={makeList()} {...noop} onQuickAdd={onQuickAdd} />
-        <button>elsewhere</button>
-      </div>
-    );
-    await userEvent.click(screen.getByRole('button', { name: 'Add task' }));
-    await userEvent.click(screen.getByRole('button', { name: 'elsewhere' }));
+    render(<TaskListColumn list={makeList()} {...noop} onQuickAdd={onQuickAdd} />);
+    await userEvent.type(screen.getByLabelText('Add a task to Work'), '   {Enter}');
     expect(onQuickAdd).not.toHaveBeenCalled();
-    expect(screen.queryByPlaceholderText('Task name, Enter to add…')).not.toBeInTheDocument();
+  });
+
+  test('Escape clears the add row without adding', async () => {
+    const onQuickAdd = vi.fn();
+    render(<TaskListColumn list={makeList()} {...noop} onQuickAdd={onQuickAdd} />);
+    const input = screen.getByLabelText('Add a task to Work');
+    await userEvent.type(input, 'Half a thought{Escape}');
+    expect(onQuickAdd).not.toHaveBeenCalled();
+    expect(input).toHaveValue('');
   });
 });

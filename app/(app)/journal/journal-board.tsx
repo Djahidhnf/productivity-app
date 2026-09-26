@@ -88,14 +88,14 @@ export function JournalBoard({ initialEntries }: JournalBoardProps) {
   }
 
   return (
-    <div style={{ maxWidth: 1440, padding: '0 clamp(16px, 3vw, 32px)' }}>
+    <div style={{ paddingBottom: 48 }}>
       <JournalHeader
         dateLabel={calendarDateLabel(journalDate, todayKey)}
         onPrev={handlePrev}
         onToday={handleToday}
         onNext={handleNext}
       />
-      <div className="pw-journal-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 'var(--space-6)' }}>
+      <div className="pw-journal-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 40, padding: '0 var(--pw-gutter)', alignItems: 'start' }}>
         <JournalEditor
           mood={currentEntry.mood}
           text={currentEntry.text}

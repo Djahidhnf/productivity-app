@@ -11,8 +11,8 @@ describe('PriorityFlag', () => {
   test('uses the correct color per priority', () => {
     (['RED', 'AMBER', 'BLUE', 'GREEN'] as const).forEach((priority) => {
       const { unmount } = render(<PriorityFlag priority={priority} />);
-      const svg = screen.getByRole('img', { name: `Priority: ${priority.toLowerCase()}` });
-      expect(svg).toHaveAttribute('stroke', PRIORITY_COLORS[priority]);
+      const mark = screen.getByRole('img', { name: `Priority: ${priority.toLowerCase()}` });
+      expect(mark.style.background).toBe(PRIORITY_COLORS[priority]);
       unmount();
     });
   });

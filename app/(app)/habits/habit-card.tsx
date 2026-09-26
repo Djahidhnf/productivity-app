@@ -3,13 +3,17 @@
 import type { DragEvent } from 'react';
 import { CheckToggle } from '@/app/components/ui/check-toggle';
 import { Icon } from '@/app/components/icons';
-import { habitStreak, buildHeatCells } from './habit-calc';
+import { useElementWidth } from '@/app/lib/use-element-width';
+import { habitColor } from '@/app/lib/habit-color';
+import { habitStreak, buildHeatCells, heatWeeksForWidth, HEAT_CELL_PX, HEAT_GAP_PX } from './habit-calc';
 import type { HabitDTO } from './queries';
 
 export interface HabitCardProps {
   habit: HabitDTO;
   todayKey: string;
   heatWeeks: number;
+  /** Show as many weeks as fit the card's width (phones), instead of exactly heatWeeks. */
+  fillWidth?: boolean;
   selected: boolean;
   onSelect: () => void;
   onToggleLog: (habitId: string, dateKey: string) => void;
@@ -23,6 +27,7 @@ export function HabitCard({
   habit,
   todayKey,
   heatWeeks,
+  fillWidth = false,
   selected,
   onSelect,
   onToggleLog,
@@ -33,8 +38,11 @@ export function HabitCard({
 }: HabitCardProps) {
   const streak = habitStreak(habit.logs, todayKey);
   const loggedToday = habit.logs.includes(todayKey);
-  const { cells, startLabel } = buildHeatCells(habit.logs, habit.startDate, todayKey, heatWeeks);
+  const { ref: heatRef, width: heatWidth } = useElementWidth<HTMLDivElement>();
+  const weeks = fillWidth && heatWidth ? heatWeeksForWidth(heatWidth) : heatWeeks;
+  const { cells, startLabel } = buildHeatCells(habit.logs, habit.startDate, todayKey, weeks);
   const freqLabel = habit.freqType === 'DAILY' ? 'Daily' : `${habit.timesPerWeek}x / week`;
+  const color = habitColor(habit.color);
 
   return (
     <div
@@ -43,44 +51,36 @@ export function HabitCard({
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-        padding: 'var(--space-4)',
-        borderRadius: 'var(--radius-2xl)',
-        cursor: 'pointer',
-        background: selected ? `color-mix(in srgb, ${habit.color} 8%, var(--surface))` : 'var(--surface)',
-        border: `1px solid ${selected ? habit.color : 'var(--border)'}`,
-      }}
+      className="pw-habit-row"
+      data-selected={selected || undefined}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Icon name="grip" size={15} style={{ color: 'var(--text-faint)', cursor: 'grab' }} />
-        <CheckToggle checked={loggedToday} onToggle={() => onToggleLog(habit.id, todayKey)} label={habit.name} accentColor={habit.color} />
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: habit.color, flex: 'none' }} />
-        <span
-          style={{
-            flex: 1,
-            minWidth: 0,
-            fontSize: 'var(--text-sm)',
-            fontFamily: 'var(--font-display)',
-            fontWeight: 'var(--weight-semibold)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {habit.name}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Icon name="grip" size={14} style={{ color: 'var(--fg-disabled)', cursor: 'grab', marginLeft: -4 }} />
+        <CheckToggle checked={loggedToday} onToggle={() => onToggleLog(habit.id, todayKey)} label={habit.name} />
+        <span style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{habit.name}</span>
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-3)' }}>{freqLabel}</span>
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xs)', color: 'var(--text-muted)', flex: 'none' }}>{freqLabel}</span>
         {streak > 0 && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xs)', color: 'var(--text-secondary)', flex: 'none' }}>
-            <Icon name="flame" size={13} />
+          <span title="Day streak" style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', color: 'var(--fg-2)', flex: 'none' }}>
+            <Icon name="flame" size={14} style={{ color: 'var(--fg-3)' }} />
             {streak}
           </span>
         )}
       </div>
-      <div style={{ display: 'grid', gridAutoFlow: 'column', gridTemplateRows: 'repeat(7, 13px)', gap: 0, justifyContent: 'start', overflow: 'hidden', borderRadius: 'var(--radius-xs)' }}>
+      <div
+        ref={heatRef}
+        className="pw-heatgrid"
+        style={{
+          display: 'grid',
+          gridAutoFlow: 'column',
+          gridTemplateRows: `repeat(7, ${HEAT_CELL_PX}px)`,
+          gridAutoColumns: `${HEAT_CELL_PX}px`,
+          gap: HEAT_GAP_PX,
+          justifyContent: fillWidth ? 'space-between' : 'start',
+          overflow: 'hidden',
+        }}
+      >
         {cells.map((cell) => {
           const inert = cell.future || cell.beforeStart;
           return (
@@ -96,16 +96,18 @@ export function HabitCard({
                     }
               }
               style={{
-                width: 13,
-                height: 13,
-                background: cell.future ? 'transparent' : cell.logged ? habit.color : 'var(--surface-3)',
+                width: HEAT_CELL_PX,
+                height: HEAT_CELL_PX,
+                borderRadius: 2,
+                background: cell.future ? 'transparent' : cell.logged ? color : 'var(--surface-active)',
+                boxShadow: cell.future ? 'inset 0 0 0 1px var(--border-1)' : undefined,
                 cursor: inert ? 'default' : 'pointer',
               }}
             />
           );
         })}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-faint)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xs)', color: 'var(--fg-3)' }}>
         <span>{startLabel}</span>
         <span>Today</span>
       </div>

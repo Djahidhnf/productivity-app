@@ -14,7 +14,8 @@ export interface MonthViewProps {
   todayKey: string;
   /** Called with the first day of the month that is now at the top of the view. */
   onVisibleMonthChange: (dateKey: string) => void;
-  onCellClick: (dateKey: string) => void;
+  /** Clicking a day cell opens that day. */
+  onDayOpen: (dateKey: string) => void;
   onTaskOpen: (task: TaskDTO) => void;
   onTaskDragStart: (task: TaskDTO) => void;
   onCellDrop: (dateKey: string) => void;
@@ -25,7 +26,7 @@ const MONTH_SPAN = 6;
 /** Height of the sticky weekday row; keep in sync with `.pw-monthscroll-weekdays` in layout.css. */
 export const WEEKDAY_ROW_PX = 28;
 
-export function MonthView({ tasks, anchor, todayKey, onVisibleMonthChange, onCellClick, onTaskOpen, onTaskDragStart, onCellDrop }: MonthViewProps) {
+export function MonthView({ tasks, anchor, todayKey, onVisibleMonthChange, onDayOpen, onTaskOpen, onTaskDragStart, onCellDrop }: MonthViewProps) {
   const taskIndex = indexTasksByDate(tasks);
   const { containerRef, onScroll, start, end } = useScrollWindow({
     anchor: monthIndexOfDateKey(anchor),
@@ -62,7 +63,7 @@ export function MonthView({ tasks, anchor, todayKey, onVisibleMonthChange, onCel
                     className="pw-monthblock-cell"
                     data-datekey={cell.dateKey}
                     data-today={cell.dateKey === todayKey}
-                    onClick={() => onCellClick(cell.dateKey)}
+                    onClick={() => onDayOpen(cell.dateKey)}
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={(event) => {
                       event.preventDefault();
@@ -82,26 +83,17 @@ export function MonthView({ tasks, anchor, todayKey, onVisibleMonthChange, onCel
                           event.stopPropagation();
                           onTaskOpen(task);
                         }}
-                        style={{
-                          fontSize: '10px',
-                          padding: '1px 4px',
-                          borderRadius: 'var(--radius-xs)',
-                          background: task.priority ? PRIORITY_COLORS[task.priority] : 'var(--surface-3)',
-                          color: task.priority ? 'var(--on-accent)' : 'var(--text-secondary)',
-                          textDecoration: task.done ? 'line-through' : 'none',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          cursor: 'pointer',
-                        }}
+                        className="pw-monthblock-chip"
+                        data-done={task.done || undefined}
                       >
-                        {task.text}
+                        <span style={{ width: 6, height: 6, borderRadius: 2, flex: 'none', background: task.priority ? PRIORITY_COLORS[task.priority] : 'var(--border-strong)' }} />
+                        <span style={{ textDecoration: task.done ? 'line-through' : 'none' }}>{task.text}</span>
                       </div>
                     ))}
                     {cell.moreCount > 0 && (
                       <span
                         onClick={(event) => event.stopPropagation()}
-                        style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
+                        style={{ fontSize: 'var(--text-2xs)', fontFamily: 'var(--font-mono)', color: 'var(--fg-3)' }}
                       >
                         +{cell.moreCount} more
                       </span>

@@ -3,6 +3,7 @@
 import { Button } from '@/app/components/ui/button';
 import { IconButton } from '@/app/components/ui/icon-button';
 import { Icon } from '@/app/components/icons';
+import { PageHeader } from '@/app/components/shell/page-header';
 
 export interface JournalHeaderProps {
   dateLabel: string;
@@ -13,37 +14,24 @@ export interface JournalHeaderProps {
 
 export function JournalHeader({ dateLabel, onPrev, onToday, onNext }: JournalHeaderProps) {
   return (
-    <header
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 'var(--space-4)',
-        flexWrap: 'wrap',
-        gap: 'var(--space-3)',
-      }}
-    >
-      <span
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontWeight: 'var(--weight-semibold)',
-          letterSpacing: 'var(--tracking-tight)',
-          fontSize: 'var(--text-lg)',
-        }}
-      >
-        {dateLabel}
-      </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <IconButton variant="outline" onClick={onPrev} label="Previous day">
-          <Icon name="left" size={16} />
-        </IconButton>
-        <Button variant="secondary" onClick={onToday}>
-          Today
-        </Button>
-        <IconButton variant="outline" onClick={onNext} label="Next day">
-          <Icon name="right" size={16} />
-        </IconButton>
-      </div>
-    </header>
+    <PageHeader
+      title="Journal"
+      actions={
+        <>
+          <Button variant="secondary" size="sm" onClick={onToday}>
+            Today
+          </Button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <IconButton onClick={onPrev} label="Previous day">
+              <Icon name="left" size={18} />
+            </IconButton>
+            <span style={{ minWidth: 112, textAlign: 'center', fontWeight: 500 }}>{dateLabel}</span>
+            <IconButton onClick={onNext} label="Next day">
+              <Icon name="right" size={18} />
+            </IconButton>
+          </div>
+        </>
+      }
+    />
   );
 }

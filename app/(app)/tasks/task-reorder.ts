@@ -47,3 +47,15 @@ export function moveListInLists(lists: TaskListDTO[], draggedListId: string, tar
   next.splice(at, 0, dragged);
   return next;
 }
+
+/** Moves a list to a final index in the list order (used by the phone list strip). */
+export function moveListToIndex(lists: TaskListDTO[], draggedListId: string, toIndex: number): TaskListDTO[] {
+  const from = lists.findIndex((l) => l.id === draggedListId);
+  if (from === -1) return lists;
+  const at = Math.max(0, Math.min(lists.length - 1, toIndex));
+  if (at === from) return lists;
+  const next = [...lists];
+  const [dragged] = next.splice(from, 1);
+  next.splice(at, 0, dragged);
+  return next;
+}

@@ -26,6 +26,7 @@ function makeProps(overrides: Partial<YearViewProps> = {}): YearViewProps {
     todayKey: '2026-09-23',
     onVisibleYearChange: vi.fn(),
     onMonthOpen: vi.fn(),
+    onDayOpen: vi.fn(),
     ...overrides,
   };
 }
@@ -51,6 +52,21 @@ describe('YearView', () => {
     expect(block.querySelectorAll('[data-datekey]')).toHaveLength(504);
   });
 
+  test('clicking anywhere on a month card opens that month', async () => {
+    const props = makeProps();
+    const { container } = render(<YearView {...props} />);
+    await userEvent.click(year(container, 2027).querySelector('[data-month="4"] span') as HTMLElement);
+    expect(props.onMonthOpen).toHaveBeenCalledWith(2027, 4);
+  });
+
+  test('clicking a day opens that day and not the month', async () => {
+    const props = makeProps();
+    const { container } = render(<YearView {...props} />);
+    await userEvent.click(year(container, 2026).querySelector('[data-month="2"] [data-datekey="2026-03-14"]') as HTMLElement);
+    expect(props.onDayOpen).toHaveBeenCalledWith('2026-03-14');
+    expect(props.onMonthOpen).not.toHaveBeenCalled();
+  });
+
   test('clicking a month label calls onMonthOpen with that year and month', async () => {
     const props = makeProps();
     const { container } = render(<YearView {...props} />);
@@ -64,11 +80,12 @@ describe('YearView', () => {
     expect(cell.getAttribute('draggable')).toBeNull();
   });
 
-  test('a day with a prioritized task is colored; an empty day is not', () => {
-    const { container } = render(<YearView {...makeProps({ tasks: [makeTask({ due: '2026-09-23', priority: 'RED' })] })} />);
-    const busy = container.querySelector('section[data-unit="2026"] [data-datekey="2026-09-23"]') as HTMLElement;
+  test('a day with a task gets a colored dot; an empty day does not', () => {
+    const { container } = render(<YearView {...makeProps({ tasks: [makeTask({ due: '2026-09-22', priority: 'RED' })] })} />);
+    const busy = container.querySelector('section[data-unit="2026"] [data-datekey="2026-09-22"]') as HTMLElement;
     const empty = container.querySelector('section[data-unit="2026"] [data-datekey="2026-09-24"]') as HTMLElement;
-    expect(busy.style.background).not.toBe(empty.style.background);
+    expect(busy.querySelector<HTMLElement>('[data-dot]')?.style.background).toBe('var(--clay-500)');
+    expect(empty.querySelector('[data-dot]')).toBeNull();
   });
 
   test('uses the year-view grid classes so CSS can compact the cards on phones', () => {

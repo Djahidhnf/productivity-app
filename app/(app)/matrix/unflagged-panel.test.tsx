@@ -53,7 +53,7 @@ describe('UnflaggedPanel', () => {
     expect(onDrop).toHaveBeenCalled();
   });
 
-  test('isDropTarget renders a stronger accent-colored border', () => {
+  test('isDropTarget renders an accent dashed outline', () => {
     const { rerender } = render(
       <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={false} />
     );
@@ -61,11 +61,11 @@ describe('UnflaggedPanel', () => {
     // (`var(...)`) values inside a border shorthand, so assert the raw
     // inline style string directly instead.
     const container = screen.getByText('Unflagged').closest('[data-quad]')! as HTMLElement;
-    expect(container.style.borderLeft).toBe('1px solid var(--border)');
+    expect(container.style.border).toBe('1px dashed transparent');
 
     rerender(
       <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={true} />
     );
-    expect(container.style.borderLeft).toBe('2px solid var(--accent)');
+    expect(container.style.border).toBe('1px dashed var(--accent)');
   });
 });

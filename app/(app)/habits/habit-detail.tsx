@@ -3,6 +3,7 @@
 import { IconButton } from '@/app/components/ui/icon-button';
 import { Icon } from '@/app/components/icons';
 import { monthYearLabel } from '@/app/lib/calendar-dates';
+import { habitColor } from '@/app/lib/habit-color';
 import { habitStreak, habitMonthlyPct, buildHabitMonthCells } from './habit-calc';
 import type { HabitDTO } from './queries';
 
@@ -26,59 +27,59 @@ export function HabitDetail({ habit, todayKey, monthKey, isNarrow, onBack, onEdi
   const monthlyPct = habitMonthlyPct(habit, habit.logs, todayKey);
   const freqLabel = habit.freqType === 'DAILY' ? 'Every day' : `${habit.timesPerWeek}x / week`;
   const monthCells = buildHabitMonthCells(habit.logs, monthKey, todayKey);
+  const color = habitColor(habit.color);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {isNarrow && (
         <button
           type="button"
           onClick={onBack}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', background: 'transparent', border: 'none', padding: '4px 0', color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', background: 'transparent', border: 'none', padding: '4px 0', color: 'var(--fg-2)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', fontWeight: 500, cursor: 'pointer' }}
         >
           <Icon name="left" size={16} />
           All habits
         </button>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ width: 14, height: 14, borderRadius: '50%', background: habit.color, flex: 'none' }} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-md)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{habit.name}</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xs)', color: 'var(--text-muted)', marginTop: 2 }}>{freqLabel}</div>
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: color, flex: 'none' }} />
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div style={{ fontWeight: 600, fontSize: 'var(--text-lg)', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{habit.name}</div>
+          <div className="st-eyebrow">{freqLabel}</div>
         </div>
-        <IconButton variant="ghost" onClick={onEdit} label="Edit habit">
+        <IconButton onClick={onEdit} label="Edit habit">
           <Icon name="pencil" size={16} />
         </IconButton>
-        <IconButton variant="ghost" onClick={onDelete} label="Delete habit">
+        <IconButton onClick={onDelete} label="Delete habit">
           <Icon name="trash" size={16} />
         </IconButton>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-2)' }}>
-        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4) var(--space-2)', textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)' }}>{streak}</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', color: 'var(--text-muted)', marginTop: 4 }}>Day streak</div>
-        </div>
-        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4) var(--space-2)', textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)' }}>{habit.logs.length}</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', color: 'var(--text-muted)', marginTop: 4 }}>Check-ins</div>
-        </div>
-        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4) var(--space-2)', textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-xl)', color: 'var(--accent)' }}>{monthlyPct}%</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', color: 'var(--text-muted)', marginTop: 4 }}>This month</div>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16, padding: '20px 0', borderTop: '1px solid var(--border-1)', borderBottom: '1px solid var(--border-1)' }}>
+        {[
+          { value: String(streak), label: 'Day streak' },
+          { value: String(habit.logs.length), label: 'Check-ins' },
+          { value: `${monthlyPct}%`, label: 'This month' },
+        ].map((stat) => (
+          // Value first in the DOM, shown under its label.
+          <div key={stat.label} className="pw-stat" style={{ flexDirection: 'column-reverse' }}>
+            <span className="pw-stat-value">{stat.value}</span>
+            <span className="st-label">{stat.label}</span>
+          </div>
+        ))}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', padding: 'var(--space-4)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-2xl)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <IconButton variant="ghost" size="sm" onClick={onMonthPrev} label="Previous month">
-            <Icon name="left" size={15} />
+          <IconButton size="sm" onClick={onMonthPrev} label="Previous month">
+            <Icon name="left" size={16} />
           </IconButton>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-sm)' }}>{monthYearLabel(monthKey)}</span>
-          <IconButton variant="ghost" size="sm" onClick={onMonthNext} label="Next month">
-            <Icon name="right" size={15} />
+          <span style={{ fontWeight: 500 }}>{monthYearLabel(monthKey)}</span>
+          <IconButton size="sm" onClick={onMonthNext} label="Next month">
+            <Icon name="right" size={16} />
           </IconButton>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
           {WEEKDAY_LABELS.map((label) => (
-            <div key={label} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-faint)', textAlign: 'center' }}>
+            <div key={label} className="st-label" style={{ textAlign: 'center' }}>
               {label}
             </div>
           ))}
@@ -91,16 +92,18 @@ export function HabitDetail({ habit, todayKey, monthKey, isNarrow, onBack, onEdi
               onClick={cell.future ? undefined : () => onToggleLog(cell.dateKey)}
               style={{
                 aspectRatio: '1',
+                maxHeight: 44,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 11,
+                fontSize: 'var(--text-xs)',
                 fontFamily: 'var(--font-mono)',
-                borderRadius: 'var(--radius-sm)',
-                background: cell.logged ? habit.color : cell.inMonth ? 'var(--surface-2)' : 'transparent',
-                color: cell.logged ? 'var(--on-accent)' : cell.isToday ? 'var(--accent)' : cell.inMonth ? 'var(--text-secondary)' : 'var(--text-faint)',
-                border: cell.isToday ? '1px solid var(--accent)' : '1px solid transparent',
-                opacity: cell.future ? 0.5 : 1,
+                borderRadius: 6,
+                background: cell.logged ? color : 'transparent',
+                color: cell.logged ? 'var(--accent-fg)' : cell.inMonth ? 'var(--fg-1)' : 'var(--fg-disabled)',
+                boxShadow: cell.isToday ? 'inset 0 0 0 1.5px var(--fg-1)' : undefined,
+                fontWeight: cell.isToday ? 600 : 400,
+                opacity: cell.future ? 0.45 : 1,
                 cursor: cell.future ? 'default' : 'pointer',
               }}
             >

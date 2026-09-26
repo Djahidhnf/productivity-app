@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useRef, useTransition } from 'react';
 import { CalendarHeader } from './calendar-header';
 import { CalendarViewPill, type CalView } from './calendar-view-pill';
-import { DayWeekGrid } from './day-week-grid';
+import { DayWeekGrid, type DayWeekGridNav } from './day-week-grid';
 import { MonthView } from './month-view';
 import { YearView } from './year-view';
 import { AgendaView } from './agenda-view';
@@ -80,6 +80,7 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
   const [dragTaskId, setDragTaskId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ mode: 'create' | 'edit'; task?: TaskDTO; values: TaskDialogValues } | null>(null);
   const [, startTransition] = useTransition();
+  const gridNav = useRef<DayWeekGridNav>(null);
 
   useEffect(() => {
     function clearDragState() {
@@ -90,7 +91,8 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
   }, []);
 
   function handlePrev() {
-    if (calView === 'day') setCalDate((d) => addDays(d, -1));
+    if ((calView === 'day' || calView === '3day' || calView === 'week') && gridNav.current) gridNav.current.slide('prev');
+    else if (calView === 'day') setCalDate((d) => addDays(d, -1));
     else if (calView === '3day') setCalDate((d) => addDays(d, -3));
     else if (calView === 'week') setCalDate((d) => addDays(d, -7));
     else if (calView === 'month') setCalDate((d) => stepMonth(d, -1));
@@ -99,7 +101,8 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
   }
 
   function handleNext() {
-    if (calView === 'day') setCalDate((d) => addDays(d, 1));
+    if ((calView === 'day' || calView === '3day' || calView === 'week') && gridNav.current) gridNav.current.slide('next');
+    else if (calView === 'day') setCalDate((d) => addDays(d, 1));
     else if (calView === '3day') setCalDate((d) => addDays(d, 3));
     else if (calView === 'week') setCalDate((d) => addDays(d, 7));
     else if (calView === 'month') setCalDate((d) => stepMonth(d, 1));
@@ -138,8 +141,23 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
     });
   }
 
-  function handleCellClick(dateKey: string) {
-    setDialog({ mode: 'create', values: { text: '', listId: lists[0]?.id ?? '', priority: null, due: dateKey, dueTime: '' } });
+  function handleRangeSelect(dateKey: string, startMinutes: number, durationMinutes: number) {
+    setDialog({
+      mode: 'create',
+      values: {
+        text: '',
+        listId: lists[0]?.id ?? '',
+        priority: null,
+        due: dateKey,
+        dueTime: minutesToTimeInput(startMinutes),
+        duration: durationMinutes,
+      },
+    });
+  }
+
+  function handleDayOpen(dateKey: string) {
+    setCalDate(dateKey);
+    setCalView('day');
   }
 
   function handleSaveDialog(values: TaskDialogValues) {
@@ -173,6 +191,7 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
             priority: values.priority,
             due: values.due || null,
             dueTime,
+            duration: values.duration,
           });
           setTasks((prev) => [...prev, updated]);
         } catch {
@@ -279,6 +298,9 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
           untimedTasksFor={(key) => untimedTasksByDate(tasks, key)}
           onTaskOpen={handleOpenTask}
           onGridClick={handleGridClick}
+          onRangeSelect={handleRangeSelect}
+          onDayOpen={handleDayOpen}
+          navRef={gridNav}
           onTaskDragStart={(task) => setDragTaskId(task.id)}
           onGridDrop={handleGridDrop}
           onTaskToggleDone={handleToggleDone}
@@ -291,7 +313,7 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
           anchor={calDate}
           todayKey={today}
           onVisibleMonthChange={handleVisibleMonthChange}
-          onCellClick={handleCellClick}
+          onDayOpen={handleDayOpen}
           onTaskOpen={handleOpenTask}
           onTaskDragStart={(task) => setDragTaskId(task.id)}
           onCellDrop={handleMonthCellDrop}
@@ -306,6 +328,7 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
             setCalDate(`${y}-${String(m + 1).padStart(2, '0')}-01`);
             setCalView('month');
           }}
+          onDayOpen={handleDayOpen}
         />
       ) : (
         <AgendaView groups={agendaGroups} todayKey={today} onTaskOpen={handleOpenTask} />

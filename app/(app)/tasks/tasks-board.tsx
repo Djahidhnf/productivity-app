@@ -1,10 +1,15 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useRef, useTransition } from 'react';
 import { TaskListColumn } from './task-list-column';
 import { NewListColumn } from './new-list-column';
+import { ListTabs } from './list-tabs';
+import { PageHeader } from '@/app/components/shell/page-header';
+import { IconButton } from '@/app/components/ui/icon-button';
+import { Icon } from '@/app/components/icons';
+import { useDragScroll } from '@/app/lib/use-drag-scroll';
 import { TaskDialog, type TaskDialogValues } from './task-dialog';
-import { moveTaskInLists, taskIdsForList, moveListInLists } from './task-reorder';
+import { moveTaskInLists, taskIdsForList, moveListInLists, moveListToIndex } from './task-reorder';
 import type { TaskDTO, TaskListDTO } from './queries';
 import {
   createList,
@@ -41,6 +46,9 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
   const [dragListId, setDragListId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ task: TaskDTO; values: TaskDialogValues } | null>(null);
   const [, startTransition] = useTransition();
+  const [activeListId, setActiveListId] = useState<string | null>(initialLists[0]?.id ?? null);
+  const { ref: boardRef, handlers: dragScrollHandlers } = useDragScroll<HTMLDivElement>({ innerSelector: '.pw-tasks-scroll' });
+  const newListInput = useRef<HTMLInputElement>(null);
 
   // A drag abandoned outside any valid drop target (e.g. released over the
   // browser chrome) never reaches an onDrop handler, so dragTaskId/dragListId
@@ -191,10 +199,8 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
     setDragTaskId(null);
   }
 
-  function handleColumnDrop(targetListId: string) {
-    if (!dragListId) return;
+  function saveListOrder(next: TaskListDTO[]) {
     const prevLists = lists;
-    const next = moveListInLists(lists, dragListId, targetListId);
     setLists(next);
     startTransition(async () => {
       try {
@@ -204,12 +210,66 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
         window.alert('Could not save the new order. Please try again.');
       }
     });
+  }
+
+  function handleTabReorder(listId: string, toIndex: number) {
+    const next = moveListToIndex(lists, listId, toIndex);
+    if (next !== lists) saveListOrder(next);
+  }
+
+  function scrollToColumn(key: string) {
+    const column = boardRef.current?.querySelector<HTMLElement>(`[data-list-col="${CSS.escape(key)}"]`);
+    column?.scrollIntoView?.({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  // On phones each column fills the board, so the column nearest the scroll
+  // position is the one on screen.
+  function handleBoardScroll() {
+    const board = boardRef.current;
+    if (!board || board.clientWidth === 0) return;
+    const index = Math.round(board.scrollLeft / board.clientWidth);
+    setActiveListId(lists[index]?.id ?? null);
+  }
+
+  function handleColumnDrop(targetListId: string) {
+    if (!dragListId) return;
+    const next = moveListInLists(lists, dragListId, targetListId);
+    if (next !== lists) saveListOrder(next);
     setDragListId(null);
   }
 
+  function startNewList() {
+    scrollToColumn('new');
+    newListInput.current?.focus({ preventScroll: true });
+  }
+
+  const openCount = lists.reduce((n, list) => n + list.tasks.filter((t) => !t.done).length, 0);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'var(--pw-vh)' }}>
-      <div className="pw-board pw-scroll" style={{ flex: 1, minHeight: 0, paddingTop: 4 }}>
+      <PageHeader
+        title="Tasks"
+        meta={`${openCount} open`}
+        actions={
+          <IconButton label="New list" onClick={startNewList}>
+            <Icon name="folder-plus" size={18} />
+          </IconButton>
+        }
+      />
+      <ListTabs
+        lists={lists}
+        activeId={activeListId}
+        onSelect={scrollToColumn}
+        onSelectNew={() => scrollToColumn('new')}
+        onReorder={handleTabReorder}
+      />
+      <div
+        ref={boardRef}
+        className="pw-board pw-scroll"
+        style={{ flex: 1, minHeight: 0 }}
+        onScroll={handleBoardScroll}
+        {...dragScrollHandlers}
+      >
         {lists.map((list) => (
           <TaskListColumn
             key={list.id}
@@ -224,7 +284,7 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
             onColumnDrop={() => handleColumnDrop(list.id)}
           />
         ))}
-        <NewListColumn onCreate={handleCreateList} />
+        <NewListColumn onCreate={handleCreateList} inputRef={newListInput} />
       </div>
       {dialog && (
         <TaskDialog

@@ -181,6 +181,38 @@ describe('CalendarBoard', () => {
     expect(alertSpy).toHaveBeenCalled();
   }, 10000);
 
+  test('dragging out a range in the day grid opens the create dialog and saves that duration', async () => {
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    const col = container.querySelector('[data-daykey]') as HTMLElement;
+    col.getBoundingClientRect = () => ({ top: 0, left: 0, right: 100, bottom: 64 * 24, width: 100, height: 64 * 24, x: 0, y: 0, toJSON: () => ({}) });
+    const at = (y: number) => ({ pointerId: 1, pointerType: 'mouse', button: 0, clientX: 50, clientY: y });
+    fireEvent.pointerDown(col, at(9 * 64));
+    fireEvent.pointerMove(col, at(10 * 64 + 40));
+    fireEvent.pointerUp(col, at(10 * 64 + 40));
+    expect(screen.getByRole('dialog', { name: 'New task' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Time')).toHaveValue('09:00');
+    await userEvent.type(screen.getByLabelText('Task'), 'Deep work');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() =>
+      expect(actions.updateTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'newtask', dueTime: 540, duration: 105 }))
+    );
+  }, 10000);
+
+  test('clicking a day in Month view switches to that day in Day view', async () => {
+    const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Month' }));
+    await userEvent.click(container.querySelector('[data-datekey="2026-09-24"]') as HTMLElement);
+    expect(screen.getByRole('tab', { name: 'Day' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Tomorrow')).toBeInTheDocument();
+  }, 10000);
+
+  test('clicking a day header in Week view switches to Day view on that day', async () => {
+    render(<CalendarBoard initialTasks={[]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Week' }));
+    await userEvent.click(screen.getByRole('button', { name: /Open .* 24/ }));
+    expect(screen.getByText('Tomorrow')).toBeInTheDocument();
+  }, 10000);
+
   test('a failed reschedule reverts the optimistic move and alerts the user', async () => {
     vi.mocked(actions.updateTask).mockRejectedValueOnce(new Error('network error'));
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
@@ -298,7 +330,7 @@ describe('CalendarBoard jump picker', () => {
   test('in Day view the title is plain text', () => {
     render(<CalendarBoard initialTasks={[]} lists={lists} />);
     expect(screen.queryByRole('dialog', { name: 'Jump to date' })).not.toBeInTheDocument();
-    expect(screen.getAllByText('Today').find((el) => el.tagName === 'SPAN')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Today' })).toBeInTheDocument();
   });
 });
 

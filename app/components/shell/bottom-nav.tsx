@@ -13,22 +13,20 @@ export function BottomNav({ items, activeKey }: BottomNavProps) {
   return (
     <nav
       className="pw-bottomnav"
-      style={{ position: 'fixed', left: 0, right: 0, bottom: 0, borderTop: '1px solid var(--border)', background: 'var(--surface)', padding: '6px calc(4px + env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) calc(4px + env(safe-area-inset-left, 0px))', zIndex: 20 }}
+      style={{ position: 'fixed', left: 0, right: 0, bottom: 0, borderTop: '1px solid var(--border-1)', background: 'var(--surface-2)', padding: '6px calc(4px + env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) calc(4px + env(safe-area-inset-left, 0px))', zIndex: 20 }}
     >
       <div className="pw-bottomnav-inner">
-        {items.map((item) => {
-          const active = item.key === activeKey;
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '6px 2px', fontSize: 10, flex: 1, color: active ? 'var(--accent)' : 'var(--text-muted)', textDecoration: 'none' }}
-            >
-              <Icon name={item.icon} size={19} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+        {items.map((item) => (
+          <Link
+            key={item.key}
+            href={item.href}
+            className="pw-bottomnav-link"
+            aria-current={item.key === activeKey ? 'page' : undefined}
+          >
+            <Icon name={item.icon} size={18} />
+            <span>{item.label}</span>
+          </Link>
+        ))}
       </div>
     </nav>
   );

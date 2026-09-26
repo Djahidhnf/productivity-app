@@ -1,0 +1,50 @@
+/* Maps the app's original (Klivr-era) token names onto the Still design
+   system, so every component that still says var(--surface) or
+   var(--text-muted) picks up the Still palette without a rewrite. Loaded after
+   the still/tokens files.
+
+   Spacing is the one deliberate exception: Still's --space-N scale steps by
+   different amounts (its --space-4 is 8px), but every component here was laid
+   out against the 4px-based scale below, so that scale is kept as-is. Still's
+   radii, control heights, type scale, motion and colors all apply.
+
+   Declared on [data-theme] too so aliases re-resolve against the dark
+   semantic values wherever the theme attribute sits. */
+:root,
+[data-theme] {
+  --space-px: 1px;
+  --space-0-5: 0.125rem; /* 2 */
+  --space-1: 0.25rem;    /* 4 */
+  --space-1-5: 0.375rem; /* 6 */
+  --space-2: 0.5rem;     /* 8 */
+  --space-3: 0.75rem;    /* 12 */
+  --space-4: 1rem;       /* 16 */
+  --space-5: 1.25rem;    /* 20 */
+  --space-6: 1.5rem;     /* 24 */
+  --space-8: 2rem;       /* 32 */
+  --space-10: 2.5rem;    /* 40 */
+  --space-12: 3rem;      /* 48 */
+  --space-16: 4rem;      /* 64 */
+
+  --radius-2xl: var(--radius-xl);
+  --radius-pill: var(--radius-full);
+
+  --font-display: var(--font-sans);
+  --weight-bold: var(--weight-semibold);
+  --tracking-wider: var(--tracking-caps);
+
+  --bg: var(--bg-app);
+  --surface: var(--surface-1);
+  --surface-3: var(--surface-hover);
+  --border: var(--border-1);
+  --text-primary: var(--fg-1);
+  --text-secondary: var(--fg-2);
+  --text-muted: var(--fg-3);
+  --text-faint: var(--fg-disabled);
+  --on-accent: var(--accent-fg);
+  --focus-ring: var(--ring-color);
+
+  --shadow-lg: var(--shadow-overlay);
+  --shadow-xl: var(--shadow-overlay);
+  --blur-sm: blur(6px); /* @kind other */
+}

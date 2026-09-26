@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, createEvent, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MatrixBoard } from './matrix-board';
@@ -18,6 +18,7 @@ vi.mock('../tasks/actions', () => ({
     order: 0,
   })),
   deleteTask: vi.fn(async () => {}),
+  placeMatrixTask: vi.fn(async () => {}),
   toggleTaskDone: vi.fn(async (id: string) => ({
     id,
     text: 'Buy milk',
@@ -80,20 +81,20 @@ describe('MatrixBoard', () => {
 
   test('dragging an unflagged task onto a quadrant calls updateTask with the new priority', () => {
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.dragStart(card);
     const quadrant = screen.getByText('Do first').closest('[data-quad]')!;
     fireEvent.drop(quadrant);
-    expect(actions.updateTask).toHaveBeenCalledWith(expect.objectContaining({ id: 't1', priority: 'RED' }));
+    expect(actions.placeMatrixTask).toHaveBeenCalledWith(expect.objectContaining({ taskId: 't1', priority: 'RED' }));
   });
 
   test('dragging a flagged task onto the Unflagged panel clears its priority', () => {
     render(<MatrixBoard initialTasks={[makeTask({ priority: 'RED' })]} lists={lists} />);
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.dragStart(card);
     const unflaggedPanel = screen.getByText('Unflagged').closest('[data-quad]')!;
     fireEvent.drop(unflaggedPanel);
-    expect(actions.updateTask).toHaveBeenCalledWith(expect.objectContaining({ id: 't1', priority: null }));
+    expect(actions.placeMatrixTask).toHaveBeenCalledWith(expect.objectContaining({ taskId: 't1', priority: null }));
   });
 
   test('toggling a task as done removes it from the matrix view optimistically', async () => {
@@ -122,21 +123,21 @@ describe('MatrixBoard', () => {
 
   test('an abandoned drag (dragend without a drop) clears drag state so a later drop is a no-op', () => {
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.dragStart(card);
     act(() => {
       window.dispatchEvent(new Event('dragend'));
     });
     const quadrant = screen.getByText('Do first').closest('[data-quad]')!;
     fireEvent.drop(quadrant);
-    expect(actions.updateTask).not.toHaveBeenCalled();
+    expect(actions.placeMatrixTask).not.toHaveBeenCalled();
   });
 
   test('a failed drag-drop update reverts the optimistic move and alerts the user', async () => {
-    vi.mocked(actions.updateTask).mockRejectedValueOnce(new Error('network error'));
+    vi.mocked(actions.placeMatrixTask).mockRejectedValueOnce(new Error('network error'));
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.dragStart(card);
     const quadrant = screen.getByText('Do first').closest('[data-quad]')!;
     fireEvent.drop(quadrant);
@@ -162,7 +163,7 @@ describe('MatrixBoard mobile long-press drag', () => {
     document.elementFromPoint = vi.fn().mockReturnValue(quadrantEl);
 
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
     act(() => {
       vi.advanceTimersByTime(280);
@@ -170,33 +171,33 @@ describe('MatrixBoard mobile long-press drag', () => {
     fireEvent.touchMove(card, { touches: [{ clientX: 10, clientY: 10 }] });
     fireEvent.touchEnd(card);
 
-    expect(actions.updateTask).toHaveBeenCalledWith(expect.objectContaining({ id: 't1', priority: 'RED' }));
+    expect(actions.placeMatrixTask).toHaveBeenCalledWith(expect.objectContaining({ taskId: 't1', priority: 'RED' }));
   });
 
   test('releasing before 280ms does not trigger a drag (acts as a normal tap)', () => {
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
     vi.advanceTimersByTime(100);
     fireEvent.touchEnd(card);
-    expect(actions.updateTask).not.toHaveBeenCalled();
+    expect(actions.placeMatrixTask).not.toHaveBeenCalled();
   });
 
   test('moving more than 10px before 280ms cancels the long-press (treated as a scroll)', () => {
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
     fireEvent.touchMove(card, { touches: [{ clientX: 30, clientY: 10 }] });
     vi.advanceTimersByTime(280);
     fireEvent.touchEnd(card);
-    expect(actions.updateTask).not.toHaveBeenCalled();
+    expect(actions.placeMatrixTask).not.toHaveBeenCalled();
   });
 
   test('calls navigator.vibrate when the long-press engages', () => {
     const vibrateSpy = vi.fn();
     Object.defineProperty(navigator, 'vibrate', { value: vibrateSpy, configurable: true });
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
     act(() => {
       vi.advanceTimersByTime(280);
@@ -208,14 +209,14 @@ describe('MatrixBoard mobile long-press drag', () => {
   test('releasing over no valid target does not change the task', () => {
     document.elementFromPoint = vi.fn().mockReturnValue(null);
     render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
     act(() => {
       vi.advanceTimersByTime(280);
     });
     fireEvent.touchMove(card, { touches: [{ clientX: 10, clientY: 10 }] });
     fireEvent.touchEnd(card);
-    expect(actions.updateTask).not.toHaveBeenCalled();
+    expect(actions.placeMatrixTask).not.toHaveBeenCalled();
   });
 
   test('a click on a different task right after a completed touch-drag does not open its edit dialog', () => {
@@ -229,14 +230,14 @@ describe('MatrixBoard mobile long-press drag', () => {
         lists={lists}
       />
     );
-    const card = screen.getByText('Buy milk').closest('div')!;
+    const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
     fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
     act(() => {
       vi.advanceTimersByTime(280);
     });
     fireEvent.touchMove(card, { touches: [{ clientX: 10, clientY: 10 }] });
     fireEvent.touchEnd(card);
-    expect(actions.updateTask).toHaveBeenCalledWith(expect.objectContaining({ id: 't1', priority: 'RED' }));
+    expect(actions.placeMatrixTask).toHaveBeenCalledWith(expect.objectContaining({ taskId: 't1', priority: 'RED' }));
 
     // A synthesized click landing on a different row right after the drag
     // completed must not pop open that row's edit dialog.
@@ -287,7 +288,7 @@ describe('MatrixBoard responsive tabs', () => {
       // Default tab is 'matrix', so the Unflagged panel is not visible yet.
       expect(screen.queryByText('Unflagged')).not.toBeInTheDocument();
 
-      const card = screen.getByText('Buy milk').closest('div')!;
+      const card = screen.getByText('Buy milk').closest('[data-task-id]')!;
       fireEvent.touchStart(card, { touches: [{ clientX: 10, clientY: 10 }] });
       act(() => {
         vi.advanceTimersByTime(280);
@@ -303,5 +304,71 @@ describe('MatrixBoard responsive tabs', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('MatrixBoard reordering and phone flag menu', () => {
+  // jsdom's DragEvent ignores clientY in its init dict, so set it by hand.
+  function dragAt(kind: 'dragOver' | 'drop', el: Element, clientY: number) {
+    const event = createEvent[kind](el);
+    Object.defineProperty(event, 'clientY', { value: clientY });
+    fireEvent(el, event);
+  }
+
+  function rowRect(el: Element, top: number) {
+    (el as HTMLElement).getBoundingClientRect = () => ({ top, bottom: top + 40, height: 40, left: 0, right: 200, width: 200, x: 0, y: top, toJSON: () => ({}) });
+  }
+
+  test('dropping a task on the upper half of another row in the same quadrant moves it before that row', () => {
+    render(
+      <MatrixBoard
+        initialTasks={[makeTask({ id: 'a', text: 'Alpha', priority: 'RED' }), makeTask({ id: 'b', text: 'Beta', priority: 'RED' })]}
+        lists={lists}
+      />
+    );
+    const alpha = screen.getByText('Alpha').closest('[data-task-id]')!;
+    const beta = screen.getByText('Beta').closest('[data-task-id]')!;
+    rowRect(alpha, 0);
+    rowRect(beta, 50);
+    fireEvent.dragStart(beta);
+    dragAt('dragOver', alpha, 10);
+    expect(alpha).toHaveAttribute('data-drop-before', 'true');
+    dragAt('drop', alpha, 10);
+    expect(actions.placeMatrixTask).toHaveBeenCalledWith({ taskId: 'b', priority: 'RED', orderedTaskIds: ['b', 'a'] });
+    const rows = screen.getByText('Do first').closest('[data-quad]')!.querySelectorAll('[data-task-id]');
+    expect(Array.from(rows).map((r) => r.getAttribute('data-task-id'))).toEqual(['b', 'a']);
+  });
+
+  test('dropping on the lower half of a row in another group inserts after it, with that priority', () => {
+    render(
+      <MatrixBoard
+        initialTasks={[
+          makeTask({ id: 'a', text: 'Alpha', priority: 'AMBER' }),
+          makeTask({ id: 'c', text: 'Gamma', priority: 'AMBER' }),
+          makeTask({ id: 'u', text: 'Loose' }),
+        ]}
+        lists={lists}
+      />
+    );
+    const alpha = screen.getByText('Alpha').closest('[data-task-id]')!;
+    rowRect(alpha, 0);
+    fireEvent.dragStart(screen.getByText('Loose').closest('[data-task-id]')!);
+    dragAt('drop', alpha, 30);
+    expect(actions.placeMatrixTask).toHaveBeenCalledWith({ taskId: 'u', priority: 'AMBER', orderedTaskIds: ['a', 'u', 'c'] });
+  });
+
+  test('on phones each unflagged task has a flag button that moves it into the chosen quadrant', async () => {
+    stubMatchMedia(true);
+    render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
+    await userEvent.click(screen.getByRole('tab', { name: /Unflagged/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Set priority' }));
+    await userEvent.click(screen.getByRole('button', { name: /Schedule/ }));
+    expect(actions.placeMatrixTask).toHaveBeenCalledWith({ taskId: 't1', priority: 'AMBER', orderedTaskIds: ['t1'] });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  test('on wide screens unflagged tasks have no flag button', () => {
+    render(<MatrixBoard initialTasks={[makeTask()]} lists={lists} />);
+    expect(screen.queryByRole('button', { name: 'Set priority' })).not.toBeInTheDocument();
   });
 });

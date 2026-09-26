@@ -25,7 +25,7 @@ function makeProps(overrides: Partial<MonthViewProps> = {}): MonthViewProps {
     anchor: '2026-09-23',
     todayKey: '2026-09-23',
     onVisibleMonthChange: vi.fn(),
-    onCellClick: vi.fn(),
+    onDayOpen: vi.fn(),
     onTaskOpen: vi.fn(),
     onTaskDragStart: vi.fn(),
     onCellDrop: vi.fn(),
@@ -77,20 +77,20 @@ describe('MonthView', () => {
     expect(screen.getByText('+2 more')).toBeInTheDocument();
   });
 
-  test('clicking an empty part of a cell calls onCellClick with its date', async () => {
+  test('clicking an empty part of a cell calls onDayOpen with its date', async () => {
     const props = makeProps();
     const { container } = render(<MonthView {...props} />);
     await userEvent.click(container.querySelector('[data-datekey="2026-09-10"]') as HTMLElement);
-    expect(props.onCellClick).toHaveBeenCalledWith('2026-09-10');
+    expect(props.onDayOpen).toHaveBeenCalledWith('2026-09-10');
   });
 
-  test('clicking a chip calls onTaskOpen but not onCellClick', () => {
+  test('clicking a chip calls onTaskOpen but not onDayOpen', () => {
     const chip = makeTask({ id: 't1', text: 'A', due: '2026-09-10' });
     const props = makeProps({ tasks: [chip] });
     render(<MonthView {...props} />);
     fireEvent.click(screen.getByText('A'));
     expect(props.onTaskOpen).toHaveBeenCalledWith(chip);
-    expect(props.onCellClick).not.toHaveBeenCalled();
+    expect(props.onDayOpen).not.toHaveBeenCalled();
   });
 
   test('dragging a chip onto another cell calls onTaskDragStart then onCellDrop for that cell', () => {

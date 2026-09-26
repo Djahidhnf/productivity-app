@@ -23,9 +23,10 @@ describe('Button', () => {
 
   test('primary and secondary variants render different backgrounds', () => {
     const { rerender } = render(<Button variant="primary">Go</Button>);
-    const primaryBg = screen.getByRole('button').style.background;
+    const primaryBg = screen.getByRole('button').style.getPropertyValue('--btn-bg');
     rerender(<Button variant="secondary">Go</Button>);
-    const secondaryBg = screen.getByRole('button').style.background;
+    const secondaryBg = screen.getByRole('button').style.getPropertyValue('--btn-bg');
+    expect(primaryBg).toBe('var(--surface-inverse)');
     expect(primaryBg).not.toBe(secondaryBg);
   });
 });

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DayWeekGrid } from './day-week-grid';
 import type { TaskDTO } from './queries';
@@ -292,5 +292,144 @@ describe('DayWeekGrid swipe and density', () => {
     cleanup();
     const day = renderGrid({});
     expect(day.getAttribute('data-dense')).toBe('false');
+  });
+});
+
+describe('DayWeekGrid drag-to-create time blocks', () => {
+  function renderGrid(overrides: Partial<React.ComponentProps<typeof DayWeekGrid>> = {}) {
+    const props = {
+      dateKeys: ['2026-09-23'],
+      timedTasksFor: emptyList,
+      untimedTasksFor: emptyList,
+      onTaskOpen: noop,
+      onGridClick: vi.fn(),
+      onRangeSelect: vi.fn(),
+      onTaskDragStart: noop,
+      onGridDrop: noop,
+      ...overrides,
+    };
+    const { container } = render(<DayWeekGrid {...props} />);
+    const col = container.querySelector('[data-daykey="2026-09-23"]') as HTMLElement;
+    // Column top at y=0, so clientY maps straight to minutes (64px per hour).
+    col.getBoundingClientRect = () => ({ top: 0, left: 0, right: 100, bottom: 64 * 24, width: 100, height: 64 * 24, x: 0, y: 0, toJSON: () => ({}) });
+    return { props, col, container };
+  }
+
+  const mouse = (y: number) => ({ pointerId: 1, pointerType: 'mouse', button: 0, clientX: 50, clientY: y });
+
+  test('dragging down from 9:00 to 10:20 selects 9:00-10:30 and reports start + duration', () => {
+    const { props, col } = renderGrid();
+    fireEvent.pointerDown(col, mouse(9 * 64 + 2));
+    fireEvent.pointerMove(col, mouse(9 * 64 + 40));
+    fireEvent.pointerMove(col, mouse(10 * 64 + 20));
+    expect(col.querySelector('.pw-calgrid-selection')).toHaveTextContent('9:00AM – 10:30AM');
+    fireEvent.pointerUp(col, mouse(10 * 64 + 20));
+    expect(props.onRangeSelect).toHaveBeenCalledWith('2026-09-23', 9 * 60, 90);
+    expect(col.querySelector('.pw-calgrid-selection')).toBeNull();
+    fireEvent.click(col, { clientY: 10 * 64 + 20 });
+    expect(props.onGridClick).not.toHaveBeenCalled();
+  });
+
+  test('dragging upwards selects the range between the two slots', () => {
+    const { props, col } = renderGrid();
+    fireEvent.pointerDown(col, mouse(14 * 64 + 10));
+    fireEvent.pointerMove(col, mouse(13 * 64 + 5));
+    fireEvent.pointerUp(col, mouse(13 * 64 + 5));
+    expect(props.onRangeSelect).toHaveBeenCalledWith('2026-09-23', 13 * 60, 75);
+  });
+
+  test('a plain click (no drag) still calls onGridClick and not onRangeSelect', () => {
+    const { props, col } = renderGrid();
+    fireEvent.pointerDown(col, mouse(9 * 64));
+    fireEvent.pointerUp(col, mouse(9 * 64));
+    fireEvent.click(col, { clientY: 9 * 64 });
+    expect(props.onGridClick).toHaveBeenCalledWith('2026-09-23', 9 * 60);
+    expect(props.onRangeSelect).not.toHaveBeenCalled();
+  });
+
+  test('pressing on an existing task block does not start a selection', () => {
+    const { props, container } = renderGrid({
+      timedTasksFor: () => [makeTask({ id: 'b1', text: 'Block', dueTime: 9 * 60 })],
+    });
+    const block = container.querySelector('.pw-cal-block') as HTMLElement;
+    fireEvent.pointerDown(block, mouse(9 * 64 + 5));
+    fireEvent.pointerMove(block, mouse(11 * 64));
+    fireEvent.pointerUp(block, mouse(11 * 64));
+    expect(props.onRangeSelect).not.toHaveBeenCalled();
+  });
+
+  test('a touch long-press then drag selects a range', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const { props, col } = renderGrid();
+      fireEvent.pointerDown(col, { pointerId: 2, pointerType: 'touch', clientX: 50, clientY: 8 * 64 });
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+      expect(col.querySelector('.pw-calgrid-selection')).not.toBeNull();
+      fireEvent.touchMove(document, { touches: [{ clientX: 50, clientY: 9 * 64 + 10 }] });
+      fireEvent.touchEnd(document, { touches: [] });
+      expect(props.onRangeSelect).toHaveBeenCalledWith('2026-09-23', 8 * 60, 75);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('a touch that moves before the long-press delay does not select', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const { props, col } = renderGrid();
+      fireEvent.pointerDown(col, { pointerId: 2, pointerType: 'touch', clientX: 50, clientY: 8 * 64 });
+      fireEvent.pointerMove(col, { pointerId: 2, pointerType: 'touch', clientX: 50, clientY: 8 * 64 + 30 });
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+      expect(col.querySelector('.pw-calgrid-selection')).toBeNull();
+      expect(props.onRangeSelect).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe('DayWeekGrid navigation', () => {
+  test('clicking a day header in a multi-day view calls onDayOpen', () => {
+    const onDayOpen = vi.fn();
+    render(
+      <DayWeekGrid
+        dateKeys={['2026-09-23', '2026-09-24', '2026-09-25']}
+        timedTasksFor={emptyList}
+        untimedTasksFor={emptyList}
+        onTaskOpen={noop}
+        onGridClick={noop}
+        onTaskDragStart={noop}
+        onGridDrop={noop}
+        onDayOpen={onDayOpen}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Open .* 24/ }));
+    expect(onDayOpen).toHaveBeenCalledWith('2026-09-24');
+  });
+
+  test('neighbouring days are rendered (inert) only while sliding', () => {
+    const { container } = render(
+      <DayWeekGrid
+        dateKeys={['2026-09-23']}
+        timedTasksFor={emptyList}
+        untimedTasksFor={emptyList}
+        onTaskOpen={noop}
+        onGridClick={noop}
+        onTaskDragStart={noop}
+        onGridDrop={noop}
+        onSwipeNext={vi.fn()}
+      />
+    );
+    expect(container.querySelector('.pw-calgrid-panel')).toBeNull();
+    const grid = container.querySelector('.pw-calgrid') as HTMLElement;
+    fireEvent.pointerDown(grid, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 300 });
+    fireEvent.pointerMove(grid, { pointerId: 1, pointerType: 'touch', clientX: 150, clientY: 300 });
+    expect(container.querySelectorAll('.pw-calgrid-body .pw-calgrid-panel')).toHaveLength(2);
+    expect(screen.getAllByText('22').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-daykey]')).toHaveLength(1);
   });
 });

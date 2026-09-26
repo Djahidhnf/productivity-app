@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { useSwipe, lockAxis, resolveSwipe, swipeStrength, SLIDE_MS } from '@/app/lib/use-swipe';
+import { useSwipe, lockAxis, resolveSwipe, swipeStrength, SLIDE_MS, type SwipeStrength } from '@/app/lib/use-swipe';
 
 describe('lockAxis', () => {
   test('stays undecided until movement reaches 10px', () => {
@@ -43,11 +43,18 @@ describe('resolveSwipe', () => {
   });
 });
 
-function Harness(props: { onLeft?: () => void; onRight?: () => void; onInnerClick?: () => void }) {
-  const { ref, handlers } = useSwipe({ onSwipeLeft: props.onLeft, onSwipeRight: props.onRight });
+function Harness(props: {
+  onLeft?: (strength: SwipeStrength) => void;
+  onRight?: (strength: SwipeStrength) => void;
+  onInnerClick?: () => void;
+  distance?: (strength: SwipeStrength, width: number) => number;
+}) {
+  const { ref, handlers, peek, slide } = useSwipe({ onSwipeLeft: props.onLeft, onSwipeRight: props.onRight, distance: props.distance });
   return (
-    <div ref={ref} data-testid="surface" {...handlers}>
+    <div ref={ref} data-testid="surface" data-peek={peek} {...handlers}>
       <button onClick={props.onInnerClick}>inner</button>
+      <button onClick={() => slide('next')}>slide next</button>
+      <button onClick={() => slide('prev')}>slide prev</button>
     </div>
   );
 }
@@ -120,15 +127,15 @@ describe('useSwipe', () => {
     expect(onLeft).not.toHaveBeenCalled();
   });
 
-  test('after the swipe the new content slides back to rest', () => {
-    render(<Harness onLeft={vi.fn()} />);
+  test('after the slide the offset resets to 0 in the same step as the swap (no second slide)', () => {
+    let offsetAtFire = '';
+    render(<Harness onLeft={() => (offsetAtFire = getSurface().style.getPropertyValue('--swipe-x'))} />);
     const el = getSurface();
     drag(el, { dx: -150 });
     vi.advanceTimersByTime(SLIDE_MS);
-    expect(el.style.getPropertyValue('--swipe-x')).toBe('400px');
-    vi.advanceTimersByTime(60);
+    expect(offsetAtFire).toBe('-400px');
     expect(el.style.getPropertyValue('--swipe-x')).toBe('0px');
-    expect(el.dataset.swipe).toBe('anim');
+    expect(el.dataset.swipe).toBeUndefined();
   });
 
   test('a short slow drag cancels and snaps back', () => {
@@ -266,5 +273,66 @@ describe('useSwipe strength', () => {
     drag(getSurface(), { dx: -60, ms: 80 });
     vi.advanceTimersByTime(SLIDE_MS);
     expect(onLeft).toHaveBeenCalledWith('short');
+  });
+});
+
+describe('useSwipe carousel', () => {
+  test('neighbours are peeked while dragging horizontally and hidden again after a snap-back', () => {
+    render(<Harness onLeft={vi.fn()} />);
+    const el = getSurface();
+    expect(el.dataset.peek).toBe('false');
+    fireEvent.pointerDown(el, pointer(200, 300));
+    fireEvent.pointerMove(el, pointer(180, 300));
+    expect(el.dataset.peek).toBe('true');
+    fireEvent.pointerUp(el, pointer(190, 300));
+    act(() => {
+      vi.advanceTimersByTime(SLIDE_MS);
+    });
+    expect(el.dataset.peek).toBe('false');
+  });
+
+  test('the slide travels the distance chosen for the swipe strength', () => {
+    const distance = vi.fn((strength: SwipeStrength, width: number) => (strength === 'short' ? width / 4 : width));
+    render(<Harness onLeft={vi.fn()} distance={distance} />);
+    const el = getSurface();
+    drag(el, { dx: -150 });
+    expect(distance).toHaveBeenCalledWith('short', 400);
+    expect(el.style.getPropertyValue('--swipe-x')).toBe('-100px');
+  });
+
+  test('slide() animates a full-width move and then fires the matching callback as "long"', () => {
+    const onLeft = vi.fn();
+    const onRight = vi.fn();
+    render(<Harness onLeft={onLeft} onRight={onRight} />);
+    const el = getSurface();
+    fireEvent.click(screen.getByText('slide next'));
+    expect(el.dataset.peek).toBe('true');
+    expect(el.dataset.swipe).toBe('anim');
+    expect(el.style.getPropertyValue('--swipe-x')).toBe('-400px');
+    expect(onLeft).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(SLIDE_MS);
+    expect(onLeft).toHaveBeenCalledWith('long');
+    expect(el.dataset.peek).toBe('false');
+    fireEvent.click(screen.getByText('slide prev'));
+    vi.advanceTimersByTime(SLIDE_MS);
+    expect(onRight).toHaveBeenCalledWith('long');
+  });
+
+  test('a second slide() while one is in flight completes the first immediately', () => {
+    const onLeft = vi.fn();
+    render(<Harness onLeft={onLeft} />);
+    getSurface();
+    fireEvent.click(screen.getByText('slide next'));
+    fireEvent.click(screen.getByText('slide next'));
+    expect(onLeft).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(SLIDE_MS);
+    expect(onLeft).toHaveBeenCalledTimes(2);
+  });
+
+  test('slide() with zero width (nothing to animate) fires immediately', () => {
+    const onLeft = vi.fn();
+    render(<Harness onLeft={onLeft} />);
+    fireEvent.click(screen.getByText('slide next'));
+    expect(onLeft).toHaveBeenCalledWith('long');
   });
 });

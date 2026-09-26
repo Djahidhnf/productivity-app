@@ -11,68 +11,61 @@ export interface AgendaViewProps {
   onTaskOpen: (task: TaskDTO) => void;
 }
 
+function longDayLabel(dateKey: string): string {
+  return new Date(`${dateKey}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
 export function AgendaView({ groups, todayKey, onTaskOpen }: AgendaViewProps) {
   if (groups.length === 0) {
-    return (
-      <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', padding: 'var(--space-6) clamp(16px, 3vw, 32px)' }}>
-        Nothing scheduled in the next 60 days.
-      </p>
-    );
+    return <p className="st-empty" style={{ margin: 0, padding: '0 var(--pw-gutter)' }}>Nothing scheduled in the next 60 days.</p>;
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-4)',
-        padding: '0 clamp(16px, 3vw, 32px) 24px',
-        overflowY: 'auto',
-        flex: 1,
-        minHeight: 0,
-      }}
-    >
+    <div className="pw-scroll" style={{ display: 'flex', flexDirection: 'column', padding: '0 var(--pw-gutter) 96px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
       {groups.map((group) => (
-        <div key={group.dateKey} style={{ display: 'grid', gridTemplateColumns: '96px minmax(0, 1fr)', gap: 'var(--space-3)' }}>
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-lg)' }}>
-              {Number(group.dateKey.slice(-2))}
-            </div>
-            <div style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-muted)' }}>{calendarDateLabel(group.dateKey, todayKey)}</div>
+        <section
+          key={group.dateKey}
+          className="pw-two"
+          style={{ display: 'grid', gridTemplateColumns: '140px minmax(0, 1fr)', gap: '4px 24px', padding: '16px 0', borderTop: '1px solid var(--border-1)' }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontWeight: 600, color: group.dateKey === todayKey ? 'var(--fg-1)' : 'var(--fg-2)' }}>
+              {calendarDateLabel(group.dateKey, todayKey)}
+            </span>
+            <span className="st-eyebrow">{longDayLabel(group.dateKey)}</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {group.items.map(({ task, timeLabel }) => (
               <div
                 key={task.id}
+                className="pw-agenda-row"
                 onClick={() => onTaskOpen(task)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '6px 8px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'var(--surface-2)',
-                  cursor: 'pointer',
-                }}
               >
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xs)', color: 'var(--text-muted)', width: 56, flex: 'none' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', color: 'var(--fg-3)', width: 104, flex: 'none' }}>
                   {timeLabel}
                 </span>
+                {task.priority ? (
+                  <PriorityFlag priority={task.priority} />
+                ) : (
+                  <span style={{ width: 7, height: 7, borderRadius: 2, background: 'var(--border-strong)', flex: 'none' }} />
+                )}
                 <span
                   style={{
                     flex: 1,
-                    fontSize: 'var(--text-sm)',
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                     textDecoration: task.done ? 'line-through' : 'none',
-                    color: task.done ? 'var(--text-faint)' : 'var(--text-primary)',
+                    color: task.done ? 'var(--fg-3)' : 'var(--fg-1)',
                   }}
                 >
                   {task.text}
                 </span>
-                {task.priority && <PriorityFlag priority={task.priority} />}
               </div>
             ))}
           </div>
-        </div>
+        </section>
       ))}
     </div>
   );

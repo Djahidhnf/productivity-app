@@ -6,6 +6,8 @@ import { HabitDetail } from './habit-detail';
 import { HabitDialog, type HabitDialogValues } from './habit-dialog';
 import { moveHabit } from './habit-calc';
 import { createHabit, updateHabit, deleteHabit, reorderHabits, toggleHabitLog } from './actions';
+import { PageHeader } from '@/app/components/shell/page-header';
+import { Icon } from '@/app/components/icons';
 import { Button } from '@/app/components/ui/button';
 import { useMediaQuery } from '@/app/lib/use-media-query';
 import { todayKey as getTodayKey } from '@/app/lib/date-format';
@@ -140,15 +142,20 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'var(--pw-vh)' }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 'var(--space-3)', gap: 'var(--space-3)', padding: '0 clamp(16px, 3vw, 32px)', flex: 'none' }}>
-        <Button
-          onClick={() =>
-            setDialog({ habit: null, values: { name: '', freqType: 'DAILY', timesPerWeek: '3', startDate: todayKey } })
-          }
-        >
-          New habit
-        </Button>
-      </header>
+      <PageHeader
+        title="Habits"
+        actions={
+          <Button
+            size="sm"
+            onClick={() =>
+              setDialog({ habit: null, values: { name: '', freqType: 'DAILY', timesPerWeek: '3', startDate: todayKey } })
+            }
+          >
+            <Icon name="plus" size={15} />
+            New habit
+          </Button>
+        }
+      />
       <div className="pw-habit-split">
         {showHabitList && (
           <div className="pw-habit-left pw-scroll">
@@ -157,6 +164,7 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
               selectedHabitId={selectedHabitId}
               todayKey={todayKey}
               heatWeeks={isNarrow ? HEAT_WEEKS_NARROW : HEAT_WEEKS_WIDE}
+              fillWidth={isNarrow}
               onSelect={handleSelect}
               onToggleLog={handleToggleLog}
               onDragStart={handleDragStart}

@@ -14,13 +14,14 @@ export interface YearViewProps {
   /** Called with January 1 of the year that is now at the top of the view. */
   onVisibleYearChange: (dateKey: string) => void;
   onMonthOpen: (year: number, month: number) => void;
+  onDayOpen: (dateKey: string) => void;
 }
 
 const WEEKDAY_INITIALS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const YEAR_SPAN = 2;
 const MONTH_NAMES = Array.from({ length: 12 }, (_, m) => new Date(2000, m, 1).toLocaleDateString('en-US', { month: 'long' }));
 
-export function YearView({ tasks, anchor, todayKey, onVisibleYearChange, onMonthOpen }: YearViewProps) {
+export function YearView({ tasks, anchor, todayKey, onVisibleYearChange, onMonthOpen, onDayOpen }: YearViewProps) {
   const taskIndex = indexTasksByDate(tasks);
   const { containerRef, onScroll, start, end } = useScrollWindow({
     anchor: yearOfDateKey(anchor),
@@ -40,38 +41,60 @@ export function YearView({ tasks, anchor, todayKey, onVisibleYearChange, onMonth
           <h3 className="pw-yearblock-title">{y}</h3>
           <div className="pw-yearview">
             {MONTH_NAMES.map((label, month) => (
-              <div key={month} className="pw-yearview-card">
-                <button type="button" className="pw-yearview-label" onClick={() => onMonthOpen(y, month)}>
+              <div key={month} className="pw-yearview-card" data-month={month} onClick={() => onMonthOpen(y, month)}>
+                <button
+                  type="button"
+                  className="pw-yearview-label"
+                  data-current={todayKey.startsWith(`${y}-${String(month + 1).padStart(2, '0')}`) || undefined}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onMonthOpen(y, month);
+                  }}
+                >
                   {label}
                 </button>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 2 }}>
                   {WEEKDAY_INITIALS.map((w, i) => (
-                    <span key={i} style={{ fontSize: '9px', textAlign: 'center', color: 'var(--text-faint)' }}>
+                    <span key={i} style={{ fontSize: 10, textAlign: 'center', color: 'var(--fg-3)', paddingBottom: 2 }}>
                       {w}
                     </span>
                   ))}
                   {buildMonthGrid(y, month).map((cell) => {
                     const dayTasks = cell.inMonth ? (taskIndex.get(cell.dateKey) ?? []) : [];
-                    const bg = cell.inMonth ? dayColor(dayTasks) : 'transparent';
+                    const dot = cell.inMonth ? dayColor(dayTasks) : 'transparent';
                     const isToday = cell.dateKey === todayKey;
-                    const hasPriority = dayTasks.some((t) => t.priority);
                     return (
                       <span
                         key={cell.dateKey}
                         data-datekey={cell.dateKey}
+                        onClick={
+                          cell.inMonth
+                            ? (event) => {
+                                event.stopPropagation();
+                                onDayOpen(cell.dateKey);
+                              }
+                            : undefined
+                        }
+                        className={cell.inMonth ? 'pw-yearview-day' : undefined}
                         style={{
-                          aspectRatio: '1',
+                          height: 30,
                           display: 'flex',
+                          flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '9px',
-                          borderRadius: '50%',
-                          background: bg,
-                          border: isToday ? '1px solid var(--accent)' : 'none',
-                          color: hasPriority ? 'var(--neutral-900)' : isToday ? 'var(--accent)' : 'var(--text-secondary)',
+                          gap: 2,
+                          borderRadius: 6,
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: 11,
+                          lineHeight: 1,
+                          background: isToday ? 'var(--surface-inverse)' : undefined,
+                          color: isToday ? 'var(--fg-inverse)' : 'var(--fg-1)',
                         }}
                       >
-                        {cell.inMonth ? String(Number(cell.dateKey.slice(-2))) : ''}
+                        <span>{cell.inMonth ? String(Number(cell.dateKey.slice(-2))) : ''}</span>
+                        {dot !== 'transparent' && (
+                          <span data-dot style={{ width: 4, height: 4, borderRadius: 999, background: isToday ? 'var(--fg-inverse)' : dot }} />
+                        )}
                       </span>
                     );
                   })}

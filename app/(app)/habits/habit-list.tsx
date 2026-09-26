@@ -9,6 +9,7 @@ export interface HabitListProps {
   selectedHabitId: string | null;
   todayKey: string;
   heatWeeks: number;
+  fillWidth?: boolean;
   onSelect: (habitId: string) => void;
   onToggleLog: (habitId: string, dateKey: string) => void;
   onDragStart: (habitId: string) => void;
@@ -19,9 +20,9 @@ function allowDrop(event: DragEvent) {
   event.preventDefault();
 }
 
-export function HabitList({ habits, selectedHabitId, todayKey, heatWeeks, onSelect, onToggleLog, onDragStart, onDropOnCard }: HabitListProps) {
+export function HabitList({ habits, selectedHabitId, todayKey, heatWeeks, fillWidth, onSelect, onToggleLog, onDragStart, onDropOnCard }: HabitListProps) {
   if (habits.length === 0) {
-    return <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', padding: 8 }}>No habits yet — add one to start tracking.</p>;
+    return <p className="st-empty" style={{ margin: 0 }}>No habits yet — add one to start tracking.</p>;
   }
 
   return (
@@ -32,6 +33,7 @@ export function HabitList({ habits, selectedHabitId, todayKey, heatWeeks, onSele
           habit={habit}
           todayKey={todayKey}
           heatWeeks={heatWeeks}
+          fillWidth={fillWidth}
           selected={habit.id === selectedHabitId}
           onSelect={() => onSelect(habit.id)}
           onToggleLog={onToggleLog}

@@ -30,23 +30,24 @@ export function TaskListColumn({
   onColumnDragStart,
   onColumnDrop,
 }: TaskListColumnProps) {
-  const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
 
   function submitDraft() {
     const text = draft.trim();
     if (text) onQuickAdd(list.id, text);
     setDraft('');
-    setAdding(false);
   }
 
   function allowDrop(event: DragEvent) {
     event.preventDefault();
   }
 
+  const openCount = list.tasks.filter((t) => !t.done).length;
+
   return (
-    <div
+    <section
       className="pw-list-col"
+      data-list-col={list.id}
       onDragOver={allowDrop}
       onDrop={(event) => {
         event.preventDefault();
@@ -54,6 +55,7 @@ export function TaskListColumn({
       }}
     >
       <div
+        className="pw-list-head"
         draggable
         onDragStart={onColumnDragStart}
         onDragOver={allowDrop}
@@ -62,60 +64,43 @@ export function TaskListColumn({
           event.stopPropagation();
           onColumnDrop();
         }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, cursor: 'grab', padding: '2px 0' }}
+        style={{ cursor: 'grab' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          <Icon name="grip" size={15} style={{ color: 'var(--text-faint)' }} />
-          <h4
-            style={{
-              margin: 0,
-              fontFamily: 'var(--font-display)',
-              fontWeight: 'var(--weight-semibold)',
-              fontSize: 'var(--text-sm)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {list.name}{' '}
-            <span style={{ color: 'var(--text-muted)', fontWeight: 'var(--weight-regular)', fontFamily: 'var(--font-mono)' }}>
-              {list.tasks.length}
-            </span>
-          </h4>
-        </div>
-        <div style={{ display: 'flex', gap: 2 }}>
-          <IconButton label="Add task" variant="ghost" size="sm" onClick={() => setAdding(true)}>
-            <Icon name="plus" size={15} />
-          </IconButton>
-          <IconButton label="Delete list" variant="ghost" size="sm" onClick={() => onDeleteList(list.id)}>
-            <Icon name="trash" size={15} />
-          </IconButton>
-        </div>
+        <h2 className="st-label" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {list.name}
+          <span className="st-label-count">{openCount}</span>
+        </h2>
+        <IconButton label="Delete list" size="sm" onClick={() => onDeleteList(list.id)}>
+          <Icon name="trash" size={15} />
+        </IconButton>
       </div>
+      <form
+        className="st-addrow"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submitDraft();
+        }}
+      >
+        <Icon name="plus" size={16} />
+        <Input
+          variant="bare"
+          aria-label={`Add a task to ${list.name}`}
+          placeholder="What needs doing?"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              setDraft('');
+              event.currentTarget.blur();
+            }
+          }}
+          style={{ fontSize: 'var(--text-sm)' }}
+        />
+      </form>
       <div
         className="pw-tasks-scroll pw-scroll"
-        style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: 20 }}
+        style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: 20 }}
       >
-        {adding && (
-          <Input
-            size="sm"
-            autoFocus
-            placeholder="Task name, Enter to add…"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') submitDraft();
-              if (event.key === 'Escape') {
-                setDraft('');
-                setAdding(false);
-              }
-            }}
-            onBlur={() => {
-              if (!draft.trim()) setAdding(false);
-              else submitDraft();
-            }}
-          />
-        )}
         {list.tasks.map((task) => (
           <TaskCard
             key={task.id}
@@ -132,10 +117,8 @@ export function TaskListColumn({
             }}
           />
         ))}
-        {list.tasks.length === 0 && !adding && (
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: '6px 4px' }}>No tasks.</p>
-        )}
+        {list.tasks.length === 0 && <p className="st-empty">Nothing here.</p>}
       </div>
-    </div>
+    </section>
   );
 }

@@ -68,14 +68,13 @@ beforeEach(() => {
 describe('TasksBoard', () => {
   test('renders each list and its tasks', () => {
     render(<TasksBoard initialLists={makeLists()} />);
-    expect(screen.getByText('Work')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Work/ })).toBeInTheDocument();
     expect(screen.getByText('Buy milk')).toBeInTheDocument();
   });
 
   test('quick-adding a task in a column calls createTask and shows the new task', async () => {
     render(<TasksBoard initialLists={makeLists()} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Add task' }));
-    await userEvent.type(screen.getByPlaceholderText('Task name, Enter to add…'), 'New task{Enter}');
+    await userEvent.type(screen.getByLabelText('Add a task to Work'), 'New task{Enter}');
     expect(actions.createTask).toHaveBeenCalledWith({ text: 'New task', listId: 'list1' });
     expect(await screen.findByText('New task')).toBeInTheDocument();
   });
@@ -110,9 +109,9 @@ describe('TasksBoard', () => {
 
   test('creating a new list calls createList and shows the new column', async () => {
     render(<TasksBoard initialLists={makeLists()} />);
-    await userEvent.type(screen.getByPlaceholderText('New list…'), 'Home{Enter}');
+    await userEvent.type(screen.getByLabelText('New list name'), 'Home{Enter}');
     expect(actions.createList).toHaveBeenCalledWith('Home');
-    expect(await screen.findByText('Home')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Home/ })).toBeInTheDocument();
   });
 
   test('an abandoned drag (dragend fired without a drop) clears drag state, so a later drop is a no-op', () => {
@@ -122,7 +121,7 @@ describe('TasksBoard', () => {
     act(() => {
       window.dispatchEvent(new Event('dragend'));
     });
-    const column = screen.getByText('Work').closest('.pw-list-col') as HTMLElement;
+    const column = screen.getByRole('heading', { name: /Work/ }).closest('.pw-list-col') as HTMLElement;
     fireEvent.drop(column);
     expect(actions.reorderTasks).not.toHaveBeenCalled();
   });
@@ -153,5 +152,72 @@ describe('TasksBoard', () => {
     fireEvent.dragStart(card);
     fireEvent.drop(card);
     expect(actions.reorderTasks).toHaveBeenCalledWith({ listId: 'list1', orderedTaskIds: ['t1', 't2'] });
+  });
+});
+
+describe('TasksBoard list strip (phone)', () => {
+  function twoLists(): TaskListDTO[] {
+    return [
+      ...makeLists(),
+      { id: 'list2', name: 'Home', order: 1, tasks: [] },
+    ];
+  }
+
+  test('shows a chip per list with its task count, the first one active', () => {
+    render(<TasksBoard initialLists={twoLists()} />);
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.map((t) => t.textContent)).toEqual(['Work2', 'Home0']);
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('tapping a chip scrolls its column into view', async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    const { container } = render(<TasksBoard initialLists={twoLists()} />);
+    scrollIntoView.mockClear();
+    await userEvent.click(screen.getByRole('tab', { name: /Home/ }));
+    expect(scrollIntoView).toHaveBeenCalled();
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(container.querySelector('[data-list-col="list2"]'));
+  });
+
+  test('dragging a chip past its neighbour reorders the lists and saves the order', async () => {
+    const { container } = render(<TasksBoard initialLists={twoLists()} />);
+    const chips = Array.from(container.querySelectorAll<HTMLElement>('.pw-listtab[data-list-id]'));
+    chips.forEach((chip, i) => {
+      chip.getBoundingClientRect = () => ({ left: i * 100, right: i * 100 + 90, width: 90, top: 0, bottom: 30, height: 30, x: i * 100, y: 0, toJSON: () => ({}) });
+    });
+    const work = chips[0];
+    fireEvent.pointerDown(work, { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 45, clientY: 10 });
+    fireEvent.pointerMove(work, { pointerId: 1, pointerType: 'mouse', clientX: 60, clientY: 10 });
+    fireEvent.pointerMove(document, { pointerId: 1, pointerType: 'mouse', clientX: 170, clientY: 10 });
+    expect(screen.getAllByRole('tab').map((t) => t.getAttribute('data-list-id'))).toEqual(['list2', 'list1']);
+    fireEvent.pointerUp(document, { pointerId: 1, pointerType: 'mouse', clientX: 170, clientY: 10 });
+    await waitFor(() => expect(actions.reorderLists).toHaveBeenCalledWith(['list2', 'list1']));
+    const headings = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(headings[0]).toMatch(/Home/);
+  });
+});
+
+describe('TasksBoard grab-to-scroll (desktop)', () => {
+  test('mouse-dragging empty board space scrolls it horizontally', () => {
+    const { container } = render(<TasksBoard initialLists={makeLists()} />);
+    const board = container.querySelector('.pw-board') as HTMLElement;
+    board.scrollLeft = 100;
+    fireEvent.pointerDown(board, { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 300, clientY: 200 });
+    fireEvent.pointerMove(board, { pointerId: 1, pointerType: 'mouse', clientX: 240, clientY: 200 });
+    expect(board.scrollLeft).toBe(160);
+    expect(board.dataset.grabbing).toBe('true');
+    fireEvent.pointerUp(board, { pointerId: 1, pointerType: 'mouse', clientX: 240, clientY: 200 });
+    expect(board.dataset.grabbing).toBeUndefined();
+  });
+
+  test('pressing on a draggable task card does not grab-scroll', () => {
+    const { container } = render(<TasksBoard initialLists={makeLists()} />);
+    const board = container.querySelector('.pw-board') as HTMLElement;
+    board.scrollLeft = 100;
+    const card = screen.getByText('Buy milk').closest('[draggable="true"]') as HTMLElement;
+    fireEvent.pointerDown(card, { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 300, clientY: 200 });
+    fireEvent.pointerMove(board, { pointerId: 1, pointerType: 'mouse', clientX: 200, clientY: 200 });
+    expect(board.scrollLeft).toBe(100);
   });
 });

@@ -21,6 +21,10 @@ export interface QuadrantPanelProps {
   onDragOver: (event: DragEvent) => void;
   onDragLeave?: (event: DragEvent) => void;
   onDrop: (event: DragEvent) => void;
+  onTaskDragOver?: (task: TaskDTO, event: DragEvent) => void;
+  onTaskDrop?: (task: TaskDTO, event: DragEvent) => void;
+  /** Task the dragged task would be inserted before, when it is in this group. */
+  dropBeforeId?: string | null;
   onTaskTouchStart: (task: TaskDTO, event: TouchEvent) => void;
   onTaskTouchMove: (event: TouchEvent) => void;
   onTaskTouchEnd: (event: TouchEvent) => void;
@@ -37,6 +41,9 @@ export function QuadrantPanel({
   onDragOver,
   onDragLeave,
   onDrop,
+  onTaskDragOver,
+  onTaskDrop,
+  dropBeforeId = null,
   onTaskTouchStart,
   onTaskTouchMove,
   onTaskTouchEnd,
@@ -49,6 +56,7 @@ export function QuadrantPanel({
   return (
     <div
       data-quad={priorityKey}
+      data-drop-target={isDropTarget || undefined}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
@@ -57,20 +65,19 @@ export function QuadrantPanel({
         flexDirection: 'column',
         minHeight: 0,
         borderRadius: 'var(--radius-lg)',
-        border: isDropTarget
-          ? `2px solid ${color}`
-          : `1px solid color-mix(in srgb, ${color} 30%, var(--border))`,
-        boxShadow: isDropTarget ? `0 0 0 2px color-mix(in srgb, ${color} 25%, transparent)` : 'none',
-        background: `color-mix(in srgb, ${color} 5%, var(--surface))`,
+        border: `1px solid ${isDropTarget ? color : `color-mix(in oklch, ${color} 28%, var(--border-1))`}`,
+        background: `color-mix(in oklch, ${color} ${isDropTarget ? 10 : 5}%, var(--surface-1))`,
+        boxShadow: `inset 0 3px 0 0 color-mix(in oklch, ${color} 45%, transparent)${isDropTarget ? `, 0 0 0 3px color-mix(in oklch, ${color} 22%, transparent)` : ''}`,
+        transition: 'background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 'var(--space-4) var(--space-4) var(--space-3)', flex: 'none' }}>
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flex: 'none' }} />
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-sm)' }}>{title}</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xs)', color: 'var(--text-faint)' }}>{tasks.length}</span>
-        <span style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-muted)', marginLeft: 'auto' }}>{subtitle}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 16px 4px', flex: 'none' }}>
+        <span style={{ width: 8, height: 8, borderRadius: 2, background: color, flex: 'none' }} />
+        <span style={{ fontWeight: 600, fontSize: 'var(--text-base)', whiteSpace: 'nowrap' }}>{title}</span>
+        <span className="pw-quad-subtitle" style={{ fontSize: 'var(--text-sm)', color: 'var(--fg-3)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', color: 'var(--fg-3)', marginLeft: 'auto' }}>{tasks.length}</span>
       </div>
-      <div className="pw-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, padding: '0 var(--space-4) var(--space-4)' }}>
+      <div className="pw-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: '0 16px 12px' }}>
         {tasks.map((task) => (
           <MatrixTaskRow
             key={task.id}
@@ -78,13 +85,16 @@ export function QuadrantPanel({
             onToggleDone={onToggleDone}
             onOpen={onOpen}
             onDragStart={() => onTaskDragStart(task)}
+            onDragOver={onTaskDragOver && ((event) => onTaskDragOver(task, event))}
+            onDrop={onTaskDrop && ((event) => onTaskDrop(task, event))}
+            dropBefore={dropBeforeId === task.id}
             onTouchStart={(event) => onTaskTouchStart(task, event)}
             onTouchMove={onTaskTouchMove}
             onTouchEnd={onTaskTouchEnd}
             isTouchDragging={touchDragTaskId === task.id}
           />
         ))}
-        {tasks.length === 0 && <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-faint)', padding: '6px 2px', margin: 0 }}>Nothing here.</p>}
+        {tasks.length === 0 && <p className="st-empty" style={{ margin: '8px 0 0' }}>Nothing here.</p>}
       </div>
     </div>
   );

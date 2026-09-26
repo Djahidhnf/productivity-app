@@ -6,6 +6,7 @@ import { Dialog } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
 import { PillToggle } from '@/app/components/ui/pill-toggle';
 import { Button } from '@/app/components/ui/button';
+import { Icon } from '@/app/components/icons';
 
 export interface HabitDialogValues {
   name: string;
@@ -41,7 +42,7 @@ export function HabitDialog({ open, mode, initialValues, saving, onClose, onSave
           if (saving || !values.name.trim()) return;
           onSave(values);
         }}
-        style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}
+        style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
       >
         <Input
           label="Habit name"
@@ -50,8 +51,8 @@ export function HabitDialog({ open, mode, initialValues, saving, onClose, onSave
           onChange={(event) => setValues((v) => ({ ...v, name: event.target.value }))}
           autoFocus
         />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' }}>Frequency</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg-2)' }}>Frequency</span>
           <PillToggle
             ariaLabel="Frequency"
             value={values.freqType}
@@ -78,15 +79,16 @@ export function HabitDialog({ open, mode, initialValues, saving, onClose, onSave
           value={values.startDate}
           onChange={(event) => setValues((v) => ({ ...v, startDate: event.target.value }))}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, paddingTop: 8 }}>
           {mode === 'edit' && onDelete ? (
-            <Button type="button" variant="outline" onClick={onDelete} disabled={saving}>
+            <Button type="button" variant="ghost" size="sm" onClick={onDelete} disabled={saving}>
+              <Icon name="trash" size={15} />
               Delete
             </Button>
           ) : (
             <span />
           )}
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" size="sm" disabled={saving}>
             {saving ? 'Saving…' : 'Save habit'}
           </Button>
         </div>

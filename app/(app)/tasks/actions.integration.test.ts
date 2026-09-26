@@ -44,7 +44,9 @@ import {
   deleteTask,
   toggleTaskDone,
   reorderTasks,
+  placeMatrixTask,
 } from './actions';
+import { getMatrixTasks } from '../matrix/queries';
 
 describe('task/list server actions', () => {
   beforeAll(async () => {
@@ -194,5 +196,29 @@ describe('task/list server actions', () => {
     await deleteList(list.id);
     expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
     expect(revalidatePath).toHaveBeenCalledTimes(1);
+  });
+
+  test('updateTask saves an explicit duration and leaves it unchanged when omitted', async () => {
+    const list = await createList('ActionTest Duration');
+    const task = await createTask({ text: 'ActionTest block', listId: list.id });
+    const withDuration = await updateTask({ id: task.id, text: task.text, listId: list.id, priority: null, due: '2026-09-24', dueTime: 540, duration: 105 });
+    expect(withDuration.duration).toBe(105);
+    const untouched = await updateTask({ id: task.id, text: 'ActionTest block 2', listId: list.id, priority: null, due: '2026-09-24', dueTime: 600 });
+    expect(untouched.duration).toBe(105);
+  });
+
+  test('placeMatrixTask sets the priority and the group order, which getMatrixTasks returns', async () => {
+    const list = await createList('ActionTest Matrix');
+    const a = await createTask({ text: 'ActionTest mA', listId: list.id });
+    const b = await createTask({ text: 'ActionTest mB', listId: list.id });
+    const c = await createTask({ text: 'ActionTest mC', listId: list.id });
+    await placeMatrixTask({ taskId: a.id, priority: 'RED', orderedTaskIds: [a.id] });
+    await placeMatrixTask({ taskId: b.id, priority: 'RED', orderedTaskIds: [b.id, a.id] });
+
+    const matrix = (await getMatrixTasks()).filter((t) => t.listId === list.id);
+    expect(matrix.filter((t) => t.priority === 'RED').map((t) => t.id)).toEqual([b.id, a.id]);
+    // Never-placed tasks (null matrixOrder) keep creation order after placed ones.
+    expect(matrix.find((t) => t.id === c.id)?.priority).toBeNull();
+    expect(revalidatePath).toHaveBeenCalledWith('/tasks', 'layout');
   });
 });

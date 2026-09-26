@@ -54,6 +54,8 @@ export interface UpdateTaskInput {
   priority: Priority | null;
   due: string | null;
   dueTime: number | null;
+  /** Minutes; left unchanged when omitted. */
+  duration?: number;
 }
 
 export async function updateTask(input: UpdateTaskInput): Promise<TaskDTO> {
@@ -68,6 +70,7 @@ export async function updateTask(input: UpdateTaskInput): Promise<TaskDTO> {
       priority: input.priority,
       due: input.due ? new Date(input.due) : null,
       dueTime: input.dueTime,
+      ...(input.duration !== undefined ? { duration: Math.max(15, Math.min(24 * 60, Math.round(input.duration))) } : {}),
     },
   });
   revalidatePath('/tasks', 'layout');
@@ -100,5 +103,22 @@ export async function reorderTasks(input: ReorderTasksInput): Promise<void> {
       prisma.task.update({ where: { id }, data: { listId: input.listId, order: index } })
     )
   );
+  revalidatePath('/tasks', 'layout');
+}
+
+export interface PlaceMatrixTaskInput {
+  taskId: string;
+  priority: Priority | null;
+  /** Every task ID of the destination matrix group, in its new order (including taskId). */
+  orderedTaskIds: string[];
+}
+
+/** Sets a task's matrix group (priority) and saves that group's order in one transaction. */
+export async function placeMatrixTask(input: PlaceMatrixTaskInput): Promise<void> {
+  await verifySession();
+  await prisma.$transaction([
+    prisma.task.update({ where: { id: input.taskId }, data: { priority: input.priority } }),
+    ...input.orderedTaskIds.map((id, index) => prisma.task.update({ where: { id }, data: { matrixOrder: index } })),
+  ]);
   revalidatePath('/tasks', 'layout');
 }

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { habitStreak, habitMonthlyPct, buildHeatCells, buildHabitMonthCells, moveHabit } from './habit-calc';
+import { habitStreak, habitMonthlyPct, buildHeatCells, buildHabitMonthCells, moveHabit, heatWeeksForWidth } from './habit-calc';
 
 describe('habitStreak', () => {
   test('counts backward from today when today is logged', () => {
@@ -124,5 +124,17 @@ describe('moveHabit', () => {
   test('moves an item upward by one position, in front of its immediate predecessor', () => {
     const habits = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
     expect(moveHabit(habits, 'b', 'a').map((h) => h.id)).toEqual(['b', 'a', 'c']);
+  });
+});
+
+describe('heatWeeksForWidth', () => {
+  test('fits whole 12px cells with 1px gaps (13px pitch, no trailing gap)', () => {
+    expect(heatWeeksForWidth(12)).toBe(1);
+    expect(heatWeeksForWidth(25)).toBe(2);
+    expect(heatWeeksForWidth(24)).toBe(1);
+    expect(heatWeeksForWidth(350)).toBe(27);
+  });
+  test('never returns less than one week', () => {
+    expect(heatWeeksForWidth(0)).toBe(1);
   });
 });

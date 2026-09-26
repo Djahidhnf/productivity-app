@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import { HabitCard } from './habit-card';
 import type { HabitDTO } from './queries';
@@ -79,5 +79,34 @@ describe('HabitCard', () => {
     render(<HabitCard habit={habit} todayKey="2026-09-23" heatWeeks={4} selected={false} onSelect={onSelect} onToggleLog={vi.fn()} />);
     fireEvent.click(screen.getByText('Stretch'));
     expect(onSelect).toHaveBeenCalled();
+  });
+});
+
+describe('HabitCard fillWidth', () => {
+  test('shows as many week columns as fit the measured width', () => {
+    let callback: ResizeObserverCallback = () => {};
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(cb: ResizeObserverCallback) {
+          callback = cb;
+        }
+        observe() {}
+        disconnect() {}
+      }
+    );
+    try {
+      const { container } = render(
+        <HabitCard habit={habit} todayKey="2026-09-23" heatWeeks={4} fillWidth selected={false} onSelect={vi.fn()} onToggleLog={vi.fn()} />
+      );
+      const grid = container.querySelector('.pw-heatgrid') as HTMLElement;
+      expect(grid.children).toHaveLength(4 * 7);
+      act(() => {
+        callback([{ contentRect: { width: 350 } } as ResizeObserverEntry], {} as ResizeObserver);
+      });
+      expect(grid.children).toHaveLength(27 * 7);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

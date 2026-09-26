@@ -20,28 +20,31 @@ const MOOD_OPTIONS: { value: Mood; label: string }[] = [
 
 export function JournalEditor({ mood, text, onMoodChange, onTextChange }: JournalEditorProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-      <PillToggle ariaLabel="Mood" value={mood} onChange={onMoodChange} options={MOOD_OPTIONS} />
-      <textarea
-        rows={14}
-        placeholder="Write about your day…"
-        value={text}
-        onChange={(event) => onTextChange(event.target.value)}
-        style={{
-          width: '100%',
-          boxSizing: 'border-box',
-          resize: 'vertical',
-          padding: 'var(--space-4)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-strong)',
-          background: 'var(--surface)',
-          color: 'var(--text-primary)',
-          fontFamily: 'var(--font-sans)',
-          fontSize: 'var(--text-sm)',
-          lineHeight: 'var(--leading-relaxed)',
-          outline: 'none',
-        }}
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ alignSelf: 'flex-start', maxWidth: '100%' }}>
+        <PillToggle ariaLabel="Mood" value={mood} onChange={onMoodChange} options={MOOD_OPTIONS} />
+      </div>
+      <div className="pw-journal-card">
+        <textarea
+          rows={14}
+          placeholder="Write about your day…"
+          value={text}
+          onChange={(event) => onTextChange(event.target.value)}
+          style={{
+            width: '100%',
+            boxSizing: 'border-box',
+            resize: 'vertical',
+            border: 'none',
+            outline: 'none',
+            padding: 0,
+            background: 'transparent',
+            color: 'var(--fg-1)',
+            fontFamily: 'var(--font-sans)',
+            fontSize: 'var(--text-md)',
+            lineHeight: 1.6,
+          }}
+        />
+      </div>
     </div>
   );
 }

@@ -51,12 +51,12 @@ describe('tasksByDate / timedTasksByDate / untimedTasksByDate', () => {
 describe('dayColor', () => {
   test('returns the highest-priority color when multiple priorities are present', () => {
     const tasks = [makeTask({ priority: 'BLUE' }), makeTask({ id: 't2', priority: 'RED' })];
-    expect(dayColor(tasks)).toBe('#f87171'); // RED wins over BLUE
+    expect(dayColor(tasks)).toBe('var(--clay-500)'); // RED wins over BLUE
   });
 
   test('returns a neutral gray when tasks exist but none are flagged', () => {
     const tasks = [makeTask({ priority: null })];
-    expect(dayColor(tasks)).toBe('var(--surface-3)');
+    expect(dayColor(tasks)).toBe('var(--accent)');
   });
 
   test('returns transparent when there are no tasks', () => {

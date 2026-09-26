@@ -9,60 +9,20 @@ export interface JournalHistoryProps {
 
 export function JournalHistory({ items, onOpen }: JournalHistoryProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-      <h4
-        style={{
-          margin: '0 0 var(--space-1)',
-          fontFamily: 'var(--font-mono)',
-          color: 'var(--text-secondary)',
-          fontSize: 'var(--text-2xs)',
-          letterSpacing: 'var(--tracking-wider)',
-          textTransform: 'uppercase',
-          fontWeight: 'var(--weight-medium)',
-        }}
-      >
-        Past entries
-      </h4>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <h2 className="st-label">Past entries</h2>
       {items.map((item) => (
-        <div
-          key={item.date}
-          onClick={() => onOpen(item.date)}
-          style={{
-            cursor: 'pointer',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
-            padding: 'var(--space-4)',
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-xl)',
-          }}
-        >
+        <div key={item.date} className="pw-journal-entry" onClick={() => onOpen(item.date)}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-sm)' }}>
-              {item.dateLabel}
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 'var(--text-2xs)',
-                padding: '3px 8px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              {item.moodLabel}
-            </span>
+            <span style={{ fontWeight: 500 }}>{item.dateLabel}</span>
+            <span className="st-eyebrow">{item.moodLabel}</span>
           </div>
-          <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 'var(--leading-normal)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--fg-2)', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
             {item.preview}
           </p>
         </div>
       ))}
-      {items.length === 0 && (
-        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>Past entries will show up here.</p>
-      )}
+      {items.length === 0 && <p className="st-empty" style={{ margin: 0 }}>Past entries will show up here.</p>}
     </div>
   );
 }

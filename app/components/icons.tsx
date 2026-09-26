@@ -3,7 +3,9 @@ import type { ReactNode, SVGProps } from 'react';
 export type IconName =
   | 'home' | 'check-square' | 'calendar' | 'grid' | 'flame' | 'book'
   | 'plus' | 'check' | 'left' | 'right' | 'trash' | 'pencil' | 'grip'
-  | 'flag' | 'panel' | 'menu' | 'ban' | 'sun' | 'moon';
+  | 'flag' | 'panel' | 'menu' | 'ban' | 'sun' | 'moon'
+  | 'x' | 'list-checks' | 'repeat' | 'grid-2x2' | 'panel-close' | 'panel-open'
+  | 'chevrons-up-down' | 'folder-plus';
 
 const PATHS: Record<IconName, ReactNode> = {
   home: (
@@ -114,6 +116,63 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   moon: <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" />,
+  x: (
+    <>
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </>
+  ),
+  'list-checks': (
+    <>
+      <path d="m3 17 2 2 4-4" />
+      <path d="m3 7 2 2 4-4" />
+      <path d="M13 6h8" />
+      <path d="M13 12h8" />
+      <path d="M13 18h8" />
+    </>
+  ),
+  repeat: (
+    <>
+      <path d="m17 2 4 4-4 4" />
+      <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+      <path d="m7 22-4-4 4-4" />
+      <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+    </>
+  ),
+  'grid-2x2': (
+    <>
+      <path d="M12 3v18" />
+      <path d="M3 12h18" />
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+    </>
+  ),
+  'panel-close': (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M9 3v18" />
+      <path d="m16 15-3-3 3-3" />
+    </>
+  ),
+  'panel-open': (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M9 3v18" />
+      <path d="m14 9 3 3-3 3" />
+    </>
+  ),
+  'chevrons-up-down': (
+    <>
+      <path d="m7 15 5 5 5-5" />
+      <path d="m7 9 5-5 5 5" />
+    </>
+  ),
+  'folder-plus': (
+    <>
+      <path d="M12 10v6" />
+      <path d="M9 13h6" />
+      <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+    </>
+  ),
 };
 
 const FILLED_ICONS = new Set<IconName>(['grip']);
@@ -132,7 +191,7 @@ export function Icon({ name, size = 18, style, ...rest }: IconProps) {
       height={size}
       fill={filled ? 'currentColor' : 'none'}
       stroke={filled ? 'none' : 'currentColor'}
-      strokeWidth={2}
+      strokeWidth={1.75}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

@@ -25,7 +25,7 @@ export function dayColor(tasks: TaskDTO[]): string {
   for (const priority of PRIORITY_ORDER) {
     if (tasks.some((t) => t.priority === priority)) return PRIORITY_COLORS[priority];
   }
-  if (tasks.length > 0) return 'var(--surface-3)';
+  if (tasks.length > 0) return 'var(--accent)';
   return 'transparent';
 }
 
@@ -73,10 +73,28 @@ export function buildAgendaGroups(tasks: TaskDTO[], startKey: string, days: numb
     });
 }
 
-export function minutesFromOffset(offsetY: number, snapMinutes: number): number {
+export function minutesFromOffset(offsetY: number, snapMinutes: number, mode: 'round' | 'floor' = 'round'): number {
   const rawMinutes = (offsetY / HOUR_PX) * 60;
-  const snapped = Math.round(rawMinutes / snapMinutes) * snapMinutes;
+  const snapped = (mode === 'floor' ? Math.floor : Math.round)(rawMinutes / snapMinutes) * snapMinutes;
   return Math.max(0, Math.min(24 * 60 - snapMinutes, snapped));
+}
+
+export const RANGE_SNAP_MINUTES = 15;
+
+export interface MinuteRange {
+  start: number;
+  end: number;
+}
+
+/**
+ * The time range covered by a drag between two 15-minute slots (each given
+ * by its start minute), inclusive of both slots, in either direction.
+ */
+export function rangeFromDrag(anchorMinutes: number, currentMinutes: number): MinuteRange {
+  return {
+    start: Math.min(anchorMinutes, currentMinutes),
+    end: Math.min(24 * 60, Math.max(anchorMinutes, currentMinutes) + RANGE_SNAP_MINUTES),
+  };
 }
 
 export function swipeStepDays(view: CalView, strength: SwipeStrength): number {

@@ -7,7 +7,7 @@ describe('NewListColumn', () => {
   test('typing a name and submitting calls onCreate and clears the field', async () => {
     const onCreate = vi.fn();
     render(<NewListColumn onCreate={onCreate} />);
-    const input = screen.getByPlaceholderText('New list…');
+    const input = screen.getByLabelText('New list name');
     await userEvent.type(input, 'Groceries{Enter}');
     expect(onCreate).toHaveBeenCalledWith('Groceries');
     expect(input).toHaveValue('');

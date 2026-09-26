@@ -27,8 +27,9 @@ describe('CalendarTaskBlock', () => {
 
   test('positions itself using dueTime and duration', () => {
     render(<CalendarTaskBlock task={makeTask({ dueTime: 120, duration: 60 })} onOpen={vi.fn()} />);
-    const block = screen.getByText('Standup').closest('div')!;
-    expect(block).toHaveStyle({ top: '128px', height: '64px' }); // 120min=2h*64px, 60min=1h*64px
+    const block = screen.getByText('Standup').closest('.pw-cal-block')!;
+    // 120min=2h*64px, 60min=1h*64px, inset 1px top and bottom so stacked blocks don't touch
+    expect(block).toHaveStyle({ top: '129px', height: '62px' });
   });
 
   test('strikes through the text when done', () => {

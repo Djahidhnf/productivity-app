@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { moveTaskInLists, taskIdsForList, moveListInLists } from './task-reorder';
+import { moveTaskInLists, taskIdsForList, moveListInLists, moveListToIndex } from './task-reorder';
 import type { TaskListDTO } from './queries';
 
 function makeTask(id: string, listId: string, order: number) {
@@ -62,5 +62,18 @@ describe('moveListInLists', () => {
     const lists = makeLists();
     const result = moveListInLists(lists, 'listA', 'listA');
     expect(result).toBe(lists);
+  });
+});
+
+describe('moveListToIndex', () => {
+  test('moves a list to the given final index', () => {
+    expect(moveListToIndex(makeLists(), 'listA', 1).map((l) => l.id)).toEqual(['listB', 'listA']);
+    expect(moveListToIndex(makeLists(), 'listB', 0).map((l) => l.id)).toEqual(['listB', 'listA']);
+  });
+  test('returns the same array for a no-op or unknown list, and clamps the index', () => {
+    const lists = makeLists();
+    expect(moveListToIndex(lists, 'listA', 0)).toBe(lists);
+    expect(moveListToIndex(lists, 'nope', 1)).toBe(lists);
+    expect(moveListToIndex(lists, 'listA', 99).map((l) => l.id)).toEqual(['listB', 'listA']);
   });
 });

@@ -15,8 +15,8 @@ describe('BottomNav', () => {
     for (const item of NAV_ITEMS) {
       expect(screen.getByRole('link', { name: new RegExp(item.label) })).toHaveAttribute('href', item.href);
     }
-    expect(screen.getByRole('link', { name: /Habits/ }).style.color).toBe('var(--accent)');
-    expect(screen.getByRole('link', { name: /Tasks/ }).style.color).toBe('var(--text-muted)');
+    expect(screen.getByRole('link', { name: /Habits/ })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: /Tasks/ })).not.toHaveAttribute('aria-current');
   });
 
   test('wraps the links in a centered, width-capped inner container', () => {

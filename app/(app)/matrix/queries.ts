@@ -9,7 +9,7 @@ export async function getMatrixTasks(): Promise<TaskDTO[]> {
   await verifySession();
   const tasks = await prisma.task.findMany({
     where: { done: false },
-    orderBy: { createdAt: 'asc' },
+    orderBy: [{ matrixOrder: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
   });
   return tasks.map(serializeTask);
 }

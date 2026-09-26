@@ -1,8 +1,0 @@
-/* Klivr typefaces — loaded via Google Fonts CDN.
-   Space Grotesk = display/headings, Geist = body/UI, JetBrains Mono = code.
-   NOTE: served from fonts.googleapis.com. To ship self-hosted binaries,
-   drop .woff2 files in assets/fonts/ and replace these imports with @font-face. */
-
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');

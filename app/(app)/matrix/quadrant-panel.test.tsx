@@ -64,17 +64,16 @@ describe('QuadrantPanel', () => {
     expect(onTaskDragStart).toHaveBeenCalledWith(task);
   });
 
-  test('isDropTarget renders a stronger, opaque border and a highlight box-shadow', () => {
+  test('isDropTarget marks the quadrant as the drop target', () => {
     const { rerender } = render(
       <QuadrantPanel priorityKey="RED" tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={false} />
     );
-    const container = screen.getByText('Do first').closest('[data-quad]')!;
-    expect(container).toHaveStyle({ boxShadow: 'none' });
+    const container = screen.getByText('Do first').closest('[data-quad]')! as HTMLElement;
+    expect(container).not.toHaveAttribute('data-drop-target');
 
     rerender(
       <QuadrantPanel priorityKey="RED" tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={true} />
     );
-    expect(container).toHaveStyle({ border: '2px solid #f87171' });
-    expect(container).not.toHaveStyle({ boxShadow: 'none' });
+    expect(container).toHaveAttribute('data-drop-target', 'true');
   });
 });

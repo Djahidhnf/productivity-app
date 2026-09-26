@@ -10,42 +10,24 @@ export interface PillToggleProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   ariaLabel: string;
+  fullWidth?: boolean;
 }
 
-export function PillToggle<T extends string>({ options, value, onChange, ariaLabel }: PillToggleProps<T>) {
+/** The Still segmented control: a sunken track with the active item raised. */
+export function PillToggle<T extends string>({ options, value, onChange, ariaLabel, fullWidth }: PillToggleProps<T>) {
   return (
-    <div
-      role="tablist"
-      aria-label={ariaLabel}
-      style={{ display: 'inline-flex', gap: 2, padding: 4, borderRadius: 'var(--radius-pill)', background: 'var(--surface-3)' }}
-    >
-      {options.map((opt) => {
-        const active = opt.value === value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(opt.value)}
-            style={{
-              appearance: 'none',
-              border: 'none',
-              borderRadius: 'var(--radius-pill)',
-              padding: '7px 14px',
-              fontFamily: 'var(--font-sans)',
-              fontWeight: 'var(--weight-medium)',
-              fontSize: 'var(--text-xs)',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              color: active ? 'var(--on-accent)' : 'var(--text-secondary)',
-              background: active ? 'var(--accent)' : 'transparent',
-            }}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
+    <div role="tablist" aria-label={ariaLabel} className="st-seg" data-full={fullWidth || undefined}>
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          role="tab"
+          aria-selected={opt.value === value}
+          onClick={() => onChange(opt.value)}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   );
 }

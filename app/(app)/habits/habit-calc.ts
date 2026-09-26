@@ -37,6 +37,15 @@ export interface HeatCell {
   beforeStart: boolean;
 }
 
+/** Heat-map cell size and the thin gap drawn between cells (13px pitch). */
+export const HEAT_CELL_PX = 12;
+export const HEAT_GAP_PX = 1;
+
+/** How many whole week-columns of heat cells fit in a given width. */
+export function heatWeeksForWidth(width: number): number {
+  return Math.max(1, Math.floor((width + HEAT_GAP_PX) / (HEAT_CELL_PX + HEAT_GAP_PX)));
+}
+
 export function buildHeatCells(
   logs: string[],
   startDate: string,

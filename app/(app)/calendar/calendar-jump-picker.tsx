@@ -42,7 +42,7 @@ export function CalendarJumpPicker({ mode, value, onPick, onClose }: CalendarJum
       <div className="pw-jump-backdrop" onClick={onClose} />
       <div className="pw-jump" role="dialog" aria-label="Jump to date">
         <div className="pw-jump-year">
-          <IconButton variant="outline" onClick={() => stepYear(-1)} label="Previous year">
+          <IconButton size="sm" onClick={() => stepYear(-1)} label="Previous year">
             <Icon name="left" size={14} />
           </IconButton>
           <input
@@ -55,7 +55,7 @@ export function CalendarJumpPicker({ mode, value, onPick, onClose }: CalendarJum
               if (event.key === 'Enter' && mode === 'year' && year !== null) onPick(firstOfYearKey(year));
             }}
           />
-          <IconButton variant="outline" onClick={() => stepYear(1)} label="Next year">
+          <IconButton size="sm" onClick={() => stepYear(1)} label="Next year">
             <Icon name="right" size={14} />
           </IconButton>
         </div>

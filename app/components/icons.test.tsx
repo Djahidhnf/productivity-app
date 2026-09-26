@@ -6,6 +6,8 @@ const ALL_ICONS: IconName[] = [
   'home', 'check-square', 'calendar', 'grid', 'flame', 'book',
   'plus', 'check', 'left', 'right', 'trash', 'pencil', 'grip',
   'flag', 'panel', 'menu', 'ban', 'sun', 'moon',
+  'x', 'list-checks', 'repeat', 'grid-2x2', 'panel-close', 'panel-open',
+  'chevrons-up-down', 'folder-plus',
 ];
 
 describe('Icon', () => {

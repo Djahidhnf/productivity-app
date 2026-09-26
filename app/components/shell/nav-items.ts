@@ -8,10 +8,10 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { key: 'dashboard', label: 'Today', href: '/dashboard', icon: 'home' },
-  { key: 'tasks', label: 'Tasks', href: '/tasks', icon: 'check-square' },
+  { key: 'dashboard', label: 'Today', href: '/dashboard', icon: 'sun' },
+  { key: 'tasks', label: 'Tasks', href: '/tasks', icon: 'list-checks' },
   { key: 'calendar', label: 'Calendar', href: '/calendar', icon: 'calendar' },
-  { key: 'matrix', label: 'Matrix', href: '/matrix', icon: 'grid' },
-  { key: 'habits', label: 'Habits', href: '/habits', icon: 'flame' },
+  { key: 'matrix', label: 'Matrix', href: '/matrix', icon: 'grid-2x2' },
+  { key: 'habits', label: 'Habits', href: '/habits', icon: 'repeat' },
   { key: 'journal', label: 'Journal', href: '/journal', icon: 'book' },
 ];

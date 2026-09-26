@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { groupTasksByPriority } from './matrix-groups';
+import { placeTask, groupTaskIds } from './matrix-groups';
 import type { TaskDTO } from './queries';
 
 function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
@@ -47,5 +48,29 @@ describe('groupTasksByPriority', () => {
   test('returns empty arrays for every group when given no tasks', () => {
     const groups = groupTasksByPriority([]);
     expect(groups).toEqual({ RED: [], AMBER: [], BLUE: [], GREEN: [], unflagged: [] });
+  });
+});
+
+describe('placeTask / groupTaskIds', () => {
+  const t = (id: string, priority: TaskDTO['priority'] = null): TaskDTO => ({
+    id, text: id, listId: 'l', priority, due: null, dueTime: null, duration: 60, done: false, order: 0,
+  });
+  const base = [t('r1', 'RED'), t('u1'), t('r2', 'RED'), t('u2')];
+
+  test('moves a task before another within its group', () => {
+    expect(groupTaskIds(placeTask(base, 'r2', 'RED', 'r1'), 'RED')).toEqual(['r2', 'r1']);
+  });
+  test('moves a task into another group before a given task, updating its priority', () => {
+    const next = placeTask(base, 'u2', 'RED', 'r2');
+    expect(groupTaskIds(next, 'RED')).toEqual(['r1', 'u2', 'r2']);
+    expect(next.find((x) => x.id === 'u2')?.priority).toBe('RED');
+    expect(groupTaskIds(next, null)).toEqual(['u1']);
+  });
+  test('a null target appends to the end of the group (or the array when the group is empty)', () => {
+    expect(groupTaskIds(placeTask(base, 'u1', 'RED', null), 'RED')).toEqual(['r1', 'r2', 'u1']);
+    expect(groupTaskIds(placeTask(base, 'u1', 'GREEN', null), 'GREEN')).toEqual(['u1']);
+  });
+  test('dropping a task onto itself is a no-op', () => {
+    expect(placeTask(base, 'r1', 'RED', 'r1')).toBe(base);
   });
 });

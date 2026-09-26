@@ -39,7 +39,7 @@ describe('TaskDialog', () => {
       <TaskDialog open mode="create" lists={lists} initialValues={emptyValues()} onClose={vi.fn()} onSave={onSave} />
     );
     await userEvent.type(screen.getByLabelText('Task'), 'Buy milk');
-    await userEvent.click(screen.getByRole('button', { name: 'Urgent & important' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Do first' }));
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(onSave).toHaveBeenCalledWith({ text: 'Buy milk', listId: 'list1', priority: 'RED', due: '', dueTime: '' });
   });

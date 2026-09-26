@@ -1,31 +1,32 @@
-/* NOTE: The brief's Step 5 specifies:
-     @import "tailwindcss";
-     @import "./styles/klivr/styles.css";
-     @import "./styles/layout.css";
-   That literal wiring 500s in this Next 16.3.5 Turbopack + @tailwindcss/postcss v4
-   toolchain: the CSS bundler flattens nested relative @import chains incorrectly
-   (resolves ./tokens/*.css against app/globals.css's directory instead of
-   styles.css's own directory once spliced two levels deep -> "Module not found"),
-   and separately, @import "tailwindcss" expanding to real rules before any
-   still-literal @import (fonts.css's external Google Fonts @import) violates
-   "@import rules must precede all rules" once flattened.
-   Fix used here: import the same five token files directly (one hop from this
-   file, matching the order inside klivr/styles.css) and put fonts.css - the only
-   file with unresolvable (external) imports - first, before "tailwindcss" expands.
-   klivr/styles.css itself is left untouched/verbatim; app/styles/tokens.test.ts
-   still guards its content even though it is not the literal import target here. */
-@import "./styles/klivr/tokens/fonts.css";
+/* Design tokens come from the Still design system (app/styles/still, copied
+   verbatim from the design handoff). They are imported one file at a time
+   rather than through still/styles.css: in this Next 16.3.5 Turbopack +
+   @tailwindcss/postcss v4 toolchain, nested relative @import chains resolve
+   against this file's directory once flattened ("Module not found"), and
+   fonts.css - the only file with an external (Google Fonts) @import - has to
+   come before "tailwindcss" expands into real rules, or it violates
+   "@import rules must precede all rules". app/styles/tokens.test.ts checks
+   this list stays in sync with still/styles.css. */
+@import "./styles/still/tokens/fonts.css";
 @import "tailwindcss";
-@import "./styles/klivr/tokens/colors.css";
-@import "./styles/klivr/tokens/typography.css";
-@import "./styles/klivr/tokens/spacing.css";
-@import "./styles/klivr/tokens/effects.css";
+@import "./styles/still/tokens/colors.css";
+@import "./styles/still/tokens/typography.css";
+@import "./styles/still/tokens/spacing.css";
+@import "./styles/still/tokens/elevation.css";
+@import "./styles/still/tokens/motion.css";
+@import "./styles/still/tokens/base.css";
+@import "./styles/compat.css";
 @import "./styles/layout.css";
 
-/* Not part of the copied design source: lets native form controls and
-   scrollbars (date/time pickers, select dropdowns, etc.) follow the app's
-   theme instead of always rendering light. Whole-branch review found the
-   design tokens never declared this, so browser chrome stayed light-only
-   even under [data-theme="dark"]. */
+/* Lets native form controls and scrollbars (date/time pickers, select
+   dropdowns, etc.) follow the app's theme. */
 :root { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
+body { margin: 0; }
+a { color: var(--fg-2); text-decoration: none; }
+a:hover { color: var(--fg-1); }
+textarea::placeholder, input::placeholder { color: var(--fg-3); }
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.5);
+}
