@@ -79,7 +79,7 @@ export function EntryForm({ defaultDate, onSubmit }: EntryFormProps) {
         <div className="pw-fin-entry-note">
           <Input aria-label="Note" placeholder="What for?" value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
-        <Input aria-label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <Input aria-label="Date" type="date" min="1900-01-01" max="2100-12-31" value={date} onChange={(e) => setDate(e.target.value)} />
         <IconButton type="submit" label="Log entry" variant="primary" disabled={busy}>
           <Icon name="plus" size={16} />
         </IconButton>

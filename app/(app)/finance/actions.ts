@@ -5,6 +5,7 @@ import { verifySession } from '@/app/lib/dal';
 import { revalidatePath } from 'next/cache';
 import { categoriesFor, MAX_AMOUNT, type EntryKind } from '@/app/lib/finance';
 import { serializeFinanceEntry, type FinanceEntryDTO } from '@/app/lib/finance-dto';
+import { MIN_YEAR, MAX_YEAR } from '@/app/lib/calendar-units';
 
 export interface CreateFinanceEntryInput {
   type: EntryKind;
@@ -20,6 +21,8 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function isRealDate(key: string): boolean {
   if (!DATE_RE.test(key)) return false;
+  const year = Number(key.slice(0, 4));
+  if (year < MIN_YEAR || year > MAX_YEAR) return false;
   const date = new Date(key);
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === key;
 }

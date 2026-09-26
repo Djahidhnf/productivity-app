@@ -64,6 +64,8 @@ describe('finance actions', () => {
     ['an unknown type', { type: 'GIFT' as never }, 'Invalid entry type'],
     ['a malformed date', { date: '10/04/2091' }, 'Invalid date'],
     ['an impossible date', { date: '2091-02-30' }, 'Invalid date'],
+    ['a year before 1900', { date: '1899-12-31' }, 'Invalid date'],
+    ['a year after 2100', { date: '2101-01-01' }, 'Invalid date'],
     ['a non-string note', { note: 123 as never }, 'Invalid note'],
   ])('createFinanceEntry rejects %s', async (_label, patch, message) => {
     await expect(createFinanceEntry({ ...valid, ...patch })).rejects.toThrow(message);
