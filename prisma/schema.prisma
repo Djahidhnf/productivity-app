@@ -82,3 +82,22 @@ model Note {
   @@map("notes")
 }
 
+enum EntryType {
+  EXPENSE
+  INCOME
+}
+
+model FinanceEntry {
+  id        String    @id @default(cuid())
+  type      EntryType
+  /// Amount in centimes (1/100 DZD), always positive; `type` gives the sign.
+  amount    Int
+  category  String
+  note      String    @default("")
+  date      DateTime  @db.Date
+  createdAt DateTime  @default(now())
+
+  @@index([date])
+  @@map("finance_entries")
+}
+
