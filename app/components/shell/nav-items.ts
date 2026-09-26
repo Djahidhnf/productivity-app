@@ -14,4 +14,5 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: 'matrix', label: 'Matrix', href: '/matrix', icon: 'grid-2x2' },
   { key: 'habits', label: 'Habits', href: '/habits', icon: 'repeat' },
   { key: 'notes', label: 'Notes', href: '/notes', icon: 'sticky-note' },
+  { key: 'finance', label: 'Finance', href: '/finance', icon: 'wallet' },
 ];
