@@ -53,6 +53,11 @@ describe('FinanceBoard', () => {
     expect(screen.getByRole('button', { name: 'Next month' })).toBeDisabled();
   });
 
+  test('the previous arrow is disabled at 1900-01', () => {
+    render(<FinanceBoard month="1900-01" entries={[]} />);
+    expect(screen.getByRole('button', { name: 'Previous month' })).toBeDisabled();
+  });
+
   test('logging an entry in the viewed month adds it to the list', async () => {
     vi.mocked(actions.createFinanceEntry).mockResolvedValue({ id: 'n', type: 'EXPENSE', amount: 1500, category: 'Groceries', note: 'Bread', date: '2026-09-26' });
     render(<FinanceBoard month="2026-09" entries={entries} />);

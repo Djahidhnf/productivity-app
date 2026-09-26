@@ -382,3 +382,7 @@
   .pw-fin-entry-note { grid-column: 1 / -1; }
   .pw-fin-total { font-size: 18px; }
 }
+@media (max-width: 480px) {
+  .pw-fin-totals { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .pw-fin-totals .pw-stat { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 12px; }
+}
