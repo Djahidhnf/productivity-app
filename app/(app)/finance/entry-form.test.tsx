@@ -58,4 +58,51 @@ describe('EntryForm', () => {
     await submit();
     expect(screen.getByLabelText('Amount')).toHaveValue('10');
   });
+
+  test('disables Log entry while the submit is pending, and re-enables it after', async () => {
+    let resolve!: (v: boolean) => void;
+    const onSubmit = vi.fn(() => new Promise<boolean>((r) => { resolve = r; }));
+    render(<EntryForm defaultDate="2026-09-26" onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText('Amount'), { target: { value: '10' } });
+    const button = screen.getByRole('button', { name: 'Log entry' });
+
+    // Click submit inside act
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    // Button should be disabled while pending
+    expect(button).toBeDisabled();
+
+    // Second click should not call onSubmit again
+    fireEvent.click(button);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+
+    // Resolve the promise
+    await act(async () => {
+      resolve(true);
+    });
+
+    // Button should be re-enabled after success
+    expect(button).not.toBeDisabled();
+  });
+
+  test('re-enables the form if the submit rejects', async () => {
+    const onSubmit = vi.fn().mockRejectedValue(new Error('boom'));
+    render(<EntryForm defaultDate="2026-09-26" onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText('Amount'), { target: { value: '10' } });
+
+    // Submit inside act
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Log entry' }));
+    });
+
+    // Button should be re-enabled after rejection
+    expect(screen.getByRole('button', { name: 'Log entry' })).not.toBeDisabled();
+
+    // Amount should still be there
+    expect(screen.getByLabelText('Amount')).toHaveValue('10');
+  });
 });

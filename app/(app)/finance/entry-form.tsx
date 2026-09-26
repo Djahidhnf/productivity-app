@@ -43,11 +43,16 @@ export function EntryForm({ defaultDate, onSubmit }: EntryFormProps) {
       return;
     }
     setBusy(true);
-    const ok = await onSubmit({ type, amount: centimes, category, note: note.trim(), date });
-    setBusy(false);
-    if (ok) {
-      setAmount('');
-      setNote('');
+    try {
+      const ok = await onSubmit({ type, amount: centimes, category, note: note.trim(), date });
+      if (ok) {
+        setAmount('');
+        setNote('');
+      }
+    } catch {
+      // Treat rejection as failed submit (ok = false); keep fields
+    } finally {
+      setBusy(false);
     }
   }
 
