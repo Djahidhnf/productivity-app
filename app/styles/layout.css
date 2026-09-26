@@ -315,3 +315,24 @@
   .pw-listtab-count { font-family: var(--font-mono); font-size: var(--text-2xs); opacity: 0.75; }
   .pw-listtab[data-new] { padding: 0 10px; }
 }
+
+/* ---------- Notes ---------- */
+.pw-notes { display: flex; flex-direction: column; gap: 24px; padding: 0 var(--pw-gutter); }
+.pw-note-search { position: relative; width: 220px; max-width: 100%; }
+.pw-note-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--fg-3); pointer-events: none; z-index: 1; }
+.pw-note-compose { display: flex; flex-direction: column; gap: 8px; padding: 16px; background: var(--surface-1); border: 1px solid var(--border-2); border-radius: var(--radius-lg); transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
+.pw-note-compose:focus-within { border-color: var(--accent); box-shadow: var(--ring); }
+.pw-note-compose textarea { width: 100%; border: none; outline: none; resize: none; background: transparent; color: var(--fg-1); font-family: var(--font-sans); font-size: 17px; line-height: 1.5; padding: 0; }
+.pw-note-compose textarea:focus-visible { box-shadow: none; }
+.pw-note-compose-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.pw-note-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 12px; align-items: start; }
+.pw-note-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--surface-1); border: 1px solid var(--border-1); border-radius: var(--radius-lg); transition: border-color var(--dur-fast) var(--ease-out); }
+.pw-note-card:hover { border-color: var(--border-strong); }
+.pw-note-card-body { appearance: none; border: none; background: transparent; padding: 0; margin: 0; text-align: left; color: var(--fg-1); font: inherit; cursor: pointer; }
+.pw-note-card-text { white-space: pre-wrap; text-wrap: pretty; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 8; -webkit-box-orient: vertical; }
+.pw-note-card-foot { display: flex; align-items: center; gap: 2px; }
+.pw-note-editor { width: 100%; box-sizing: border-box; resize: vertical; border: 1px solid var(--border-2); border-radius: var(--radius-md); background: var(--surface-1); color: var(--fg-1); font-family: var(--font-sans); font-size: 15px; line-height: 1.6; padding: 12px; outline: none; }
+.pw-note-editor:focus { border-color: var(--accent); box-shadow: var(--ring); }
+@media (max-width: 560px) {
+  .pw-note-search { width: 100%; }
+}

@@ -13,4 +13,5 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: 'calendar', label: 'Calendar', href: '/calendar', icon: 'calendar' },
   { key: 'matrix', label: 'Matrix', href: '/matrix', icon: 'grid-2x2' },
   { key: 'habits', label: 'Habits', href: '/habits', icon: 'repeat' },
+  { key: 'notes', label: 'Notes', href: '/notes', icon: 'sticky-note' },
 ];
