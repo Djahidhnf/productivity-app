@@ -8,10 +8,14 @@ export interface DialogProps {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** Small muted line under the title, e.g. "Edited 3h ago". */
+  description?: string;
+  /** Max panel width in px. */
+  width?: number;
   children: ReactNode;
 }
 
-export function Dialog({ open, onClose, title, children }: DialogProps) {
+export function Dialog({ open, onClose, title, description, width = 460, children }: DialogProps) {
   useEffect(() => {
     if (!open) return;
     function onKeyDown(event: KeyboardEvent) {
@@ -47,7 +51,7 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
         onClick={(event) => event.stopPropagation()}
         style={{
           width: '100%',
-          maxWidth: 460,
+          maxWidth: width,
           maxHeight: '90dvh',
           overflowY: 'auto',
           background: 'var(--surface-1)',
@@ -61,7 +65,10 @@ export function Dialog({ open, onClose, title, children }: DialogProps) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.3 }}>{title}</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.3 }}>{title}</h3>
+            {description && <p className="st-eyebrow" style={{ margin: 0 }}>{description}</p>}
+          </div>
           <IconButton label="Close" size="sm" onClick={onClose}>
             <Icon name="x" size={16} />
           </IconButton>

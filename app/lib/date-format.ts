@@ -26,3 +26,19 @@ export function formatDueLabel(due: string | null, dueTime: number | null): stri
   }
   return label;
 }
+
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "just now", "5m ago", "3h ago", "2d ago", then "12 Sep" (plus the year if it isn't the current one). */
+export function relativeTime(iso: string, now: Date): string {
+  const then = new Date(iso);
+  const minutes = Math.floor((now.getTime() - then.getTime()) / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days <= 7) return `${days}d ago`;
+  const label = `${then.getDate()} ${SHORT_MONTHS[then.getMonth()]}`;
+  return then.getFullYear() === now.getFullYear() ? label : `${label} ${then.getFullYear()}`;
+}

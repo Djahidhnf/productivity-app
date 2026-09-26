@@ -5,7 +5,7 @@ export type IconName =
   | 'plus' | 'check' | 'left' | 'right' | 'trash' | 'pencil' | 'grip'
   | 'flag' | 'panel' | 'menu' | 'ban' | 'sun' | 'moon'
   | 'x' | 'list-checks' | 'repeat' | 'grid-2x2' | 'panel-close' | 'panel-open'
-  | 'chevrons-up-down' | 'folder-plus';
+  | 'chevrons-up-down' | 'folder-plus' | 'sticky-note' | 'wallet' | 'search' | 'pin';
 
 const PATHS: Record<IconName, ReactNode> = {
   home: (
@@ -171,6 +171,30 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M12 10v6" />
       <path d="M9 13h6" />
       <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+    </>
+  ),
+  'sticky-note': (
+    <>
+      <path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z" />
+      <path d="M15 3v4a2 2 0 0 0 2 2h4" />
+    </>
+  ),
+  wallet: (
+    <>
+      <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
+      <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </>
+  ),
+  pin: (
+    <>
+      <path d="M12 17v5" />
+      <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
     </>
   ),
 };

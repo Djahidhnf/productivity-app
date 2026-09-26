@@ -42,4 +42,16 @@ describe('Dialog', () => {
     await userEvent.keyboard('{Escape}');
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  test('renders an optional description under the title', () => {
+    render(<Dialog open onClose={vi.fn()} title="Note" description="Edited 3h ago"><p>content</p></Dialog>);
+    expect(screen.getByText('Edited 3h ago')).toBeInTheDocument();
+  });
+
+  test('uses the width prop as the panel max width (default 460)', () => {
+    const { rerender } = render(<Dialog open onClose={vi.fn()} title="Note"><p>content</p></Dialog>);
+    expect(screen.getByRole('dialog')).toHaveStyle({ maxWidth: '460px' });
+    rerender(<Dialog open onClose={vi.fn()} title="Note" width={560}><p>content</p></Dialog>);
+    expect(screen.getByRole('dialog')).toHaveStyle({ maxWidth: '560px' });
+  });
 });

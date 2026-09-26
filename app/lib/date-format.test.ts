@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { todayKey, formatDueLabel } from './date-format';
+import { todayKey, formatDueLabel, relativeTime } from './date-format';
 
 describe('todayKey / formatDueLabel', () => {
   beforeEach(() => {
@@ -34,5 +34,28 @@ describe('todayKey / formatDueLabel', () => {
   test('appends a 12-hour time when dueTime is set', () => {
     expect(formatDueLabel('2026-03-15', 90)).toBe('Today 1:30AM');
     expect(formatDueLabel('2026-03-15', 810)).toBe('Today 1:30PM');
+  });
+});
+
+describe('relativeTime', () => {
+  const now = new Date('2026-09-26T12:00:00');
+
+  test('under a minute is "just now"', () => {
+    expect(relativeTime(new Date('2026-09-26T11:59:30').toISOString(), now)).toBe('just now');
+  });
+
+  test('minutes, hours and days', () => {
+    expect(relativeTime(new Date('2026-09-26T11:55:00').toISOString(), now)).toBe('5m ago');
+    expect(relativeTime(new Date('2026-09-26T09:00:00').toISOString(), now)).toBe('3h ago');
+    expect(relativeTime(new Date('2026-09-24T12:00:00').toISOString(), now)).toBe('2d ago');
+  });
+
+  test('older than 7 days shows a short date, adding the year only when it differs', () => {
+    expect(relativeTime(new Date('2026-09-12T08:00:00').toISOString(), now)).toBe('12 Sep');
+    expect(relativeTime(new Date('2025-03-04T08:00:00').toISOString(), now)).toBe('4 Mar 2025');
+  });
+
+  test('a timestamp in the future is "just now"', () => {
+    expect(relativeTime(new Date('2026-09-26T12:05:00').toISOString(), now)).toBe('just now');
   });
 });
