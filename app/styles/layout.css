@@ -172,16 +172,6 @@
 .pw-stat { display: flex; flex-direction: column; gap: 4px; }
 .pw-stat-value { font-family: var(--font-mono); font-size: var(--text-xl); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 
-/* ---------- Journal ---------- */
-.pw-journal-card { background: var(--surface-1); border: 1px solid var(--border-2); border-radius: var(--radius-lg); padding: 16px; transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
-.pw-journal-card:focus-within { border-color: var(--accent); box-shadow: var(--ring); }
-.pw-journal-card textarea:focus-visible { box-shadow: none; }
-.pw-journal-entry { display: flex; flex-direction: column; gap: 8px; padding: 16px; background: var(--surface-1); border: 1px solid var(--border-1); border-radius: var(--radius-lg); cursor: pointer; transition: border-color var(--dur-fast) var(--ease-out); }
-.pw-journal-entry:hover { border-color: var(--border-strong); }
-
-@media (max-width: 1100px) {
-  .pw-journal-grid { grid-template-columns: minmax(0, 1fr) !important; }
-}
 @media (max-width: 1180px) {
   .pw-matrix-right { width: 260px; }
 }

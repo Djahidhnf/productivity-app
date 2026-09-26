@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Daybook",
-  description: "Personal productivity: tasks, matrix, calendar, habits, journal.",
+  description: "Personal productivity: tasks, calendar, matrix, habits, notes, finance.",
 };
 
 export const viewport: Viewport = {

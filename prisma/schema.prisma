@@ -72,20 +72,3 @@ model HabitLog {
   @@map("habit_logs")
 }
 
-enum Mood {
-  GREAT
-  GOOD
-  OKAY
-  LOW
-  ROUGH
-}
-
-model JournalEntry {
-  id        String   @id @default(cuid())
-  date      DateTime @unique @db.Date
-  text      String
-  mood      Mood     @default(OKAY)
-  updatedAt DateTime @updatedAt
-
-  @@map("journal_entries")
-}
