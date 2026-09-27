@@ -59,8 +59,8 @@ Catch-up window: 15 minutes (`REMINDER_CATCH_UP_MS`). Older misses are dropped, 
 `/api` is already excluded from the auth proxy; the bearer secret is the only guard.
 
 Notification payload (JSON to the service worker): `{ title, body, url, tag }`.
-- Task: title = task text; body = "Due today at 14:00" / "Due tomorrow at 09:00" / "Due today" (untimed); url `/tasks`; tag `task-<id>`.
-- Habit: title = "Time for <name>"; body = "07:30" (daily) or "07:30 · 2 of 3 this week" (weekly); url `/habits`; tag `habit-<id>`.
+- Task: title = task text; body = "Due today at 2:00PM" / "Due tomorrow at 9:00AM" / "Due Oct 3 at 9:00AM" / "Due today" (untimed); times via `formatTime`, relative to the fire day in the stored time zone; url `/tasks`; tag `task-<id>`.
+- Habit: title = "Time for <name>"; body = "7:30AM" (daily) or "7:30AM · 2 of 3 this week" (weekly; Monday-start week, logs counted before the occurrence day's own log); url `/habits`; tag `habit-<id>`.
 
 ## Subscribing (server actions, `app/lib/push/actions.ts`)
 
@@ -100,9 +100,9 @@ Defaults: new tasks and habits → Never.
 
 Cards: task cards and habit cards show a small bell icon when a reminder is set.
 
-### Notifications panel (sidebar)
+### Notifications dialog
 
-A bell button at the bottom of the sidebar, next to the theme toggle, opens a small popover showing this device's state:
+A bell button opens a small dialog (the existing `Dialog` component) showing this device's state. The button appears in the sidebar footer next to the theme toggle, and in the Today page header (the sidebar is hidden below 860px, so this is the entry point on phones):
 
 - Unsupported (no `serviceWorker` / `PushManager`): "This browser can't show push notifications."
 - iOS not installed (iOS UA and not `display-mode: standalone`): "Add Daybook to your Home Screen (Share → Add to Home Screen), then open it from there to enable notifications."
