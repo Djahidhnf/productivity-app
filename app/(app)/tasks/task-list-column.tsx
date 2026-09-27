@@ -31,6 +31,7 @@ export function TaskListColumn({
   onColumnDrop,
 }: TaskListColumnProps) {
   const [draft, setDraft] = useState('');
+  const [completedOpen, setCompletedOpen] = useState(false);
 
   function submitDraft() {
     const text = draft.trim();
@@ -42,7 +43,12 @@ export function TaskListColumn({
     event.preventDefault();
   }
 
-  const openCount = list.tasks.filter((t) => !t.done).length;
+  const openTasks = list.tasks.filter((t) => !t.done);
+  // Newest-completed first; tasks without a timestamp sort last.
+  const doneTasks = list.tasks
+    .filter((t) => t.done)
+    .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
+  const openCount = openTasks.length;
 
   return (
     <section
@@ -101,7 +107,7 @@ export function TaskListColumn({
         className="pw-tasks-scroll pw-scroll"
         style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: 20 }}
       >
-        {list.tasks.map((task) => (
+        {openTasks.map((task) => (
           <TaskCard
             key={task.id}
             task={task}
@@ -117,7 +123,24 @@ export function TaskListColumn({
             }}
           />
         ))}
-        {list.tasks.length === 0 && <p className="st-empty">Nothing here.</p>}
+        {openTasks.length === 0 && <p className="st-empty">Nothing here.</p>}
+        {doneTasks.length > 0 && (
+          <>
+            <button
+              type="button"
+              className="pw-completed-toggle"
+              aria-expanded={completedOpen}
+              onClick={() => setCompletedOpen((open) => !open)}
+            >
+              <Icon name="right" size={14} />
+              Completed ({doneTasks.length})
+            </button>
+            {completedOpen &&
+              doneTasks.map((task) => (
+                <TaskCard key={task.id} task={task} onToggleDone={onToggleDone} onOpen={onOpenTask} />
+              ))}
+          </>
+        )}
       </div>
     </section>
   );

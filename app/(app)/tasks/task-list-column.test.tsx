@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi } from 'vitest';
 import { TaskListColumn } from './task-list-column';
-import type { TaskListDTO } from './queries';
+import type { TaskDTO, TaskListDTO } from './queries';
 
 function makeList(overrides: Partial<TaskListDTO> = {}): TaskListDTO {
   return {
@@ -14,6 +14,10 @@ function makeList(overrides: Partial<TaskListDTO> = {}): TaskListDTO {
     ],
     ...overrides,
   };
+}
+
+function task(overrides: Partial<TaskDTO>): TaskDTO {
+  return { id: 'x', text: 'x', listId: 'list1', priority: null, due: null, dueTime: null, duration: 60, done: false, completedAt: null, order: 0, ...overrides };
 }
 
 const noop = {
@@ -70,5 +74,47 @@ describe('TaskListColumn', () => {
     await userEvent.type(input, 'Half a thought{Escape}');
     expect(onQuickAdd).not.toHaveBeenCalled();
     expect(input).toHaveValue('');
+  });
+
+  test('hides the Completed toggle when no task is done', () => {
+    render(<TaskListColumn list={makeList()} {...noop} />);
+    expect(screen.queryByRole('button', { name: /Completed/ })).not.toBeInTheDocument();
+  });
+
+  test('done tasks are collapsed under a Completed toggle and the header counts open tasks only', () => {
+    const list = makeList({
+      tasks: [
+        task({ id: 'a', text: 'Open one' }),
+        task({ id: 'b', text: 'Finished one', done: true, completedAt: '2026-09-26T08:00:00.000Z' }),
+      ],
+    });
+    render(<TaskListColumn list={list} {...noop} />);
+    expect(screen.getByText('Open one')).toBeInTheDocument();
+    expect(screen.queryByText('Finished one')).not.toBeInTheDocument();
+    const toggle = screen.getByRole('button', { name: 'Completed (1)' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('heading', { name: /Work/ })).toHaveTextContent('Work1');
+  });
+
+  test('expanding Completed lists done tasks newest-completed first', async () => {
+    const list = makeList({
+      tasks: [
+        task({ id: 'old', text: 'Done Monday', done: true, completedAt: '2026-09-21T08:00:00.000Z' }),
+        task({ id: 'new', text: 'Done Friday', done: true, completedAt: '2026-09-25T08:00:00.000Z' }),
+      ],
+    });
+    render(<TaskListColumn list={list} {...noop} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Completed (2)' }));
+    expect(screen.getByRole('button', { name: 'Completed (2)' })).toHaveAttribute('aria-expanded', 'true');
+    const friday = screen.getByText('Done Friday');
+    const monday = screen.getByText('Done Monday');
+    expect(friday.compareDocumentPosition(monday) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test('done tasks in the dropdown are not draggable', async () => {
+    const list = makeList({ tasks: [task({ id: 'd', text: 'Finished', done: true, completedAt: '2026-09-26T08:00:00.000Z' })] });
+    render(<TaskListColumn list={list} {...noop} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Completed (1)' }));
+    expect(screen.getByText('Finished').closest('.st-row')).not.toHaveAttribute('draggable', 'true');
   });
 });

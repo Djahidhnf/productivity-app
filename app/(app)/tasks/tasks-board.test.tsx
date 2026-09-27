@@ -83,6 +83,7 @@ describe('TasksBoard', () => {
     render(<TasksBoard initialLists={makeLists()} />);
     await userEvent.click(screen.getByRole('checkbox', { name: 'Buy milk' }));
     expect(actions.toggleTaskDone).toHaveBeenCalledWith('t1');
+    await userEvent.click(screen.getByRole('button', { name: 'Completed (1)' }));
     expect(screen.getByText('Buy milk')).toHaveStyle({ textDecoration: 'line-through' });
   });
 
