@@ -15,6 +15,7 @@ vi.mock('../tasks/actions', () => ({
     dueTime: input.dueTime,
     duration: 60,
     done: false,
+    completedAt: null,
     order: 0,
   })),
   deleteTask: vi.fn(async () => {}),
@@ -28,6 +29,7 @@ vi.mock('../tasks/actions', () => ({
     dueTime: null,
     duration: 60,
     done: true,
+    completedAt: null,
     order: 0,
   })),
 }));

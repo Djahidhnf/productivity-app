@@ -22,6 +22,7 @@ describe('purgeExpiredTasks', () => {
 
     const expired = await make('PurgeTest expired', true, new Date(now.getTime() - 73 * HOUR));
     const recent = await make('PurgeTest recent', true, new Date(now.getTime() - 71 * HOUR));
+    const boundary = await make('PurgeTest boundary', true, new Date(now.getTime() - 72 * HOUR));
     const open = await make('PurgeTest open', false, null);
 
     const deleted = await purgeExpiredTasks(now);
@@ -29,6 +30,7 @@ describe('purgeExpiredTasks', () => {
 
     expect(await prisma.task.findUnique({ where: { id: expired.id } })).toBeNull();
     expect(await prisma.task.findUnique({ where: { id: recent.id } })).not.toBeNull();
+    expect(await prisma.task.findUnique({ where: { id: boundary.id } })).not.toBeNull();
     expect(await prisma.task.findUnique({ where: { id: open.id } })).not.toBeNull();
   });
 });

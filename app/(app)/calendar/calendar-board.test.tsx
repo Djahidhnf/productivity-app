@@ -30,6 +30,7 @@ vi.mock('../tasks/actions', () => ({
     dueTime: null,
     duration: 60,
     done: false,
+    completedAt: null,
     order: 0,
   })),
   updateTask: vi.fn(async (input: { id: string; text: string; listId: string; priority: string | null; due: string | null; dueTime: number | null }) => ({
@@ -41,6 +42,7 @@ vi.mock('../tasks/actions', () => ({
     dueTime: input.dueTime,
     duration: 60,
     done: false,
+    completedAt: null,
     order: 0,
   })),
   deleteTask: vi.fn(async () => {}),
@@ -53,6 +55,7 @@ vi.mock('../tasks/actions', () => ({
     dueTime: 540,
     duration: 30,
     done: true,
+    completedAt: null,
     order: 0,
   })),
 }));
