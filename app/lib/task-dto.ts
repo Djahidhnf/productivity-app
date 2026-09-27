@@ -9,6 +9,7 @@ export interface TaskDTO {
   dueTime: number | null;
   duration: number;
   done: boolean;
+  completedAt: string | null;
   order: number;
 }
 
@@ -31,6 +32,7 @@ export function serializeTask(task: {
   dueTime: number | null;
   duration: number;
   done: boolean;
+  completedAt: Date | null;
   order: number;
 }): TaskDTO {
   return {
@@ -42,6 +44,7 @@ export function serializeTask(task: {
     dueTime: task.dueTime,
     duration: task.duration,
     done: task.done,
+    completedAt: task.completedAt ? task.completedAt.toISOString() : null,
     order: task.order,
   };
 }

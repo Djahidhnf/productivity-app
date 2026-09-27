@@ -15,7 +15,7 @@ vi.mock('../notes/actions', () => ({ createNote: vi.fn() }));
 const TODAY = '2026-09-26';
 
 function task(id: string, overrides: Partial<TaskDTO> = {}): TaskDTO {
-  return { id, text: `Task ${id}`, listId: 'inbox', priority: null, due: TODAY, dueTime: null, duration: 60, done: false, order: 0, ...overrides };
+  return { id, text: `Task ${id}`, listId: 'inbox', priority: null, due: TODAY, dueTime: null, duration: 60, done: false, completedAt: null, order: 0, ...overrides };
 }
 
 function habit(id: string, overrides: Partial<HabitDTO> = {}): HabitDTO {

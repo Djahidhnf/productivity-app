@@ -93,7 +93,11 @@ export async function deleteTask(taskId: string): Promise<void> {
 export async function toggleTaskDone(taskId: string): Promise<TaskDTO> {
   await verifySession();
   const existing = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
-  const task = await prisma.task.update({ where: { id: taskId }, data: { done: !existing.done } });
+  const done = !existing.done;
+  const task = await prisma.task.update({
+    where: { id: taskId },
+    data: { done, completedAt: done ? new Date() : null },
+  });
   revalidatePath('/tasks', 'layout');
   return serializeTask(task);
 }

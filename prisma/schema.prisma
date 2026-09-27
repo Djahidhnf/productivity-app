@@ -33,6 +33,8 @@ model Task {
   dueTime     Int?
   duration    Int       @default(60)
   done        Boolean   @default(false)
+  /// When the task was last marked done; null while open. Done tasks are purged 72h after this.
+  completedAt DateTime?
   order       Int
   /// Position within its Eisenhower-matrix group (quadrant or unflagged); null = not yet placed, sorts last.
   matrixOrder Int?

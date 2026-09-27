@@ -10,7 +10,7 @@ function makeList(overrides: Partial<TaskListDTO> = {}): TaskListDTO {
     name: 'Work',
     order: 0,
     tasks: [
-      { id: 't1', text: 'Buy milk', listId: 'list1', priority: null, due: null, dueTime: null, duration: 60, done: false, order: 0 },
+      { id: 't1', text: 'Buy milk', listId: 'list1', priority: null, due: null, dueTime: null, duration: 60, done: false, completedAt: null, order: 0 },
     ],
     ...overrides,
   };

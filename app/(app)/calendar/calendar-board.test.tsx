@@ -69,6 +69,7 @@ function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
     dueTime: 540,
     duration: 30,
     done: false,
+    completedAt: null,
     order: 0,
     ...overrides,
   };

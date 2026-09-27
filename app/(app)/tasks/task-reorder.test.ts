@@ -3,7 +3,7 @@ import { moveTaskInLists, taskIdsForList, moveListInLists, moveListToIndex } fro
 import type { TaskListDTO } from './queries';
 
 function makeTask(id: string, listId: string, order: number) {
-  return { id, text: id, listId, priority: null, due: null, dueTime: null, duration: 60, done: false, order };
+  return { id, text: id, listId, priority: null, due: null, dueTime: null, duration: 60, done: false, completedAt: null, order };
 }
 
 function makeLists(): TaskListDTO[] {

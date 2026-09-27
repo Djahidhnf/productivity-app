@@ -6,7 +6,7 @@ import type { HabitDTO } from '@/app/lib/habit-dto';
 const TODAY = '2026-09-26';
 
 function task(id: string, overrides: Partial<TaskDTO> = {}): TaskDTO {
-  return { id, text: id, listId: 'l', priority: null, due: TODAY, dueTime: null, duration: 60, done: false, order: 0, ...overrides };
+  return { id, text: id, listId: 'l', priority: null, due: TODAY, dueTime: null, duration: 60, done: false, completedAt: null, order: 0, ...overrides };
 }
 
 function habit(id: string, startDate: string): HabitDTO {

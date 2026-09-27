@@ -56,7 +56,12 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
   function handleToggleDone(taskId: string) {
     const prevLists = lists;
     setLists((prev) =>
-      prev.map((list) => ({ ...list, tasks: list.tasks.map((t) => (t.id === taskId ? { ...t, done: !t.done } : t)) }))
+      prev.map((list) => ({
+        ...list,
+        tasks: list.tasks.map((t) =>
+          t.id === taskId ? { ...t, done: !t.done, completedAt: t.done ? null : new Date().toISOString() } : t
+        ),
+      }))
     );
     startTransition(async () => {
       try {

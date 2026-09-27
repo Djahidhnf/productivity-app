@@ -133,6 +133,24 @@ describe('task/list server actions', () => {
     await prisma.taskList.delete({ where: { id: list.id } });
   });
 
+  test('toggleTaskDone stamps completedAt when completing and clears it when reopening', async () => {
+    const list = await createList('ActionTest Completed');
+    const task = await createTask({ text: 'ActionTest completed', listId: list.id });
+    expect(task.completedAt).toBeNull();
+
+    const before = Date.now();
+    const done = await toggleTaskDone(task.id);
+    expect(done.done).toBe(true);
+    expect(done.completedAt).not.toBeNull();
+    expect(new Date(done.completedAt!).getTime()).toBeGreaterThanOrEqual(before - 1000);
+
+    const reopened = await toggleTaskDone(task.id);
+    expect(reopened.done).toBe(false);
+    expect(reopened.completedAt).toBeNull();
+
+    await prisma.taskList.delete({ where: { id: list.id } });
+  });
+
   test('reorderTasks sets order and can move a task into a different list', async () => {
     const listA = await createList('ActionTest MoveA');
     const listB = await createList('ActionTest MoveB');
