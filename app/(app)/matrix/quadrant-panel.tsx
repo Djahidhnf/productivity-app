@@ -78,7 +78,7 @@ export function QuadrantPanel({
         style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', flex: 'none', background: color, color: onColor }}
       >
         <span style={{ fontWeight: 600, fontSize: 'var(--text-base)', whiteSpace: 'nowrap' }}>{title}</span>
-        <span className="pw-quad-subtitle" style={{ fontSize: 'var(--text-sm)', opacity: 0.85, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</span>
+        <span className="pw-quad-subtitle" style={{ fontSize: 'var(--text-sm)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</span>
         <span
           style={{
             marginLeft: 'auto',

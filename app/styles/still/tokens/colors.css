@@ -41,7 +41,7 @@
 --ring-color:oklch(56% 0.046 165 / 0.32);
 --selection:var(--sage-100);
 /* Priority — vivid, deliberately outside the low-chroma palette. */
---prio-red:oklch(58% 0.19 27);--prio-yellow:oklch(85% 0.16 92);--prio-blue:oklch(57% 0.15 252);--prio-green:oklch(58% 0.14 150);
+--prio-red:oklch(56% 0.19 27);--prio-yellow:oklch(85% 0.16 92);--prio-blue:oklch(54% 0.15 252);--prio-green:oklch(52% 0.14 150);
 --prio-on-dark:oklch(99% 0 0);--prio-on-light:oklch(24% 0.03 80);
 }
 
@@ -76,5 +76,5 @@
 --overlay:oklch(10% 0.006 250 / 0.55);
 --ring-color:oklch(66% 0.046 165 / 0.38);
 --selection:oklch(34% 0.03 165);
---prio-red:oklch(64% 0.18 27);--prio-yellow:oklch(84% 0.15 92);--prio-blue:oklch(64% 0.14 252);--prio-green:oklch(64% 0.13 150);
+--prio-red:oklch(56% 0.18 27);--prio-yellow:oklch(84% 0.15 92);--prio-blue:oklch(54% 0.14 252);--prio-green:oklch(52% 0.13 150);
 }
