@@ -30,4 +30,11 @@ describe('Still design tokens', () => {
     expect(css).toContain('--space-4: 1rem');
     expect(css).toContain('--surface: var(--surface-1)');
   });
+
+  test('colors.css defines vivid priority hues for light and dark themes', () => {
+    const css = readFileSync(path.join(stylesDir, 'tokens/colors.css'), 'utf-8');
+    for (const name of ['red', 'yellow', 'blue', 'green']) {
+      expect(css.match(new RegExp(`--prio-${name}:`, 'g'))?.length).toBe(2);
+    }
+  });
 });

@@ -85,7 +85,7 @@ describe('YearView', () => {
     const { container } = render(<YearView {...makeProps({ tasks: [makeTask({ due: '2026-09-22', priority: 'RED' })] })} />);
     const busy = container.querySelector('section[data-unit="2026"] [data-datekey="2026-09-22"]') as HTMLElement;
     const empty = container.querySelector('section[data-unit="2026"] [data-datekey="2026-09-24"]') as HTMLElement;
-    expect(busy.querySelector<HTMLElement>('[data-dot]')?.style.background).toBe('var(--clay-500)');
+    expect(busy.querySelector<HTMLElement>('[data-dot]')?.style.background).toBe('var(--prio-red)');
     expect(empty.querySelector('[data-dot]')).toBeNull();
   });
 
