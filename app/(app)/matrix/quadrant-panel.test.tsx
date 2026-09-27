@@ -77,4 +77,16 @@ describe('QuadrantPanel', () => {
     );
     expect(container).toHaveAttribute('data-drop-target', 'true');
   });
+
+  test('the header is a solid band in the quadrant color with contrasting text', () => {
+    render(
+      <QuadrantPanel priorityKey="AMBER" tasks={[makeTask({ priority: 'AMBER' })]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} />
+    );
+    const band = screen.getByText('Schedule').closest('[data-quad-header]') as HTMLElement;
+    expect(band).not.toBeNull();
+    expect(band.style.background).toBe('var(--prio-yellow)');
+    expect(band.style.color).toBe('var(--prio-on-light)');
+    expect(band).toHaveTextContent('Not urgent but important');
+    expect(band).toHaveTextContent('1');
+  });
 });
