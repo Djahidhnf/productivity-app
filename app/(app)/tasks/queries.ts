@@ -1,6 +1,7 @@
 import 'server-only';
 import { prisma } from '@/app/lib/prisma';
 import { verifySession } from '@/app/lib/dal';
+import { purgeExpiredTasks } from '@/app/lib/task-purge';
 import { serializeTask, type TaskDTO } from '@/app/lib/task-dto';
 
 export type { TaskDTO };
@@ -14,6 +15,7 @@ export interface TaskListDTO {
 
 export async function getTaskLists(): Promise<TaskListDTO[]> {
   await verifySession();
+  await purgeExpiredTasks();
   const lists = await prisma.taskList.findMany({
     orderBy: { order: 'asc' },
     include: { tasks: { orderBy: { order: 'asc' } } },

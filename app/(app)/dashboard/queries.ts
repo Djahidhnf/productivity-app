@@ -1,6 +1,7 @@
 import 'server-only';
 import { prisma } from '@/app/lib/prisma';
 import { verifySession } from '@/app/lib/dal';
+import { purgeExpiredTasks } from '@/app/lib/task-purge';
 import { addDays } from '@/app/lib/calendar-dates';
 import { serializeTask, type TaskDTO } from '@/app/lib/task-dto';
 import { serializeNote, type NoteDTO } from '@/app/lib/note-dto';
@@ -12,6 +13,7 @@ import { serializeNote, type NoteDTO } from '@/app/lib/note-dto';
  */
 export async function getDashboardTasks(todayKey: string): Promise<TaskDTO[]> {
   await verifySession();
+  await purgeExpiredTasks();
   const tasks = await prisma.task.findMany({
     where: {
       OR: [
