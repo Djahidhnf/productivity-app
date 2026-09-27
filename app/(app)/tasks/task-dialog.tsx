@@ -8,7 +8,7 @@ import { Button } from '@/app/components/ui/button';
 import { PillToggle } from '@/app/components/ui/pill-toggle';
 import { Icon } from '@/app/components/icons';
 import type { PriorityKey } from '@/app/components/ui/priority-flag';
-import type { TaskListDTO } from './queries';
+import type { TaskDTO, TaskListDTO } from './queries';
 
 export interface TaskDialogValues {
   text: string;
@@ -18,6 +18,21 @@ export interface TaskDialogValues {
   dueTime: string;
   /** Block length in minutes; not edited in the form, just carried through to onSave. */
   duration?: number;
+}
+
+export function taskToDialogValues(task: TaskDTO): TaskDialogValues {
+  const dueTime =
+    task.dueTime == null
+      ? ''
+      : `${String(Math.floor(task.dueTime / 60)).padStart(2, '0')}:${String(task.dueTime % 60).padStart(2, '0')}`;
+  return { text: task.text, listId: task.listId, priority: task.priority, due: task.due ?? '', dueTime };
+}
+
+/** 'HH:MM' → minutes since midnight; '' → null. */
+export function parseDueTime(value: string): number | null {
+  if (!value) return null;
+  const [hours, minutes] = value.split(':').map(Number);
+  return hours * 60 + minutes;
 }
 
 export interface TaskDialogProps {

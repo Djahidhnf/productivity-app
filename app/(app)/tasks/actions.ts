@@ -33,6 +33,8 @@ export async function reorderLists(orderedIds: string[]): Promise<void> {
 export interface CreateTaskInput {
   text: string;
   listId: string;
+  /** 'YYYY-MM-DD'; the task is undated when omitted. */
+  due?: string | null;
 }
 
 export async function createTask(input: CreateTaskInput): Promise<TaskDTO> {
@@ -41,7 +43,12 @@ export async function createTask(input: CreateTaskInput): Promise<TaskDTO> {
   if (!trimmed) throw new Error('Task text is required');
   const maxOrder = await prisma.task.aggregate({ where: { listId: input.listId }, _max: { order: true } });
   const task = await prisma.task.create({
-    data: { text: trimmed, listId: input.listId, order: (maxOrder._max.order ?? -1) + 1 },
+    data: {
+      text: trimmed,
+      listId: input.listId,
+      order: (maxOrder._max.order ?? -1) + 1,
+      ...(input.due ? { due: new Date(input.due) } : {}),
+    },
   });
   revalidatePath('/tasks', 'layout');
   return serializeTask(task);

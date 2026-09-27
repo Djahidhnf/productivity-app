@@ -6,7 +6,7 @@ import type { Priority } from '@prisma/client';
 import { QuadrantPanel } from './quadrant-panel';
 import { UnflaggedPanel } from './unflagged-panel';
 import { groupTasksByPriority, groupKeyOf, groupTaskIds, placeTask, type MatrixGroupKey } from './matrix-groups';
-import { TaskDialog, type TaskDialogValues } from '../tasks/task-dialog';
+import { TaskDialog, taskToDialogValues, parseDueTime, type TaskDialogValues } from '../tasks/task-dialog';
 import { updateTask, deleteTask, toggleTaskDone, placeMatrixTask } from '../tasks/actions';
 import { PageHeader } from '@/app/components/shell/page-header';
 import { PillToggle } from '@/app/components/ui/pill-toggle';
@@ -32,20 +32,6 @@ function priorityOfGroup(group: MatrixGroupKey): Priority | null {
 export interface MatrixBoardProps {
   initialTasks: TaskDTO[];
   lists: TaskListDTO[];
-}
-
-function taskToDialogValues(task: TaskDTO): TaskDialogValues {
-  const dueTime =
-    task.dueTime == null
-      ? ''
-      : `${String(Math.floor(task.dueTime / 60)).padStart(2, '0')}:${String(task.dueTime % 60).padStart(2, '0')}`;
-  return { text: task.text, listId: task.listId, priority: task.priority, due: task.due ?? '', dueTime };
-}
-
-function parseDueTime(value: string): number | null {
-  if (!value) return null;
-  const [hours, minutes] = value.split(':').map(Number);
-  return hours * 60 + minutes;
 }
 
 export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {

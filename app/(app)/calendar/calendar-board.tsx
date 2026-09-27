@@ -7,7 +7,7 @@ import { DayWeekGrid, type DayWeekGridNav } from './day-week-grid';
 import { MonthView } from './month-view';
 import { YearView } from './year-view';
 import { AgendaView } from './agenda-view';
-import { TaskDialog, type TaskDialogValues } from '../tasks/task-dialog';
+import { TaskDialog, taskToDialogValues, parseDueTime, type TaskDialogValues } from '../tasks/task-dialog';
 import { createTask, updateTask, deleteTask, toggleTaskDone } from '../tasks/actions';
 import type { SwipeStrength } from '@/app/lib/use-swipe';
 import { todayKey } from '@/app/lib/date-format';
@@ -40,20 +40,6 @@ import type { TaskListDTO } from '../tasks/queries';
 export interface CalendarBoardProps {
   initialTasks: TaskDTO[];
   lists: TaskListDTO[];
-}
-
-function taskToDialogValues(task: TaskDTO): TaskDialogValues {
-  const dueTime =
-    task.dueTime == null
-      ? ''
-      : `${String(Math.floor(task.dueTime / 60)).padStart(2, '0')}:${String(task.dueTime % 60).padStart(2, '0')}`;
-  return { text: task.text, listId: task.listId, priority: task.priority, due: task.due ?? '', dueTime };
-}
-
-function parseDueTime(value: string): number | null {
-  if (!value) return null;
-  const [hours, minutes] = value.split(':').map(Number);
-  return hours * 60 + minutes;
 }
 
 function minutesToTimeInput(minutes: number): string {

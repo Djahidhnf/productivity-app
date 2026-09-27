@@ -104,7 +104,7 @@ export function NotesBoard({ initialNotes }: NotesBoardProps) {
       <div className="pw-notes">
         <NoteComposer onSave={handleCreate} />
         {visible.length > 0 ? (
-          <div className="pw-note-grid">
+          <div className="pw-note-list">
             {visible.map((note) => (
               <NoteCard
                 key={note.id}

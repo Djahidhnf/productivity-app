@@ -8,7 +8,7 @@ import { PageHeader } from '@/app/components/shell/page-header';
 import { IconButton } from '@/app/components/ui/icon-button';
 import { Icon } from '@/app/components/icons';
 import { useDragScroll } from '@/app/lib/use-drag-scroll';
-import { TaskDialog, type TaskDialogValues } from './task-dialog';
+import { TaskDialog, taskToDialogValues, parseDueTime, type TaskDialogValues } from './task-dialog';
 import { moveTaskInLists, taskIdsForList, moveListInLists, moveListToIndex } from './task-reorder';
 import type { TaskDTO, TaskListDTO } from './queries';
 import {
@@ -24,20 +24,6 @@ import {
 
 export interface TasksBoardProps {
   initialLists: TaskListDTO[];
-}
-
-function taskToDialogValues(task: TaskDTO): TaskDialogValues {
-  const dueTime =
-    task.dueTime == null
-      ? ''
-      : `${String(Math.floor(task.dueTime / 60)).padStart(2, '0')}:${String(task.dueTime % 60).padStart(2, '0')}`;
-  return { text: task.text, listId: task.listId, priority: task.priority, due: task.due ?? '', dueTime };
-}
-
-function parseDueTime(value: string): number | null {
-  if (!value) return null;
-  const [hours, minutes] = value.split(':').map(Number);
-  return hours * 60 + minutes;
 }
 
 export function TasksBoard({ initialLists }: TasksBoardProps) {

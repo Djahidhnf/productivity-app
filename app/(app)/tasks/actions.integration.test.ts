@@ -103,6 +103,11 @@ describe('task/list server actions', () => {
     const created = await createTask({ text: 'ActionTest task', listId: list.id });
     expect(created.done).toBe(false);
     expect(created.priority).toBeNull();
+    expect(created.due).toBeNull();
+
+    const dated = await createTask({ text: 'ActionTest dated task', listId: list.id, due: '2026-04-02' });
+    expect(dated.due).toBe('2026-04-02');
+    await deleteTask(dated.id);
 
     const updated = await updateTask({
       id: created.id,

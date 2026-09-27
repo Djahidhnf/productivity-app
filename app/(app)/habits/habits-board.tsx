@@ -164,7 +164,7 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
               selectedHabitId={selectedHabitId}
               todayKey={todayKey}
               heatWeeks={isNarrow ? HEAT_WEEKS_NARROW : HEAT_WEEKS_WIDE}
-              fillWidth={isNarrow}
+              fillWidth
               onSelect={handleSelect}
               onToggleLog={handleToggleLog}
               onDragStart={handleDragStart}
