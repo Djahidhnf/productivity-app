@@ -247,13 +247,13 @@ describe('DayWeekGrid swipe and density', () => {
     expect(onSwipeNext).not.toHaveBeenCalled();
   });
 
-  test('a swipe under 60% of the width passes "short" to the callback', () => {
+  test('a swipe under 40% of the width passes "short" to the callback', () => {
     const onSwipeNext = vi.fn();
-    swipe(renderGrid({ onSwipeNext, onSwipePrev: vi.fn() }), -200);
+    swipe(renderGrid({ onSwipeNext, onSwipePrev: vi.fn() }), -120);
     expect(onSwipeNext).toHaveBeenCalledWith('short');
   });
 
-  test('a swipe of 60% or more passes "long" to the callback', () => {
+  test('a swipe of 40% or more passes "long" to the callback', () => {
     const onSwipePrev = vi.fn();
     swipe(renderGrid({ onSwipeNext: vi.fn(), onSwipePrev }), 300);
     expect(onSwipePrev).toHaveBeenCalledWith('long');

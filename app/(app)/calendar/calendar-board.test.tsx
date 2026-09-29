@@ -109,11 +109,11 @@ describe('CalendarBoard', () => {
     expect(screen.getByText('Standup')).toBeInTheDocument();
   }, 10000);
 
-  test('Today resets the anchor date back to today', async () => {
+  test('clicking the date title goes back to today', async () => {
     render(<CalendarBoard initialTasks={[makeTask()]} lists={lists} />);
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(screen.queryByText('Standup')).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Today' }));
+    await userEvent.click(screen.getByTitle('Back to today'));
     expect(screen.getByText('Standup')).toBeInTheDocument();
   }, 10000);
 
@@ -267,7 +267,7 @@ describe('CalendarBoard swipe navigation', () => {
     const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
     await userEvent.click(screen.getByRole('tab', { name: '3-Day' }));
     expect(screen.getByText('Sep 23 – Sep 25')).toBeInTheDocument();
-    swipeGrid(container, -200);
+    swipeGrid(container, -120);
     expect(await screen.findByText('Sep 24 – Sep 26')).toBeInTheDocument();
   }, 10000);
 
@@ -287,7 +287,7 @@ describe('CalendarBoard swipe navigation', () => {
   test('Week: a short swipe advances by 1 day', async () => {
     const { container } = render(<CalendarBoard initialTasks={[]} lists={lists} />);
     await userEvent.click(screen.getByRole('tab', { name: 'Week' }));
-    swipeGrid(container, -200);
+    swipeGrid(container, -120);
     expect(await screen.findByText('Sep 24 – Sep 30')).toBeInTheDocument();
   }, 10000);
 

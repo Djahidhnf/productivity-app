@@ -108,6 +108,19 @@ export function DayWeekGrid({
 
   useEffect(() => () => clearPress(), []);
 
+  // Holding to select a time range must not scroll the grid. The browser only
+  // lets a touchmove cancel scrolling if a non-passive listener was already
+  // registered when the touch began, so keep one on the grid all along.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    function onTouchMove(event: TouchEvent) {
+      if (press.current?.selecting && event.cancelable) event.preventDefault();
+    }
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onTouchMove);
+  }, [ref]);
+
   function commitSelection(sel: Selection | null) {
     clearPress();
     setSelection(null);

@@ -24,7 +24,7 @@ function noop() {}
 describe('UnflaggedPanel', () => {
   test('renders the header, count, and tasks', () => {
     render(
-      <UnflaggedPanel tasks={[makeTask()]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} />
+      <UnflaggedPanel tasks={[makeTask()]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} />
     );
     expect(screen.getByText('Unflagged')).toBeInTheDocument();
     expect(screen.getByText('1')).toBeInTheDocument();
@@ -33,14 +33,14 @@ describe('UnflaggedPanel', () => {
 
   test('shows the empty state when there are no tasks', () => {
     render(
-      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} />
+      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} />
     );
     expect(screen.getByText('Everything is flagged.')).toBeInTheDocument();
   });
 
   test('the container carries data-quad="none"', () => {
     render(
-      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} />
+      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} />
     );
     expect(screen.getByText('Unflagged').closest('[data-quad]')).toHaveAttribute('data-quad', 'none');
   });
@@ -48,7 +48,7 @@ describe('UnflaggedPanel', () => {
   test('dropping on the container calls onDrop', () => {
     const onDrop = vi.fn();
     render(
-      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={onDrop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} />
+      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={onDrop} />
     );
     fireEvent.drop(screen.getByText('Unflagged').closest('[data-quad]')!);
     expect(onDrop).toHaveBeenCalled();
@@ -56,7 +56,7 @@ describe('UnflaggedPanel', () => {
 
   test('isDropTarget renders an accent dashed outline', () => {
     const { rerender } = render(
-      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={false} />
+      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} isDropTarget={false} />
     );
     // jsdom/jest-dom's toHaveStyle can't reliably resolve custom-property
     // (`var(...)`) values inside a border shorthand, so assert the raw
@@ -65,7 +65,7 @@ describe('UnflaggedPanel', () => {
     expect(container.style.border).toBe('1px dashed transparent');
 
     rerender(
-      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} onTaskTouchStart={noop} onTaskTouchMove={noop} onTaskTouchEnd={noop} touchDragTaskId={null} isDropTarget={true} />
+      <UnflaggedPanel tasks={[]} onToggleDone={vi.fn()} onOpen={vi.fn()} onTaskDragStart={noop} onDragOver={noop} onDrop={noop} isDropTarget={true} />
     );
     expect(container.style.border).toBe('1px dashed var(--accent)');
   });

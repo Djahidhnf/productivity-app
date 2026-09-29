@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/app/components/shell/page-header';
+import { ThemeToggle } from '@/app/components/shell/theme-toggle';
 import { Icon, type IconName } from '@/app/components/icons';
 import { Input } from '@/app/components/ui/input';
 import { CheckToggle } from '@/app/components/ui/check-toggle';
@@ -12,14 +13,14 @@ import type { TaskDTO } from '@/app/lib/task-dto';
 import type { HabitDTO } from '@/app/lib/habit-dto';
 import type { NoteDTO } from '@/app/lib/note-dto';
 import type { FinanceEntryDTO } from '@/app/lib/finance-dto';
-import { TaskCard } from '../tasks/task-card';
+import { PriorityFlag } from '@/app/components/ui/priority-flag';
 import { TaskDialog, taskToDialogValues, parseDueTime, type TaskDialogValues } from '../tasks/task-dialog';
-import { createTask, updateTask, deleteTask, toggleTaskDone } from '../tasks/actions';
+import { updateTask, deleteTask } from '../tasks/actions';
 import type { TaskListDTO } from '../tasks/queries';
 import { toggleHabitLog } from '../habits/actions';
 import { createNote } from '../notes/actions';
 import { monthTotals } from '../finance/finance-views';
-import { tasksForToday, scheduleForToday, habitsForToday, longDateLabel } from './dashboard-views';
+import { scheduleForToday, habitsForToday, longDateLabel } from './dashboard-views';
 
 const RECENT_NOTES = 3;
 
@@ -87,44 +88,15 @@ export function DashboardBoard({ initialTasks, lists, initialHabits, initialNote
   const [tasks, setTasks] = useState(initialTasks);
   const [habits, setHabits] = useState(initialHabits);
   const [notes, setNotes] = useState(initialNotes);
-  // Tasks ticked off here stay listed (struck through) so a mis-tap can be undone.
-  const [doneHere, setDoneHere] = useState<ReadonlySet<string>>(() => new Set());
   const [dialog, setDialog] = useState<{ task: TaskDTO; values: TaskDialogValues } | null>(null);
 
   const today = getTodayKey();
   const month = today.slice(0, 7);
-  const todays = tasksForToday(tasks, today, doneHere);
-  const openCount = todays.filter((t) => !t.done).length;
   const schedule = scheduleForToday(tasks, today);
   const todaysHabits = habitsForToday(habits, today);
   const habitsDone = todaysHabits.filter((h) => h.logs.includes(today)).length;
   const totals = monthTotals(financeEntries, month);
   const now = new Date();
-
-  async function handleAddTask(text: string): Promise<boolean> {
-    try {
-      const task = await createTask({ text, listId: lists[0].id, due: today });
-      setTasks((prev) => [...prev, task]);
-      return true;
-    } catch {
-      window.alert('Could not add the task. Please try again.');
-      return false;
-    }
-  }
-
-  async function handleToggleTask(taskId: string) {
-    const task = tasks.find((t) => t.id === taskId);
-    if (!task) return;
-    const done = !task.done;
-    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, done } : t)));
-    if (done) setDoneHere((prev) => new Set(prev).add(taskId));
-    try {
-      await toggleTaskDone(taskId);
-    } catch {
-      setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, done: task.done } : t)));
-      window.alert('Could not update the task. Please try again.');
-    }
-  }
 
   async function handleSaveTask(values: TaskDialogValues) {
     if (!dialog) return;
@@ -188,27 +160,20 @@ export function DashboardBoard({ initialTasks, lists, initialHabits, initialNote
   return (
     <div style={{ paddingBottom: 48 }}>
       {/* The date comes from the browser clock, so it can differ from the server render. */}
-      <PageHeader title="Today" eyebrow={longDateLabel(today)} />
+      <PageHeader
+        title="Today"
+        eyebrow={longDateLabel(today)}
+        className="pw-todayhead"
+        // The sidebar holds the theme switch on desktop; phones have no sidebar.
+        actions={<ThemeToggle className="pw-phone-only" />}
+      />
       <div className="pw-today">
-        <Section title="Tasks" count={openCount ? `${openCount} left` : undefined} href="/tasks" linkLabel="All tasks">
-          <AddRow
-            icon="plus"
-            label="Add a task for today"
-            placeholder={lists.length ? 'What needs doing?' : 'Create a list in Tasks first'}
-            disabled={!lists.length}
-            onAdd={handleAddTask}
-          />
-          {todays.map((task) => (
-            <TaskCard key={task.id} task={task} onToggleDone={(id) => void handleToggleTask(id)} onOpen={openTask} />
-          ))}
-          {todays.length === 0 && <p className="st-empty">Nothing left for today.</p>}
-        </Section>
-
         <Section title="Schedule" href="/calendar" linkLabel="Calendar">
           {schedule.map((task) => (
             <div key={task.id} className="st-row pw-today-slot" data-done={task.done || undefined} onClick={() => openTask(task)}>
               <span className="pw-today-time">{formatTime(task.dueTime!)}</span>
               <span className="st-row-text">{task.text}</span>
+              {task.priority && <PriorityFlag priority={task.priority} />}
             </div>
           ))}
           {schedule.length === 0 && <p className="st-empty">Nothing scheduled.</p>}

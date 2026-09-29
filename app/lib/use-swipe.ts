@@ -10,7 +10,7 @@ export const COMMIT_RATIO = 0.25;
 export const FLING_MIN_DISTANCE_PX = 40;
 export const FLING_MIN_VELOCITY = 0.5; // px per ms
 export const SLIDE_MS = 280;
-export const LONG_SWIPE_RATIO = 0.6;
+export const LONG_SWIPE_RATIO = 0.4;
 
 export type SwipeStrength = 'short' | 'long';
 export type SwipeDirection = 'next' | 'prev';
@@ -81,6 +81,20 @@ export function useSwipe({ onSwipeLeft, onSwipeRight, distance }: UseSwipeOption
   useEffect(() => {
     const pending = timers.current;
     return () => pending.forEach((id) => window.clearTimeout(id));
+  }, []);
+
+  // A registered, non-passive touchmove listener is what lets the browser
+  // hold off scrolling until it knows the gesture isn't a swipe: added only
+  // once a swipe starts, it would be too late for that touch. So keep one on
+  // the surface for its whole life and cancel moves once the swipe owns them.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    function onTouchMove(event: TouchEvent) {
+      if (gesture.current?.axis === 'x' && event.cancelable) event.preventDefault();
+    }
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onTouchMove);
   }, []);
 
   function later(fn: () => void, ms: number) {

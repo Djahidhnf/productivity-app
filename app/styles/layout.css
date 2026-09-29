@@ -86,6 +86,7 @@
 .st-row-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg-1); }
 .st-row[data-done] .st-row-text { color: var(--fg-3); text-decoration: line-through; text-decoration-color: var(--border-strong); }
 .st-row[data-drop-before]::before { content: ''; position: absolute; left: 0; right: 0; top: -1px; height: 2px; border-radius: 2px; background: var(--accent); pointer-events: none; }
+.st-row[data-drop-after]::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; border-radius: 2px; background: var(--accent); pointer-events: none; }
 
 /* ---------- Shell ---------- */
 .pw-shell { display: flex; min-height: 100dvh; padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px); overflow-x: clip; background: var(--bg-app); color: var(--fg-1); font-family: var(--font-sans); font-size: var(--text-base); line-height: 1.5; }
@@ -122,6 +123,9 @@
 .pw-pagehead { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; padding: 0 var(--pw-gutter); margin-bottom: 24px; flex: none; }
 .pw-pagehead-titles { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .pw-pagehead-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pw-phone-only { display: none !important; }
+@media (max-width: 860px) { .pw-phone-only { display: inline-flex !important; } }
+.pw-todayhead { flex-wrap: nowrap; }
 
 /* ---------- Today ---------- */
 .pw-today { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 40px 56px; align-items: start; padding: 0 var(--pw-gutter); }
@@ -136,10 +140,10 @@
 .pw-today-habits { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-top: 8px; }
 .pw-today-habit { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .pw-today-habit[data-done] span { color: var(--fg-3); text-decoration: line-through; text-decoration-color: var(--border-strong); }
-.pw-today-fin { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding-top: 8px; }
-.pw-today-fin .pw-stat { gap: 2px; min-width: 0; }
+.pw-today-fin { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
+.pw-today-fin .pw-stat { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 12px; min-width: 0; }
 .pw-today-fin-label { font-size: var(--text-sm); color: var(--fg-3); }
-.pw-today-fin-value { font-family: var(--font-mono); font-size: 20px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pw-today-fin-value { font-family: var(--font-mono); font-size: var(--text-md); text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .pw-today-fin-value[data-negative] { color: var(--danger-fg); }
 
 /* ---------- Tasks board ---------- */
@@ -158,6 +162,33 @@
 .pw-completed-toggle:hover { color: var(--fg-2); }
 .pw-completed-toggle svg { transition: transform var(--dur-base) var(--ease-out); }
 .pw-completed-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+
+/* Task cards on touch screens: long-press peeks/drags, so no text selection or callout. */
+.pw-taskrow { -webkit-touch-callout: none; }
+@media (hover: none) { .pw-taskrow { user-select: none; -webkit-user-select: none; } }
+.pw-taskrow[data-lifted], .pw-mrow[data-lifted] { opacity: 0.5; background: var(--surface-hover); }
+
+/* Long-press task preview. */
+.pw-taskpeek-backdrop { position: fixed; inset: 0; z-index: 40; background: oklch(0% 0 0 / 0.18); animation: pw-fade-in var(--dur-fast) var(--ease-out); }
+.pw-taskpeek {
+  position: fixed; left: 16px; right: 16px; max-width: 480px; margin: 0 auto; max-height: 50dvh; overflow-y: auto; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: var(--radius-lg);
+  background: var(--surface-1); box-shadow: var(--shadow-overlay); animation: pw-pop-in var(--dur-base) var(--ease-out);
+}
+.pw-taskpeek-text { margin: 0; font-size: var(--text-base); line-height: 1.45; color: var(--fg-1); white-space: pre-wrap; overflow-wrap: anywhere; }
+.pw-taskpeek-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: var(--text-xs); color: var(--fg-3); }
+.pw-taskpeek-due { font-family: var(--font-mono); color: var(--accent); }
+@keyframes pw-fade-in { from { opacity: 0; } }
+@keyframes pw-pop-in { from { opacity: 0; transform: scale(0.97); } }
+@media (prefers-reduced-motion: reduce) { .pw-taskpeek, .pw-taskpeek-backdrop { animation: none; } }
+
+/* ---------- Calendar header ---------- */
+.pw-calhead { flex-wrap: nowrap; }
+.pw-calhead .pw-pagehead-titles { flex: 1; }
+.pw-calhead-today { appearance: none; background: none; border: none; padding: 0; margin: 0; max-width: 100%; cursor: pointer; color: inherit; font: inherit; letter-spacing: inherit; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pw-calhead-today:hover { color: var(--fg-2); }
+.pw-calhead-arrows { display: flex; align-items: center; gap: 4px; }
+@media (max-width: 860px) { .pw-calhead-arrows { display: none; } }
 
 /* ---------- Calendar view pill ---------- */
 .pw-viewpill {
@@ -180,6 +211,11 @@
 .pw-matrix-left { flex: 1; min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .pw-matrix-right { flex: none; width: 300px; }
 .pw-quadgrid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.pw-quad-numeral { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 5px; font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; line-height: 1; letter-spacing: 0.02em; }
+.pw-mrow { font-size: var(--text-sm); }
+.pw-mrow-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; padding: 6px 0; }
+.pw-mrow-due { font-family: var(--font-mono); font-size: var(--text-2xs); line-height: 1.3; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pw-mrow-due[data-overdue] { color: var(--danger-fg); }
 .pw-flagbtn { flex: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin: -4px -4px -4px 0; appearance: none; border: none; background: transparent; color: var(--fg-3); border-radius: 6px; cursor: pointer; }
 .pw-flagbtn:hover, .pw-flagbtn[aria-expanded="true"] { color: var(--fg-1); background: var(--surface-hover); }
 .pw-flagmenu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 4px 0 8px; }

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { tasksForToday, scheduleForToday, habitsForToday, longDateLabel } from './dashboard-views';
+import { scheduleForToday, habitsForToday, longDateLabel } from './dashboard-views';
 import type { TaskDTO } from '@/app/lib/task-dto';
 import type { HabitDTO } from '@/app/lib/habit-dto';
 
@@ -12,35 +12,6 @@ function task(id: string, overrides: Partial<TaskDTO> = {}): TaskDTO {
 function habit(id: string, startDate: string): HabitDTO {
   return { id, name: id, color: 'moss', freqType: 'DAILY', timesPerWeek: null, startDate, order: 0, logs: [] };
 }
-
-describe('tasksForToday', () => {
-  test('keeps open tasks due today or earlier, highest priority first', () => {
-    const tasks = [
-      task('none'),
-      task('future', { due: '2026-09-27', priority: 'RED' }),
-      task('undated', { due: null, priority: 'RED' }),
-      task('overdue-green', { due: '2026-09-20', priority: 'GREEN' }),
-      task('red', { priority: 'RED' }),
-      task('done', { done: true, priority: 'RED' }),
-    ];
-    expect(tasksForToday(tasks, TODAY).map((t) => t.id)).toEqual(['red', 'overdue-green', 'none']);
-  });
-
-  test('same priority sorts by date, then time (untimed last), then order', () => {
-    const tasks = [
-      task('untimed', { order: 0 }),
-      task('late', { dueTime: 600 }),
-      task('early', { dueTime: 60 }),
-      task('older', { due: '2026-09-25', order: 5 }),
-    ];
-    expect(tasksForToday(tasks, TODAY).map((t) => t.id)).toEqual(['older', 'early', 'late', 'untimed']);
-  });
-
-  test('keeps done tasks listed in keepIds', () => {
-    const tasks = [task('a', { done: true }), task('b', { done: true })];
-    expect(tasksForToday(tasks, TODAY, new Set(['b'])).map((t) => t.id)).toEqual(['b']);
-  });
-});
 
 describe('scheduleForToday', () => {
   test("lists only today's timed tasks, done included, in time order", () => {

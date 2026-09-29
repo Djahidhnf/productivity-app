@@ -1,7 +1,8 @@
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TasksBoard } from './tasks-board';
+import { TASK_LONG_PRESS_MS } from './use-touch-task-drag';
 import type { TaskListDTO } from './queries';
 
 vi.mock('./actions', () => ({
@@ -223,5 +224,89 @@ describe('TasksBoard grab-to-scroll (desktop)', () => {
     fireEvent.pointerDown(card, { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 300, clientY: 200 });
     fireEvent.pointerMove(board, { pointerId: 1, pointerType: 'mouse', clientX: 200, clientY: 200 });
     expect(board.scrollLeft).toBe(100);
+  });
+});
+
+describe('TasksBoard touch long-press (phone)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function row(text: string) {
+    return screen.getByText(text).closest('[data-task-id]') as HTMLElement;
+  }
+
+  function rect(el: HTMLElement, top: number) {
+    el.getBoundingClientRect = () => ({ top, bottom: top + 40, height: 40, left: 0, right: 300, width: 300, x: 0, y: top, toJSON: () => ({}) });
+  }
+
+  function touch(type: 'touchMove' | 'touchEnd', x: number, y: number) {
+    const touches = type === 'touchEnd' ? [] : [{ clientX: x, clientY: y }];
+    fireEvent[type](document, { touches, changedTouches: [{ clientX: x, clientY: y }] });
+  }
+
+  test('a long press shows a preview with the full task text; releasing keeps it until a tap', () => {
+    render(<TasksBoard initialLists={makeLists()} />);
+    fireEvent.touchStart(row('Buy milk'), { touches: [{ clientX: 20, clientY: 20 }] });
+    act(() => {
+      vi.advanceTimersByTime(TASK_LONG_PRESS_MS);
+    });
+    const preview = screen.getByRole('dialog', { name: 'Task preview' });
+    expect(preview).toHaveTextContent('Buy milk');
+    expect(preview).toHaveTextContent('Work');
+    touch('touchEnd', 20, 20);
+    fireEvent.click(preview);
+    // The click the browser synthesizes from the long press is ignored...
+    expect(screen.getByRole('dialog', { name: 'Task preview' })).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    // ...but a later tap closes the preview without opening the edit dialog.
+    fireEvent.click(preview);
+    expect(screen.queryByRole('dialog', { name: 'Task preview' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Edit task' })).not.toBeInTheDocument();
+  });
+
+  test('a long press then a move drags the task to a new spot in the list', () => {
+    render(<TasksBoard initialLists={makeLists()} />);
+    const milk = row('Buy milk');
+    const eggs = row('Buy eggs');
+    rect(milk, 0);
+    rect(eggs, 40);
+    document.elementFromPoint = vi.fn().mockReturnValue(eggs);
+    fireEvent.touchStart(milk, { touches: [{ clientX: 20, clientY: 20 }] });
+    act(() => {
+      vi.advanceTimersByTime(TASK_LONG_PRESS_MS);
+    });
+    act(() => touch('touchMove', 20, 70));
+    expect(screen.queryByRole('dialog', { name: 'Task preview' })).not.toBeInTheDocument();
+    expect(milk).toHaveAttribute('data-lifted', 'true');
+    expect(eggs).toHaveAttribute('data-drop-after', 'true');
+    act(() => touch('touchEnd', 20, 70));
+    expect(actions.reorderTasks).toHaveBeenCalledWith({ listId: 'list1', orderedTaskIds: ['t2', 't1'] });
+  });
+
+  test('moving before the long press fires is a scroll: no preview, no drag', () => {
+    render(<TasksBoard initialLists={makeLists()} />);
+    fireEvent.touchStart(row('Buy milk'), { touches: [{ clientX: 20, clientY: 20 }] });
+    touch('touchMove', 20, 60);
+    act(() => {
+      vi.advanceTimersByTime(TASK_LONG_PRESS_MS);
+    });
+    touch('touchEnd', 20, 60);
+    expect(screen.queryByRole('dialog', { name: 'Task preview' })).not.toBeInTheDocument();
+    expect(actions.reorderTasks).not.toHaveBeenCalled();
+  });
+
+  test('a quick tap still opens the edit dialog', () => {
+    render(<TasksBoard initialLists={makeLists()} />);
+    fireEvent.touchStart(row('Buy milk'), { touches: [{ clientX: 20, clientY: 20 }] });
+    touch('touchEnd', 20, 20);
+    fireEvent.click(screen.getByText('Buy milk'));
+    expect(screen.getByRole('dialog', { name: 'Edit task' })).toBeInTheDocument();
   });
 });

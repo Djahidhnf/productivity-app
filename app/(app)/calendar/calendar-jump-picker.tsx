@@ -11,12 +11,14 @@ export interface CalendarJumpPickerProps {
   value: string;
   /** Receives YYYY-MM-01 in month mode and YYYY-01-01 in year mode. */
   onPick: (dateKey: string) => void;
+  /** Jumps back to today, when provided. */
+  onToday?: () => void;
   onClose: () => void;
 }
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function CalendarJumpPicker({ mode, value, onPick, onClose }: CalendarJumpPickerProps) {
+export function CalendarJumpPicker({ mode, value, onPick, onToday, onClose }: CalendarJumpPickerProps) {
   const [yearText, setYearText] = useState(String(yearOfDateKey(value)));
   const currentYear = yearOfDateKey(value);
   const currentMonth = Number(value.slice(5, 7)) - 1;
@@ -79,6 +81,11 @@ export function CalendarJumpPicker({ mode, value, onPick, onClose }: CalendarJum
         ) : (
           <button type="button" className="pw-jump-go" disabled={year === null} onClick={() => year !== null && onPick(firstOfYearKey(year))}>
             Go
+          </button>
+        )}
+        {onToday && (
+          <button type="button" className="pw-jump-go" onClick={onToday}>
+            Today
           </button>
         )}
       </div>

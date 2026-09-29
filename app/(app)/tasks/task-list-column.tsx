@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type DragEvent } from 'react';
+import { useState, type DragEvent, type TouchEvent } from 'react';
 import { Icon } from '@/app/components/icons';
 import { IconButton } from '@/app/components/ui/icon-button';
 import { Input } from '@/app/components/ui/input';
@@ -17,6 +17,17 @@ export interface TaskListColumnProps {
   onTaskDrop: (targetListId: string, targetTaskId: string | null) => void;
   onColumnDragStart: () => void;
   onColumnDrop: () => void;
+  /** Phone long-press gestures (preview + drag to reorder), when the board provides them. */
+  touch?: ColumnTouchProps;
+}
+
+export interface ColumnTouchProps {
+  onTaskTouchStart: (task: TaskDTO, event: TouchEvent<HTMLElement>) => void;
+  /** True while a finger holds a card: native drags and context menus are suppressed. */
+  isPressing: () => boolean;
+  dragTaskId: string | null;
+  /** Where the dragged task would land in this list: before a task, or null for the end. Undefined when not over this list. */
+  dropBeforeId?: string | null;
 }
 
 export function TaskListColumn({
@@ -29,6 +40,7 @@ export function TaskListColumn({
   onTaskDrop,
   onColumnDragStart,
   onColumnDrop,
+  touch,
 }: TaskListColumnProps) {
   const [draft, setDraft] = useState('');
   const [completedOpen, setCompletedOpen] = useState(false);
@@ -49,6 +61,14 @@ export function TaskListColumn({
     .filter((t) => t.done)
     .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
   const openCount = openTasks.length;
+  const lastOpenId = openTasks.filter((t) => t.id !== touch?.dragTaskId).at(-1)?.id;
+
+  function dropLineFor(taskId: string): 'before' | 'after' | undefined {
+    if (!touch?.dragTaskId || touch.dropBeforeId === undefined) return undefined;
+    if (touch.dropBeforeId === taskId) return 'before';
+    if (touch.dropBeforeId === null && taskId === lastOpenId) return 'after';
+    return undefined;
+  }
 
   return (
     <section
@@ -114,7 +134,15 @@ export function TaskListColumn({
             onToggleDone={onToggleDone}
             onOpen={onOpenTask}
             draggable
-            onDragStart={() => onTaskDragStart(task)}
+            onDragStart={(event) => {
+              // A long touch press drags through the touch gesture, not a native drag.
+              if (touch?.isPressing()) event.preventDefault();
+              else onTaskDragStart(task);
+            }}
+            onTouchStart={touch && ((event) => touch.onTaskTouchStart(task, event))}
+            onContextMenu={touch && ((event) => touch.isPressing() && event.preventDefault())}
+            lifted={touch?.dragTaskId === task.id}
+            dropLine={dropLineFor(task.id)}
             onDragOver={allowDrop}
             onDrop={(event) => {
               event.preventDefault();

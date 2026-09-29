@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi } from 'vitest';
 import { AppShell } from '@/app/components/shell/app-shell';
 import { NAV_ITEMS } from '@/app/components/shell/nav-items';
+import { ThemeToggle } from '@/app/components/shell/theme-toggle';
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: React.ComponentProps<'a'> & { href: string }) => (
@@ -57,5 +58,23 @@ describe('AppShell', () => {
     );
     const tasksLinks = screen.getAllByRole('link', { name: /Tasks/ });
     expect(tasksLinks.every((link) => link.getAttribute('aria-current') === 'page')).toBe(true);
+  });
+});
+
+describe('ThemeToggle', () => {
+  test('inside AppShell it flips the theme, like the sidebar switch', async () => {
+    const { container } = render(
+      <AppShell initialTheme="dark" initialSidebarOpen>
+        <ThemeToggle className="in-page" />
+      </AppShell>
+    );
+    const pageToggle = container.querySelector('main .in-page') as HTMLElement;
+    await userEvent.click(pageToggle);
+    expect(document.documentElement.dataset.theme).toBe('light');
+  });
+
+  test('outside AppShell it renders nothing', () => {
+    const { container } = render(<ThemeToggle />);
+    expect(container).toBeEmptyDOMElement();
   });
 });

@@ -236,24 +236,24 @@ describe('useSwipe', () => {
 });
 
 describe('swipeStrength', () => {
-  test('is short below 60% of the width and long at or above it', () => {
-    expect(swipeStrength(-150, 400)).toBe('short');
-    expect(swipeStrength(-239, 400)).toBe('short');
-    expect(swipeStrength(-240, 400)).toBe('long');
+  test('is short below 40% of the width and long at or above it', () => {
+    expect(swipeStrength(-120, 400)).toBe('short');
+    expect(swipeStrength(-159, 400)).toBe('short');
+    expect(swipeStrength(-160, 400)).toBe('long');
     expect(swipeStrength(300, 400)).toBe('long');
   });
 });
 
 describe('useSwipe strength', () => {
-  test('a swipe under 60% of the width reports "short"', () => {
+  test('a swipe under 40% of the width reports "short"', () => {
     const onLeft = vi.fn();
     render(<Harness onLeft={onLeft} />);
-    drag(getSurface(), { dx: -150 });
+    drag(getSurface(), { dx: -120 });
     vi.advanceTimersByTime(SLIDE_MS);
     expect(onLeft).toHaveBeenCalledWith('short');
   });
 
-  test('a swipe of 60% or more reports "long" in both directions', () => {
+  test('a swipe of 40% or more reports "long" in both directions', () => {
     const onLeft = vi.fn();
     const onRight = vi.fn();
     render(<Harness onLeft={onLeft} onRight={onRight} />);

@@ -10,6 +10,8 @@ import { Icon } from '@/app/components/icons';
 import { useDragScroll } from '@/app/lib/use-drag-scroll';
 import { TaskDialog, taskToDialogValues, parseDueTime, type TaskDialogValues } from './task-dialog';
 import { moveTaskInLists, taskIdsForList, moveListInLists, moveListToIndex } from './task-reorder';
+import { useTouchTaskDrag } from './use-touch-task-drag';
+import { TaskPreview } from './task-preview';
 import type { TaskDTO, TaskListDTO } from './queries';
 import {
   createList,
@@ -35,6 +37,13 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
   const [activeListId, setActiveListId] = useState<string | null>(initialLists[0]?.id ?? null);
   const { ref: boardRef, handlers: dragScrollHandlers } = useDragScroll<HTMLDivElement>({ innerSelector: '.pw-tasks-scroll' });
   const newListInput = useRef<HTMLInputElement>(null);
+  const touchDrag = useTouchTaskDrag(boardRef, {
+    groupAttr: 'listCol',
+    tasksIn: (listId) => lists.find((l) => l.id === listId)?.tasks.filter((t) => !t.done) ?? [],
+    listNameOf: (task) => lists.find((l) => l.id === task.listId)?.name ?? '',
+    scrollSelector: '.pw-tasks-scroll',
+    onMove: handleTouchMove,
+  });
 
   // A drag abandoned outside any valid drop target (e.g. released over the
   // browser chrome) never reaches an onDrop handler, so dragTaskId/dragListId
@@ -74,6 +83,7 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
   }
 
   function handleOpenTask(task: TaskDTO) {
+    if (touchDrag.isSwallowingClick()) return;
     setDialog({ task, values: taskToDialogValues(task) });
   }
 
@@ -168,12 +178,18 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
 
   function handleTaskDrop(targetListId: string, targetTaskId: string | null) {
     if (!dragTaskId) return;
-    const sourceList = lists.find((l) => l.tasks.some((t) => t.id === dragTaskId));
+    moveTask(dragTaskId, targetListId, targetTaskId);
+    setDragTaskId(null);
+  }
+
+  /** Moves a task before `targetTaskId` in a list (null = the end), optimistically, and saves both lists' order. */
+  function moveTask(taskId: string, targetListId: string, targetTaskId: string | null) {
+    const sourceList = lists.find((l) => l.tasks.some((t) => t.id === taskId));
     if (!sourceList) return;
     const sourceListId = sourceList.id;
     const prevLists = lists;
 
-    const next = moveTaskInLists(lists, dragTaskId, targetListId, targetTaskId);
+    const next = moveTaskInLists(lists, taskId, targetListId, targetTaskId);
     setLists(next);
 
     startTransition(async () => {
@@ -187,7 +203,14 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
         window.alert('Could not save the new order. Please try again.');
       }
     });
-    setDragTaskId(null);
+  }
+
+  function handleTouchMove(taskId: string, targetListId: string, beforeId: string | null) {
+    const sourceListId = lists.find((l) => l.tasks.some((t) => t.id === taskId))?.id;
+    const next = moveTaskInLists(lists, taskId, targetListId, beforeId);
+    const unchanged =
+      sourceListId === targetListId && taskIdsForList(next, targetListId).join() === taskIdsForList(lists, targetListId).join();
+    if (!unchanged) moveTask(taskId, targetListId, beforeId);
   }
 
   function saveListOrder(next: TaskListDTO[]) {
@@ -273,10 +296,17 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
             onTaskDrop={handleTaskDrop}
             onColumnDragStart={() => setDragListId(list.id)}
             onColumnDrop={() => handleColumnDrop(list.id)}
+            touch={{
+              onTaskTouchStart: (task, event) => touchDrag.onCardTouchStart(task, event),
+              isPressing: touchDrag.isPressing,
+              dragTaskId: touchDrag.dragTaskId,
+              dropBeforeId: touchDrag.dropSlot?.groupId === list.id ? touchDrag.dropSlot.beforeId : undefined,
+            }}
           />
         ))}
         <NewListColumn onCreate={handleCreateList} inputRef={newListInput} />
       </div>
+      {touchDrag.preview && <TaskPreview {...touchDrag.preview} onClose={touchDrag.closePreview} />}
       {dialog && (
         <TaskDialog
           open

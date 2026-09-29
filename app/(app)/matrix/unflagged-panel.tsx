@@ -1,7 +1,7 @@
 'use client';
 
-import type { DragEvent, TouchEvent } from 'react';
-import { MatrixTaskRow } from './matrix-task-row';
+import type { DragEvent } from 'react';
+import { MatrixTaskRow, type MatrixRowTouchProps } from './matrix-task-row';
 import type { PriorityKey } from '@/app/components/ui/priority-flag';
 import type { TaskDTO } from './queries';
 
@@ -17,13 +17,12 @@ export interface UnflaggedPanelProps {
   onTaskDrop?: (task: TaskDTO, event: DragEvent) => void;
   /** Task the dragged task would be inserted before, when it is in this group. */
   dropBeforeId?: string | null;
-  onTaskTouchStart: (task: TaskDTO, event: TouchEvent) => void;
-  onTaskTouchMove: (event: TouchEvent) => void;
-  onTaskTouchEnd: (event: TouchEvent) => void;
-  touchDragTaskId: string | null;
+  touch?: MatrixRowTouchProps;
   isDropTarget?: boolean;
   /** Phone only: shows a flag button on each row to move it into a quadrant. */
   onSetPriority?: (task: TaskDTO, priority: PriorityKey) => void;
+  /** Phone only: rows can't be dragged; the flag button moves them instead. */
+  dragDisabled?: boolean;
 }
 
 export function UnflaggedPanel({
@@ -37,12 +36,10 @@ export function UnflaggedPanel({
   onTaskDragOver,
   onTaskDrop,
   dropBeforeId = null,
-  onTaskTouchStart,
-  onTaskTouchMove,
-  onTaskTouchEnd,
-  touchDragTaskId,
+  touch,
   isDropTarget = false,
   onSetPriority,
+  dragDisabled = false,
 }: UnflaggedPanelProps) {
   return (
     <aside
@@ -75,15 +72,19 @@ export function UnflaggedPanel({
           task={task}
           onToggleDone={onToggleDone}
           onOpen={onOpen}
-          onDragStart={() => onTaskDragStart(task)}
+          draggable={!dragDisabled}
+          onDragStart={(event) => {
+            // A long touch press drags through the touch gesture, not a native drag.
+            if (touch?.isPressing()) event.preventDefault();
+            else onTaskDragStart(task);
+          }}
           onDragOver={onTaskDragOver && ((event) => onTaskDragOver(task, event))}
           onDrop={onTaskDrop && ((event) => onTaskDrop(task, event))}
           dropBefore={dropBeforeId === task.id}
           onSetPriority={onSetPriority ? (priority) => onSetPriority(task, priority) : undefined}
-          onTouchStart={(event) => onTaskTouchStart(task, event)}
-          onTouchMove={onTaskTouchMove}
-          onTouchEnd={onTaskTouchEnd}
-          isTouchDragging={touchDragTaskId === task.id}
+          onTouchStart={touch && ((event) => touch.onTaskTouchStart(task, event))}
+          onContextMenu={touch && ((event) => touch.isPressing() && event.preventDefault())}
+          lifted={touch?.dragTaskId === task.id}
         />
       ))}
       {tasks.length === 0 && (

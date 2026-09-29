@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, type DragEvent, type TouchEvent } from 'react';
+import { useState, type DragEvent, type MouseEvent, type TouchEvent } from 'react';
 import { CheckToggle } from '@/app/components/ui/check-toggle';
 import { Icon } from '@/app/components/icons';
 import { PRIORITY_COLORS, type PriorityKey } from '@/app/components/ui/priority-flag';
-import { formatDueLabel } from '@/app/lib/date-format';
+import { formatDueLabel, todayKey } from '@/app/lib/date-format';
 import type { TaskDTO } from './queries';
 
 const FLAG_OPTIONS: { key: PriorityKey; label: string }[] = [
@@ -14,17 +14,27 @@ const FLAG_OPTIONS: { key: PriorityKey; label: string }[] = [
   { key: 'GREEN', label: 'Eliminate' },
 ];
 
+/** Phone long-press gestures (preview + drag), when the board provides them. */
+export interface MatrixRowTouchProps {
+  onTaskTouchStart: (task: TaskDTO, event: TouchEvent<HTMLElement>) => void;
+  /** True while a finger holds a row: native drags and context menus are suppressed. */
+  isPressing: () => boolean;
+  dragTaskId: string | null;
+}
+
 export interface MatrixTaskRowProps {
   task: TaskDTO;
   onToggleDone: (taskId: string) => void;
   onOpen: (task: TaskDTO) => void;
+  /** False keeps the row in place: no mouse drag (a long press still previews it). */
+  draggable?: boolean;
   onDragStart: (event: DragEvent) => void;
   onDragOver?: (event: DragEvent) => void;
   onDrop?: (event: DragEvent) => void;
-  onTouchStart: (event: TouchEvent) => void;
-  onTouchMove: (event: TouchEvent) => void;
-  onTouchEnd: (event: TouchEvent) => void;
-  isTouchDragging?: boolean;
+  onTouchStart?: (event: TouchEvent<HTMLElement>) => void;
+  onContextMenu?: (event: MouseEvent) => void;
+  /** Dimmed while it is being touch-dragged. */
+  lifted?: boolean;
   /** Shows the insertion line above this row while a dragged task hovers it. */
   dropBefore?: boolean;
   /** When set, a flag button lets the user pick a quadrant for the task. */
@@ -35,32 +45,33 @@ export function MatrixTaskRow({
   task,
   onToggleDone,
   onOpen,
+  draggable = true,
   onDragStart,
   onDragOver,
   onDrop,
   onTouchStart,
-  onTouchMove,
-  onTouchEnd,
-  isTouchDragging,
+  onContextMenu,
+  lifted,
   dropBefore,
   onSetPriority,
 }: MatrixTaskRowProps) {
   const dueLabel = formatDueLabel(task.due, task.dueTime);
+  const overdue = !task.done && !!task.due && task.due < todayKey();
   const [flagMenuOpen, setFlagMenuOpen] = useState(false);
 
   return (
     <div
       data-task-id={task.id}
       data-drop-before={dropBefore || undefined}
-      draggable
+      data-lifted={lifted || undefined}
+      draggable={draggable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
       onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
+      onContextMenu={onContextMenu}
       onClick={() => onOpen(task)}
-      className="st-row"
+      className="st-row pw-mrow"
       data-done={task.done || undefined}
       style={{
         flex: 'none',
@@ -69,23 +80,22 @@ export function MatrixTaskRow({
         gap: 0,
         minHeight: 38,
         justifyContent: 'center',
-        background: isTouchDragging ? 'var(--surface-hover)' : undefined,
-        opacity: isTouchDragging ? 0.6 : 1,
-        // Only the row actively being long-press-dragged suppresses native
-        // touch scrolling — every other row keeps normal vertical scroll,
-        // since touch-action:none on every row would break scrolling within
-        // a quadrant's own task list.
-        touchAction: isTouchDragging ? 'none' : 'pan-y',
         WebkitTouchCallout: 'none',
         userSelect: 'none',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 38 }}>
         <CheckToggle checked={task.done} onToggle={() => onToggleDone(task.id)} label={task.text} shape="round" size="sm" />
-        <span className="st-row-text" style={{ textDecoration: task.done ? 'line-through' : 'none' }}>
-          {task.text}
+        <span className="pw-mrow-body">
+          <span className="st-row-text" style={{ textDecoration: task.done ? 'line-through' : 'none' }}>
+            {task.text}
+          </span>
+          {dueLabel && (
+            <span className="pw-mrow-due" data-overdue={overdue || undefined}>
+              {dueLabel}
+            </span>
+          )}
         </span>
-        {dueLabel && <span className="st-due">{dueLabel}</span>}
         {onSetPriority && (
           <button
             type="button"

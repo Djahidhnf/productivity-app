@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Sidebar } from './sidebar';
 import { BottomNav } from './bottom-nav';
 import { NAV_ITEMS } from './nav-items';
+import { ThemeContext } from './theme-toggle';
 
 export interface AppShellProps {
   initialTheme: 'dark' | 'light';
@@ -33,6 +34,7 @@ export function AppShell({ initialTheme, initialSidebarOpen, children }: AppShel
     document.cookie = `daybook_sidebar=${sidebarOpen}; path=/; max-age=31536000`;
   }, [sidebarOpen]);
 
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
   const activeKey = NAV_ITEMS.find((item) => pathname?.startsWith(item.href))?.key ?? 'dashboard';
 
   return (
@@ -43,10 +45,10 @@ export function AppShell({ initialTheme, initialSidebarOpen, children }: AppShel
         open={sidebarOpen}
         onToggleOpen={() => setSidebarOpen((v) => !v)}
         theme={theme}
-        onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+        onToggleTheme={toggleTheme}
       />
       <main className="pw-main" style={{ padding: 'var(--pw-top) 0 var(--pw-bottom)' }}>
-        {children}
+        <ThemeContext value={{ theme, toggleTheme }}>{children}</ThemeContext>
       </main>
       <BottomNav items={NAV_ITEMS} activeKey={activeKey} />
     </div>

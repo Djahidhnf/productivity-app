@@ -24,24 +24,24 @@ function noop() {}
 
 describe('MatrixTaskRow', () => {
   test('renders the task text', () => {
-    render(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} />);
+    render(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} />);
     expect(screen.getByText('Buy milk')).toBeInTheDocument();
   });
 
   test('strikes through the text when done', () => {
-    render(<MatrixTaskRow task={makeTask({ done: true })} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} />);
+    render(<MatrixTaskRow task={makeTask({ done: true })} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} />);
     expect(screen.getByText('Buy milk')).toHaveStyle({ textDecoration: 'line-through' });
   });
 
   test('renders a due label when due is set', () => {
-    render(<MatrixTaskRow task={makeTask({ due: '2026-03-01' })} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} />);
+    render(<MatrixTaskRow task={makeTask({ due: '2026-03-01' })} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} />);
     expect(screen.getByText('03-01')).toBeInTheDocument();
   });
 
   test('clicking the row calls onOpen with the task', async () => {
     const onOpen = vi.fn();
     const task = makeTask();
-    render(<MatrixTaskRow task={task} onToggleDone={vi.fn()} onOpen={onOpen} onDragStart={noop} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} />);
+    render(<MatrixTaskRow task={task} onToggleDone={vi.fn()} onOpen={onOpen} onDragStart={noop} />);
     await userEvent.click(screen.getByText('Buy milk'));
     expect(onOpen).toHaveBeenCalledWith(task);
   });
@@ -49,7 +49,7 @@ describe('MatrixTaskRow', () => {
   test('toggling the checkbox calls onToggleDone but not onOpen', async () => {
     const onToggleDone = vi.fn();
     const onOpen = vi.fn();
-    render(<MatrixTaskRow task={makeTask()} onToggleDone={onToggleDone} onOpen={onOpen} onDragStart={noop} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} />);
+    render(<MatrixTaskRow task={makeTask()} onToggleDone={onToggleDone} onOpen={onOpen} onDragStart={noop} />);
     await userEvent.click(screen.getByRole('checkbox'));
     expect(onToggleDone).toHaveBeenCalledWith('t1');
     expect(onOpen).not.toHaveBeenCalled();
@@ -57,16 +57,16 @@ describe('MatrixTaskRow', () => {
 
   test('firing dragStart calls the onDragStart handler', () => {
     const onDragStart = vi.fn();
-    render(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={onDragStart} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} />);
+    render(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={onDragStart} />);
     fireEvent.dragStart(screen.getByText('Buy milk').closest('[data-task-id]')!);
     expect(onDragStart).toHaveBeenCalled();
   });
 
-  test('applies touch-action:none only while isTouchDragging is true', () => {
-    const { rerender } = render(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} />);
+  test('marks the row lifted while it is touch-dragged', () => {
+    const { rerender } = render(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} />);
     const row = screen.getByText('Buy milk').closest('[data-task-id]')!;
-    expect(row).not.toHaveStyle({ touchAction: 'none' });
-    rerender(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} onTouchStart={noop} onTouchMove={noop} onTouchEnd={noop} isTouchDragging />);
-    expect(row).toHaveStyle({ touchAction: 'none' });
+    expect(row).not.toHaveAttribute('data-lifted');
+    rerender(<MatrixTaskRow task={makeTask()} onToggleDone={vi.fn()} onOpen={vi.fn()} onDragStart={noop} lifted />);
+    expect(row).toHaveAttribute('data-lifted');
   });
 });

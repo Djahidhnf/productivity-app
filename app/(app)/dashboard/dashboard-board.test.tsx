@@ -1,7 +1,6 @@
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DashboardBoard, type DashboardBoardProps } from './dashboard-board';
-import * as taskActions from '../tasks/actions';
 import * as habitActions from '../habits/actions';
 import * as noteActions from '../notes/actions';
 import type { TaskDTO } from '@/app/lib/task-dto';
@@ -65,67 +64,30 @@ describe('DashboardBoard', () => {
     setup();
     expect(screen.getByRole('heading', { name: 'Today' })).toBeInTheDocument();
     expect(screen.getByText('Saturday, September 26')).toBeInTheDocument();
-    expect(screen.getByText('Nothing left for today.')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Tasks/ })).not.toBeInTheDocument();
     expect(screen.getByText('Nothing scheduled.')).toBeInTheDocument();
     expect(screen.getByText('No habits yet.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'September so far' })).toBeInTheDocument();
   });
 
-  test("lists open tasks due by today, and today's timed tasks", () => {
+  test("lists today's timed tasks in time order, with their priority", () => {
     setup({
       initialTasks: [
-        task('today'),
-        task('overdue', { due: '2026-09-20', priority: 'RED' }),
-        task('later', { due: '2026-09-30' }),
-        task('meeting', { dueTime: 14 * 60 + 30, done: true }),
+        task('untimed'),
+        task('later', { due: '2026-09-30', dueTime: 60 }),
+        task('meeting', { dueTime: 14 * 60 + 30, done: true, priority: 'RED' }),
+        task('standup', { dueTime: 9 * 60 }),
       ],
     });
-    const tasks = section(/Tasks/);
-    expect(tasks).toHaveTextContent('2 left');
-    expect(within(tasks).getAllByRole('checkbox').map((c) => c.getAttribute('aria-label'))).toEqual(['Task overdue', 'Task today']);
     const schedule = section(/Schedule/);
+    expect(within(schedule).getAllByText(/^Task /).map((el) => el.textContent)).toEqual(['Task standup', 'Task meeting']);
     expect(within(schedule).getByText('2:30PM')).toBeInTheDocument();
-    expect(within(schedule).getByText('Task meeting')).toBeInTheDocument();
+    expect(within(schedule).getAllByRole('img', { name: /Priority/ })).toHaveLength(1);
+    expect(within(schedule).getByRole('img', { name: 'Priority: red' })).toBeInTheDocument();
   });
 
-  test('quick add creates a task due today in the first list', async () => {
-    vi.mocked(taskActions.createTask).mockResolvedValue(task('new', { text: 'Buy bread' }));
-    setup();
-    const input = screen.getByLabelText('Add a task for today');
-    fireEvent.change(input, { target: { value: 'Buy bread' } });
-    fireEvent.submit(input.closest('form')!);
-    await flushPromises();
-    expect(taskActions.createTask).toHaveBeenCalledWith({ text: 'Buy bread', listId: 'inbox', due: TODAY });
-    expect(screen.getByText('Buy bread')).toBeInTheDocument();
-    expect(input).toHaveValue('');
-  });
-
-  test('quick add is disabled without any list', () => {
-    setup({ lists: [] });
-    expect(screen.getByLabelText('Add a task for today')).toBeDisabled();
-  });
-
-  test('ticking a task off keeps it listed as done', async () => {
-    vi.mocked(taskActions.toggleTaskDone).mockResolvedValue(task('a', { done: true }));
-    setup({ initialTasks: [task('a')] });
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Task a' }));
-    await flushPromises();
-    expect(taskActions.toggleTaskDone).toHaveBeenCalledWith('a');
-    expect(screen.getByRole('checkbox', { name: 'Task a' })).toHaveAttribute('aria-checked', 'true');
-    expect(section(/Tasks/)).not.toHaveTextContent('left');
-  });
-
-  test('a failed toggle reverts', async () => {
-    vi.mocked(taskActions.toggleTaskDone).mockRejectedValue(new Error('nope'));
-    setup({ initialTasks: [task('a')] });
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Task a' }));
-    await flushPromises();
-    expect(screen.getByRole('checkbox', { name: 'Task a' })).toHaveAttribute('aria-checked', 'false');
-    expect(window.alert).toHaveBeenCalled();
-  });
-
-  test('clicking a task opens the edit dialog', () => {
-    setup({ initialTasks: [task('a')] });
+  test('clicking a scheduled task opens the edit dialog', () => {
+    setup({ initialTasks: [task('a', { dueTime: 10 * 60 })] });
     fireEvent.click(screen.getByText('Task a'));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByLabelText('Task')).toHaveValue('Task a');

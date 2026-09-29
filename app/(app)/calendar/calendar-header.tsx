@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/app/components/ui/button';
 import { IconButton } from '@/app/components/ui/icon-button';
 import { Icon } from '@/app/components/icons';
 import { PageHeader } from '@/app/components/shell/page-header';
@@ -45,12 +44,18 @@ export function CalendarHeader({ title, onPrev, onToday, onNext, onNewTask, pick
             picker.onPick(dateKey);
             setPickerOpen(false);
           }}
+          onToday={() => {
+            onToday();
+            setPickerOpen(false);
+          }}
           onClose={() => setPickerOpen(false)}
         />
       )}
     </span>
   ) : (
-    title
+    <button type="button" className="pw-calhead-today" title="Back to today" onClick={onToday}>
+      {title}
+    </button>
   );
 
   return (
@@ -59,21 +64,18 @@ export function CalendarHeader({ title, onPrev, onToday, onNext, onNewTask, pick
       title={titleNode}
       actions={
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {/* Phones swipe between ranges instead; the arrows stay for mouse users. */}
+          <div className="pw-calhead-arrows">
             <IconButton onClick={onPrev} label="Previous">
               <Icon name="left" size={18} />
             </IconButton>
-            <Button variant="secondary" size="sm" onClick={onToday}>
-              Today
-            </Button>
             <IconButton onClick={onNext} label="Next">
               <Icon name="right" size={18} />
             </IconButton>
           </div>
-          <Button variant="primary" size="sm" onClick={onNewTask}>
-            <Icon name="plus" size={15} />
-            New task
-          </Button>
+          <IconButton onClick={onNewTask} label="New task" variant="primary">
+            <Icon name="plus" size={20} />
+          </IconButton>
         </>
       }
     />

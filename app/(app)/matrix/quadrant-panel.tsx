@@ -1,15 +1,15 @@
 'use client';
 
-import type { DragEvent, TouchEvent } from 'react';
+import type { DragEvent } from 'react';
 import { PRIORITY_COLORS, type PriorityKey } from '@/app/components/ui/priority-flag';
-import { MatrixTaskRow } from './matrix-task-row';
+import { MatrixTaskRow, type MatrixRowTouchProps } from './matrix-task-row';
 import type { TaskDTO } from './queries';
 
-export const QUADRANT_INFO: Record<PriorityKey, { title: string; subtitle: string }> = {
-  RED: { title: 'Do first', subtitle: 'Urgent & important' },
-  AMBER: { title: 'Schedule', subtitle: 'Not urgent but important' },
-  BLUE: { title: 'Delegate', subtitle: 'Urgent but unimportant' },
-  GREEN: { title: 'Eliminate', subtitle: 'Not urgent & unimportant' },
+export const QUADRANT_INFO: Record<PriorityKey, { numeral: string; title: string; subtitle: string }> = {
+  RED: { numeral: 'I', title: 'Do first', subtitle: 'Urgent & important' },
+  AMBER: { numeral: 'II', title: 'Schedule', subtitle: 'Not urgent but important' },
+  BLUE: { numeral: 'III', title: 'Delegate', subtitle: 'Urgent but unimportant' },
+  GREEN: { numeral: 'IV', title: 'Eliminate', subtitle: 'Not urgent & unimportant' },
 };
 
 export interface QuadrantPanelProps {
@@ -25,10 +25,7 @@ export interface QuadrantPanelProps {
   onTaskDrop?: (task: TaskDTO, event: DragEvent) => void;
   /** Task the dragged task would be inserted before, when it is in this group. */
   dropBeforeId?: string | null;
-  onTaskTouchStart: (task: TaskDTO, event: TouchEvent) => void;
-  onTaskTouchMove: (event: TouchEvent) => void;
-  onTaskTouchEnd: (event: TouchEvent) => void;
-  touchDragTaskId: string | null;
+  touch?: MatrixRowTouchProps;
   isDropTarget?: boolean;
 }
 
@@ -44,13 +41,10 @@ export function QuadrantPanel({
   onTaskDragOver,
   onTaskDrop,
   dropBeforeId = null,
-  onTaskTouchStart,
-  onTaskTouchMove,
-  onTaskTouchEnd,
-  touchDragTaskId,
+  touch,
   isDropTarget = false,
 }: QuadrantPanelProps) {
-  const { title, subtitle } = QUADRANT_INFO[priorityKey];
+  const { numeral, title, subtitle } = QUADRANT_INFO[priorityKey];
   const color = PRIORITY_COLORS[priorityKey];
 
   return (
@@ -66,10 +60,10 @@ export function QuadrantPanel({
         minHeight: 0,
         overflow: 'hidden',
         borderRadius: 'var(--radius-lg)',
-        border: `1.5px solid ${isDropTarget ? color : `color-mix(in oklch, ${color} 55%, var(--border-1))`}`,
+        border: '1px solid var(--border-1)',
         background: isDropTarget ? `color-mix(in oklch, ${color} 6%, var(--surface-1))` : 'var(--surface-1)',
         boxShadow: isDropTarget ? `0 0 0 3px color-mix(in oklch, ${color} 20%, transparent)` : undefined,
-        transition: 'background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out)',
+        transition: 'background var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out)',
       }}
     >
       <div
@@ -80,12 +74,18 @@ export function QuadrantPanel({
           gap: 8,
           padding: '10px 14px 8px',
           flex: 'none',
-          borderBottom: `1px solid color-mix(in oklch, ${color} 20%, var(--border-1))`,
+          borderBottom: '1px solid var(--border-1)',
         }}
       >
-        <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 999, background: color, flex: 'none' }} />
-        <span style={{ fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--fg-1)', whiteSpace: 'nowrap' }}>{title}</span>
-        <span className="pw-quad-subtitle" style={{ fontSize: 'var(--text-sm)', color: 'var(--fg-3)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</span>
+        <span
+          aria-hidden="true"
+          className="pw-quad-numeral"
+          style={{ color: `color-mix(in oklch, ${color} 70%, var(--fg-2))`, background: `color-mix(in oklch, ${color} 10%, transparent)` }}
+        >
+          {numeral}
+        </span>
+        <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--fg-1)', whiteSpace: 'nowrap' }}>{title}</span>
+        <span className="pw-quad-subtitle" style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-3)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</span>
         <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', color: 'var(--fg-3)' }}>
           {tasks.length}
         </span>
@@ -97,14 +97,17 @@ export function QuadrantPanel({
             task={task}
             onToggleDone={onToggleDone}
             onOpen={onOpen}
-            onDragStart={() => onTaskDragStart(task)}
+            onDragStart={(event) => {
+              // A long touch press drags through the touch gesture, not a native drag.
+              if (touch?.isPressing()) event.preventDefault();
+              else onTaskDragStart(task);
+            }}
             onDragOver={onTaskDragOver && ((event) => onTaskDragOver(task, event))}
             onDrop={onTaskDrop && ((event) => onTaskDrop(task, event))}
             dropBefore={dropBeforeId === task.id}
-            onTouchStart={(event) => onTaskTouchStart(task, event)}
-            onTouchMove={onTaskTouchMove}
-            onTouchEnd={onTaskTouchEnd}
-            isTouchDragging={touchDragTaskId === task.id}
+            onTouchStart={touch && ((event) => touch.onTaskTouchStart(task, event))}
+            onContextMenu={touch && ((event) => touch.isPressing() && event.preventDefault())}
+            lifted={touch?.dragTaskId === task.id}
           />
         ))}
         {tasks.length === 0 && <p className="st-empty" style={{ margin: '8px 0 0' }}>Nothing here.</p>}
