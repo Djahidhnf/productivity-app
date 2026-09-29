@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/still-design-system-5e6a282d-f1ea-4ca5-aea9-0a1570decfd9/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/still-design-system-5e6a282d-f1ea-4ca5-aea9-0a1570decfd9/tokens/colors.css">
+<link rel="stylesheet" href="_ds/still-design-system-5e6a282d-f1ea-4ca5-aea9-0a1570decfd9/tokens/typography.css">
+<link rel="stylesheet" href="_ds/still-design-system-5e6a282d-f1ea-4ca5-aea9-0a1570decfd9/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/still-design-system-5e6a282d-f1ea-4ca5-aea9-0a1570decfd9/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/still-design-system-5e6a282d-f1ea-4ca5-aea9-0a1570decfd9/tokens/motion.css">
+<link rel="stylesheet" href="_ds/still-design-system-5e6a282d-f1ea-4ca5-aea9-0a1570decfd9/tokens/base.css">
+<link rel="stylesheet" href="_ds/still-design-system-5e6a282d-f1ea-4ca5-aea9-0a1570decfd9/styles.css">
+<script src="_ds/still-design-system-5e6a282d-f1ea-4ca5-aea9-0a1570decfd9/_ds_bundle.js"></script>
+<style>
+body{margin:0;background:var(--bg-app)}
+a{color:var(--fg-2);text-decoration:none}
+a:hover{color:var(--fg-1)}
+textarea::placeholder{color:var(--fg-3)}
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(1) opacity(.5)}
+.st-bottom{display:none}
+*{scrollbar-width:thin;scrollbar-color:var(--border-2) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:999px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--border-strong);border:3px solid transparent;background-clip:padding-box}
+@media (max-width:1180px){.st-split{grid-template-columns:minmax(0,1fr) !important}.st-split>aside{position:static !important}}
+@media (max-width:860px){.st-side{display:none !important}.st-bottom{display:flex !important}.st-main{padding-bottom:72px}.st-pill{left:0 !important;bottom:88px !important}.st-cal{grid-template-columns:minmax(0,1fr) !important}}
+@media (max-width:720px){.st-two{grid-template-columns:minmax(0,1fr) !important}.st-entry{grid-template-columns:1fr 1fr !important}.st-entry-note{grid-column:1/-1}.st-pad{padding:32px 16px 96px !important}.st-cell{min-height:56px !important}.st-evchip{display:none !important}}
+</style>
+</helmet>
+
+<div data-theme="{{ theme }}" style="display:flex;min-height:100vh;background:var(--bg-app);color:var(--fg-1);font-family:var(--font-sans);font-size:15px;line-height:1.5">
+
+  <aside class="st-side" style="{{ sideStyle }}">
+    <div style="{{ sideHeadStyle }}">
+      <sc-if value="{{ sideOpen }}" hint-placeholder-val="{{ true }}"><span style="font-weight:600;font-size:20px;letter-spacing:-0.04em">still</span></sc-if>
+      <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="{{ sideIcon }}" label="{{ sideLabel }}" size="sm" onClick="{{ toggleSide }}" hint-size="28px,28px"></x-import>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="7">
+        <div onClick="{{ item.go }}" title="{{ item.label }}" style="{{ item.style }}" style-hover="background:var(--surface-hover);color:var(--fg-1)">
+          <x-import component-from-global-scope="StillDesignSystem_5e6a28.Icon" name="{{ item.icon }}" size="{{ 16 }}" hint-size="16px,16px"></x-import>
+          <sc-if value="{{ sideOpen }}" hint-placeholder-val="{{ true }}">
+            <span style="flex:1">{{ item.label }}</span>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3)">{{ item.count }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="{{ sideFootStyle }}">
+      <sc-if value="{{ sideOpen }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;color:var(--fg-3);white-space:nowrap">Saved on this device</span></sc-if>
+      <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="{{ themeIcon }}" label="Toggle theme" size="sm" onClick="{{ toggleTheme }}" hint-size="28px,28px"></x-import>
+    </div>
+  </aside>
+
+  <main class="st-main" style="flex:1;min-width:0">
+
+    <sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+      <div class="st-pad" style="padding:56px 40px 96px;display:flex;flex-direction:column;gap:40px">
+        <header style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3)">{{ todayLong }}</span>
+          <h1 style="margin:0;font-size:32px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">Today</h1>
+        </header>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:40px 56px;align-items:start">
+
+        <section style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+            <h2 style="margin:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Tasks <span style="font-family:var(--font-mono);letter-spacing:0;text-transform:none;margin-left:6px">{{ todayLeftLabel }}</span></h2>
+            <a href="#tasks" onClick="{{ goTasks }}" style="font-size:13px">All tasks</a>
+          </div>
+          <form onSubmit="{{ addTodayTask }}" style="border-bottom:1px solid var(--border-1)">
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" variant="bare" icon="plus" placeholder="What needs doing?" value="{{ todayTask }}" onChange="{{ onTodayTask }}" hint-size="100%,44px"></x-import>
+          </form>
+          <sc-for list="{{ todayTasks }}" as="t" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:12px;min-height:44px;border-bottom:1px solid var(--border-1)">
+              <x-import component-from-global-scope="StillDesignSystem_5e6a28.Checkbox" shape="round" checked="{{ t.done }}" onChange="{{ t.onToggle }}" hint-size="18px,18px"></x-import>
+              <span onClick="{{ t.onOpen }}" style="{{ t.textStyle }}">{{ t.text }}</span>
+              <sc-if value="{{ t.hasPrio }}" hint-placeholder-val="{{ false }}"><span title="{{ t.prioLabel }}" style="{{ t.prioStyle }}"></span></sc-if>
+              <span style="{{ t.dueStyle }}">{{ t.dueLabel }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noTodayTasks }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:12px 0 0;font-size:13px;color:var(--fg-3)">Nothing left for today.</p>
+          </sc-if>
+        </section>
+
+        <section style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+            <h2 style="margin:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Schedule</h2>
+            <a href="#calendar" onClick="{{ goCalendarToday }}" style="font-size:13px">Calendar</a>
+          </div>
+          <sc-for list="{{ todayEvents }}" as="ev" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:16px;min-height:44px;border-bottom:1px solid var(--border-1)">
+              <span style="font-family:var(--font-mono);font-size:13px;color:var(--fg-3);width:48px;flex:none">{{ ev.time }}</span>
+              <span style="flex:1;min-width:0">{{ ev.title }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noTodayEvents }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:12px 0 0;font-size:13px;color:var(--fg-3)">Nothing scheduled.</p>
+          </sc-if>
+        </section>
+
+        <section style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+            <h2 style="margin:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Habits <span style="font-family:var(--font-mono);letter-spacing:0;margin-left:6px">{{ habitsDoneLabel }}</span></h2>
+            <a href="#habits" onClick="{{ goHabits }}" style="font-size:13px">Habits</a>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px 24px">
+            <sc-for list="{{ todayHabits }}" as="h" hint-placeholder-count="3">
+              <x-import component-from-global-scope="StillDesignSystem_5e6a28.Checkbox" label="{{ h.name }}" checked="{{ h.checked }}" onChange="{{ h.onChange }}" strike="{{ true }}" hint-size="140px,24px"></x-import>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+            <h2 style="margin:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Notes</h2>
+            <a href="#notes" onClick="{{ goNotes }}" style="font-size:13px">All notes</a>
+          </div>
+          <form onSubmit="{{ addQuickNote }}" style="border-bottom:1px solid var(--border-1)">
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" variant="bare" icon="sticky-note" placeholder="Something to remember?" value="{{ quickNote }}" onChange="{{ onQuickNote }}" hint-size="100%,44px"></x-import>
+          </form>
+          <sc-for list="{{ recentNotes }}" as="n" hint-placeholder-count="2">
+            <div onClick="{{ n.onOpen }}" style="display:flex;align-items:center;gap:16px;min-height:44px;border-bottom:1px solid var(--border-1);cursor:pointer">
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg-2)">{{ n.preview }}</span>
+              <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3);flex:none">{{ n.when }}</span>
+            </div>
+          </sc-for>
+        </section>
+
+        <sc-if value="{{ showFinanceOnToday }}" hint-placeholder-val="{{ true }}">
+          <section style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+              <h2 style="margin:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">{{ curMonthShort }} so far</h2>
+              <a href="#finance" onClick="{{ goFinance }}" style="font-size:13px">Finance</a>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:var(--fg-3)">Spent</span><span style="font-family:var(--font-mono);font-size:20px;font-variant-numeric:tabular-nums">{{ todayFin.spent }}</span></div>
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:var(--fg-3)">Earned</span><span style="font-family:var(--font-mono);font-size:20px;font-variant-numeric:tabular-nums">{{ todayFin.earned }}</span></div>
+              <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:var(--fg-3)">Net</span><span style="font-family:var(--font-mono);font-size:20px;font-variant-numeric:tabular-nums">{{ todayFin.net }}</span></div>
+            </div>
+          </section>
+        </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTasks }}" hint-placeholder-val="{{ false }}">
+      <div class="st-pad" style="padding:56px 40px 48px;display:flex;flex-direction:column;gap:24px;min-height:100vh;box-sizing:border-box">
+        <header style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <h1 style="margin:0;font-size:32px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">Tasks <span style="font-family:var(--font-mono);font-size:15px;font-weight:400;color:var(--fg-3);letter-spacing:0">{{ openCountLabel }}</span></h1>
+          <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="folder-plus" label="New list" onClick="{{ startList }}" hint-size="34px,34px"></x-import>
+        </header>
+        <div ref="{{ boardRef }}" onMouseDown="{{ onBoardDown }}" style="flex:1;display:flex;gap:48px;align-items:stretch;overflow-x:auto;margin:0 -40px;padding:0 40px 24px;cursor:grab;user-select:none">
+          <sc-for list="{{ boardCols }}" as="c" hint-placeholder-count="3">
+            <section onDragOver="{{ c.onDragOver }}" onDrop="{{ c.onDrop }}" style="flex:none;width:300px;box-sizing:border-box;display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:center;gap:8px;min-height:28px">
+                <span style="{{ c.dot }}"></span>
+                <h2 style="margin:0;flex:1;min-width:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.name }}<span style="font-family:var(--font-mono);letter-spacing:0;text-transform:none;margin-left:6px">{{ c.count }}</span></h2>
+                <sc-if value="{{ c.canDelete }}" hint-placeholder-val="{{ false }}">
+                  <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="trash-2" label="Delete list" size="sm" onClick="{{ c.onDelete }}" hint-size="28px,28px"></x-import>
+                </sc-if>
+              </div>
+              <form onSubmit="{{ c.onAdd }}" style="border-bottom:1px solid var(--border-1)">
+                <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" variant="bare" size="sm" icon="plus" placeholder="What needs doing?" value="{{ c.addValue }}" onChange="{{ c.onAddChange }}" hint-size="100%,36px"></x-import>
+              </form>
+              <sc-for list="{{ c.tasks }}" as="t" hint-placeholder-count="3">
+                <div draggable="true" onDragStart="{{ t.onDragStart }}" onDragOver="{{ t.onDragOver }}" onDrop="{{ t.onDrop }}" onDragEnd="{{ t.onDragEnd }}" style="position:relative;display:flex;align-items:center;gap:10px;min-height:40px;border-bottom:1px solid var(--border-1);cursor:grab">
+                    <sc-if value="{{ t.dropBefore }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:0;right:0;top:-1px;height:2px;border-radius:2px;background:var(--accent);pointer-events:none"></span></sc-if>
+                    <sc-if value="{{ t.dropAfter }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:0;right:0;bottom:-1px;height:2px;border-radius:2px;background:var(--accent);pointer-events:none"></span></sc-if>
+                  <x-import component-from-global-scope="StillDesignSystem_5e6a28.Checkbox" shape="round" size="sm" checked="{{ t.done }}" onChange="{{ t.onToggle }}" hint-size="16px,16px"></x-import>
+                  <span onClick="{{ t.onOpen }}" style="{{ t.textStyle }}">{{ t.text }}</span>
+                  <sc-if value="{{ t.hasPrio }}" hint-placeholder-val="{{ false }}"><span title="{{ t.prioLabel }}" style="{{ t.prioStyle }}"></span></sc-if>
+                  <span style="{{ t.dueStyle }}">{{ t.dueLabel }}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ c.empty }}" hint-placeholder-val="{{ false }}">
+                <p style="margin:12px 0 4px;font-size:13px;color:var(--fg-3)">Nothing here.</p>
+              </sc-if>
+              <sc-if value="{{ c.hasDone }}" hint-placeholder-val="{{ false }}">
+                <div style="padding-top:8px;align-self:flex-start">
+                  <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="ghost" size="sm" iconRight="{{ c.doneChevron }}" onClick="{{ c.toggleDone }}" hint-size="120px,28px">{{ c.doneLabel }}</x-import>
+                </div>
+                <sc-if value="{{ c.showDone }}" hint-placeholder-val="{{ false }}">
+                  <sc-for list="{{ c.doneTasks }}" as="t" hint-placeholder-count="1">
+                    <div style="display:flex;align-items:center;gap:10px;min-height:40px;border-bottom:1px solid var(--border-1)">
+                      <x-import component-from-global-scope="StillDesignSystem_5e6a28.Checkbox" shape="round" size="sm" checked="{{ t.done }}" onChange="{{ t.onToggle }}" hint-size="16px,16px"></x-import>
+                      <span onClick="{{ t.onOpen }}" style="{{ t.textStyle }}">{{ t.text }}</span>
+                    </div>
+                  </sc-for>
+                </sc-if>
+              </sc-if>
+            </section>
+          </sc-for>
+          <section style="flex:none;width:280px;padding-top:6px">
+            <sc-if value="{{ addingList }}" hint-placeholder-val="{{ false }}">
+              <form onSubmit="{{ addList }}">
+                <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" size="sm" autoFocus="{{ true }}" placeholder="Name" value="{{ newList }}" onChange="{{ onNewList }}" onBlur="{{ cancelList }}" hint-size="100%,28px"></x-import>
+              </form>
+            </sc-if>
+            <sc-if value="{{ notAddingList }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="ghost" size="sm" icon="plus" onClick="{{ startList }}" hint-size="96px,28px">New list</x-import>
+            </sc-if>
+          </section>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
+      <div class="st-pad" style="padding:56px 40px 96px;display:flex;flex-direction:column;gap:24px">
+        <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <h1 style="margin:0;font-size:32px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">{{ calTitle }}</h1>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:4px">
+              <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="chevron-left" label="Previous" onClick="{{ calPrev }}" hint-size="34px,34px"></x-import>
+              <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="secondary" size="sm" onClick="{{ calToday }}" hint-size="64px,28px">Today</x-import>
+              <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="chevron-right" label="Next" onClick="{{ calNext }}" hint-size="34px,34px"></x-import>
+            </div>
+          </div>
+        </header>
+
+        <sc-if value="{{ isTimeGrid }}" hint-placeholder-val="{{ true }}">
+          <div class="st-split" style="display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:start">
+            <div style="border:1px solid var(--border-1);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:var(--bg-app)">
+              <div style="display:flex;border-bottom:1px solid var(--border-1);overflow-y:hidden;scrollbar-gutter:stable">
+                <span style="width:56px;flex:none"></span>
+                <sc-for list="{{ tgCols }}" as="col" hint-placeholder-count="7">
+                  <div onClick="{{ col.onHead }}" style="flex:1;min-width:0;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;border-left:1px solid var(--border-1);cursor:pointer;overflow:hidden;white-space:nowrap" style-hover="background:var(--surface-hover)">
+                    <span style="font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">{{ col.wd }}</span>
+                    <span style="{{ col.numStyle }}">{{ col.num }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div data-tg-scroll="1" style="height:620px;overflow-y:auto;display:flex;scrollbar-gutter:stable">
+                <div style="width:56px;flex:none;position:relative;height:1152px">
+                  <sc-for list="{{ tgHours }}" as="h" hint-placeholder-count="23">
+                    <span style="{{ h.style }}">{{ h.label }}</span>
+                  </sc-for>
+                </div>
+                <sc-for list="{{ tgCols }}" as="col" hint-placeholder-count="7">
+                  <div style="flex:1;min-width:0;position:relative;height:1152px;border-left:1px solid var(--border-1)">
+                    <sc-for list="{{ col.slots }}" as="sl" hint-placeholder-count="48">
+                      <div onMouseDown="{{ sl.onDown }}" onDragOver="{{ sl.onDragOver }}" onDrop="{{ sl.onDrop }}" style="{{ sl.style }}" style-hover="background:var(--surface-hover)"></div>
+                    </sc-for>
+                    <sc-if value="{{ col.hasNow }}" hint-placeholder-val="{{ false }}"><div style="{{ col.nowStyle }}"></div></sc-if>
+                    <sc-for list="{{ col.blocks }}" as="b" hint-placeholder-count="0">
+                      <div draggable="true" onDragStart="{{ b.onDragStart }}" onDragEnd="{{ b.onDragEnd }}" onClick="{{ b.onClick }}" title="{{ b.tip }}" style="{{ b.style }}">
+                        <span style="{{ b.titleStyle }}">{{ b.title }}</span>
+                        <span style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3);white-space:nowrap">{{ b.range }}</span>
+                      </div>
+                    </sc-for>
+                    <sc-if value="{{ col.hasDraft }}" hint-placeholder-val="{{ false }}">
+                      <div style="{{ col.draftStyle }}"><span style="font-family:var(--font-mono);font-size:11px;color:var(--accent-subtle-fg);white-space:nowrap">{{ col.draftLabel }}</span></div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <aside onDragOver="{{ allowDrop }}" onDrop="{{ onUnscheduleDrop }}" style="{{ unschedStyle }}">
+              <h2 style="margin:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Unscheduled <span style="font-family:var(--font-mono);letter-spacing:0;margin-left:6px">{{ unscheduledCount }}</span></h2>
+              <p style="margin:0 0 8px;font-size:13px;color:var(--fg-3)">{{ unschedHint }}</p>
+              <sc-for list="{{ unscheduled }}" as="u" hint-placeholder-count="5">
+                <div draggable="true" onDragStart="{{ u.onDragStart }}" style="display:flex;align-items:center;gap:8px;min-height:40px;border-bottom:1px solid var(--border-1);cursor:grab">
+                  <span style="color:var(--fg-3);display:flex"><x-import component-from-global-scope="StillDesignSystem_5e6a28.Icon" name="grip-vertical" size="{{ 14 }}" hint-size="14px,14px"></x-import></span>
+                  <span onClick="{{ u.onOpen }}" style="{{ u.textStyle }}">{{ u.text }}</span>
+                  <sc-if value="{{ u.hasPrio }}" hint-placeholder-val="{{ false }}"><span title="{{ u.prioLabel }}" style="{{ u.prioStyle }}"></span></sc-if>
+                  <span style="{{ u.dueStyle }}">{{ u.dueLabel }}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ noUnscheduled }}" hint-placeholder-val="{{ false }}">
+                <p style="margin:0;font-size:13px;color:var(--fg-3)">Every task has a block.</p>
+              </sc-if>
+            </aside>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isMonth }}" hint-placeholder-val="{{ false }}">
+          <div class="st-cal" style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px;align-items:start">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr))">
+                <sc-for list="{{ weekdays }}" as="wd" hint-placeholder-count="7">
+                  <span style="font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3);padding:0 8px">{{ wd }}</span>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border-1);border:1px solid var(--border-1);border-radius:12px;overflow:hidden">
+                <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="35">
+                  <div class="st-cell" onClick="{{ c.onClick }}" style="{{ c.style }}" style-hover="background:var(--surface-hover)">
+                    <span style="{{ c.numStyle }}">{{ c.num }}</span>
+                    <sc-for list="{{ c.chips }}" as="ch" hint-placeholder-count="1">
+                      <span class="st-evchip" style="font-size:12px;line-height:1.35;color:var(--fg-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span style="font-family:var(--font-mono);color:var(--fg-3);margin-right:4px">{{ ch.time }}</span>{{ ch.title }}</span>
+                    </sc-for>
+                    <sc-if value="{{ c.hasMore }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3)">{{ c.more }}</span>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <aside style="display:flex;flex-direction:column;gap:20px">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3)">{{ dayLong }}</span>
+                <h2 style="margin:0;font-size:20px;font-weight:600;letter-spacing:-0.01em">{{ dayTitle }}</h2>
+              </div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ dayEvents }}" as="ev" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:12px;min-height:44px;border-bottom:1px solid var(--border-1)">
+                    <span style="font-family:var(--font-mono);font-size:13px;color:var(--fg-3);width:44px;flex:none">{{ ev.time }}</span>
+                    <span onClick="{{ ev.onOpen }}" style="flex:1;min-width:0;font-size:15px;cursor:pointer">{{ ev.title }}</span>
+                    <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="x" label="Remove" size="sm" onClick="{{ ev.onDelete }}" hint-size="28px,28px"></x-import>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ noDayEvents }}" hint-placeholder-val="{{ false }}">
+                  <p style="margin:0 0 8px;font-size:13px;color:var(--fg-3)">Nothing scheduled.</p>
+                </sc-if>
+                <form onSubmit="{{ addEvent }}" style="display:grid;grid-template-columns:96px minmax(0,1fr) 28px;gap:6px;align-items:center;margin-top:12px">
+                  <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" size="sm" type="time" value="{{ evTime }}" onChange="{{ onEvTime }}" hint-size="100%,28px"></x-import>
+                  <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" size="sm" placeholder="What's happening?" value="{{ evTitle }}" onChange="{{ onEvTitle }}" hint-size="100%,28px"></x-import>
+                  <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="plus" label="Add event" variant="primary" size="sm" onClick="{{ addEvent }}" hint-size="28px,28px"></x-import>
+                </form>
+              </div>
+              <sc-if value="{{ hasDayTasks }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column">
+                  <h3 style="margin:0 0 4px;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Due</h3>
+                  <sc-for list="{{ dayTasks }}" as="t" hint-placeholder-count="1">
+                    <div style="display:flex;align-items:center;gap:12px;min-height:40px;border-bottom:1px solid var(--border-1)">
+                      <x-import component-from-global-scope="StillDesignSystem_5e6a28.Checkbox" shape="round" size="sm" checked="{{ t.done }}" onChange="{{ t.onToggle }}" hint-size="16px,16px"></x-import>
+                      <span onClick="{{ t.onOpen }}" style="{{ t.textStyle }}">{{ t.text }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </aside>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isYear }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:40px 32px">
+            <sc-for list="{{ yearMonths }}" as="m" hint-placeholder-count="12">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <span onClick="{{ m.onClick }}" style="{{ m.nameStyle }}" style-hover="color:var(--fg-1)">{{ m.name }}</span>
+                <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px">
+                  <sc-for list="{{ m.letters }}" as="wl" hint-placeholder-count="7">
+                    <span style="font-size:10px;color:var(--fg-3);text-align:center;padding-bottom:2px">{{ wl }}</span>
+                  </sc-for>
+                  <sc-for list="{{ m.days }}" as="d" hint-placeholder-count="30">
+                    <span onClick="{{ d.onClick }}" style="{{ d.style }}"><span>{{ d.num }}</span><span style="{{ d.dotStyle }}"></span></span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAgenda }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column">
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3);padding-bottom:12px">{{ agendaRange }}</span>
+            <sc-for list="{{ agenda }}" as="g" hint-placeholder-count="4">
+              <section class="st-two" style="display:grid;grid-template-columns:140px minmax(0,1fr);gap:4px 24px;padding:16px 0;border-top:1px solid var(--border-1)">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <span style="{{ g.labelStyle }}">{{ g.label }}</span>
+                  <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3)">{{ g.sub }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column">
+                  <sc-for list="{{ g.events }}" as="ev" hint-placeholder-count="2">
+                    <div onClick="{{ ev.onOpen }}" style="display:flex;align-items:center;gap:12px;min-height:36px;cursor:pointer;border-radius:6px;padding:0 8px;margin:0 -8px" style-hover="background:var(--surface-hover)">
+                      <span style="font-family:var(--font-mono);font-size:13px;color:var(--fg-3);width:104px;flex:none">{{ ev.range }}</span>
+                      <span style="{{ ev.dot }}"></span>
+                      <span style="{{ ev.titleStyle }}">{{ ev.title }}</span>
+                    </div>
+                  </sc-for>
+                  <sc-for list="{{ g.tasks }}" as="t" hint-placeholder-count="0">
+                    <div style="display:flex;align-items:center;gap:12px;min-height:36px">
+                      <span style="width:104px;flex:none;font-size:12px;color:var(--fg-3)">Due</span>
+                      <x-import component-from-global-scope="StillDesignSystem_5e6a28.Checkbox" shape="round" size="sm" checked="{{ t.done }}" onChange="{{ t.onToggle }}" hint-size="16px,16px"></x-import>
+                      <span onClick="{{ t.onOpen }}" style="{{ t.textStyle }}">{{ t.text }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </section>
+            </sc-for>
+            <sc-if value="{{ noAgenda }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;font-size:13px;color:var(--fg-3)">Nothing ahead.</p>
+            </sc-if>
+          </div>
+        </sc-if>
+        <div class="st-pill" style="{{ pillWrap }}">
+          <div style="pointer-events:auto;display:flex;padding:4px;border-radius:999px;background:var(--surface-1);border:1px solid var(--border-1);box-shadow:var(--shadow-overlay)">
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Tabs" variant="segmented" items="{{ calModes }}" value="{{ calMode }}" onChange="{{ onCalMode }}" dc-props="{{ pillTabs }}" hint-size="440px,30px"></x-import>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isMatrix }}" hint-placeholder-val="{{ false }}">
+      <div class="st-pad" style="padding:56px 40px 96px;display:flex;flex-direction:column;gap:24px">
+        <h1 style="margin:0;font-size:32px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">Matrix</h1>
+        <div class="st-split" style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px;align-items:start">
+          <div class="st-two" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+            <sc-for list="{{ quads }}" as="q" hint-placeholder-count="4">
+              <div onDragOver="{{ q.onDragOver }}" onDrop="{{ q.onDrop }}" style="{{ q.cardStyle }}">
+                <div style="display:flex;align-items:center;gap:8px;padding-bottom:4px">
+                  <span style="{{ q.dotStyle }}"></span>
+                  <span style="font-weight:600;font-size:15px;white-space:nowrap">{{ q.label }}</span>
+                  <span style="font-size:13px;color:var(--fg-3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ q.sub }}</span>
+                  <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3)">{{ q.count }}</span>
+                </div>
+                <form onSubmit="{{ q.onAdd }}" style="border-bottom:1px solid var(--border-1)">
+                  <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" variant="bare" size="sm" icon="plus" placeholder="Add" value="{{ q.addValue }}" onChange="{{ q.onAddChange }}" hint-size="100%,36px"></x-import>
+                </form>
+                <sc-for list="{{ q.tasks }}" as="t" hint-placeholder-count="2">
+                  <div draggable="true" onDragStart="{{ t.onDragStart }}" onDragOver="{{ t.onDragOver }}" onDrop="{{ t.onDrop }}" onDragEnd="{{ t.onDragEnd }}" style="position:relative;display:flex;align-items:center;gap:10px;min-height:38px;border-bottom:1px solid var(--border-1);cursor:grab">
+                    <sc-if value="{{ t.dropBefore }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:0;right:0;top:-1px;height:2px;border-radius:2px;background:var(--accent);pointer-events:none"></span></sc-if>
+                    <sc-if value="{{ t.dropAfter }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:0;right:0;bottom:-1px;height:2px;border-radius:2px;background:var(--accent);pointer-events:none"></span></sc-if>
+                    <x-import component-from-global-scope="StillDesignSystem_5e6a28.Checkbox" shape="round" size="sm" checked="{{ t.done }}" onChange="{{ t.onToggle }}" hint-size="16px,16px"></x-import>
+                    <span onClick="{{ t.onOpen }}" style="{{ t.textStyle }}">{{ t.text }}</span>
+                    <span style="{{ t.dueStyle }}">{{ t.dueLabel }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <aside onDragOver="{{ allowDrop }}" onDrop="{{ onUnflagDrop }}" style="display:flex;flex-direction:column;gap:4px;position:sticky;top:24px">
+            <h2 style="margin:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Unflagged <span style="font-family:var(--font-mono);letter-spacing:0;margin-left:6px">{{ unsortedCount }}</span></h2>
+            <form onSubmit="{{ addUnflagged }}" style="border-bottom:1px solid var(--border-1)">
+              <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" variant="bare" size="sm" icon="plus" placeholder="What needs doing?" value="{{ uAdd }}" onChange="{{ onUAdd }}" hint-size="100%,36px"></x-import>
+            </form>
+            <sc-for list="{{ unsorted }}" as="u" hint-placeholder-count="2">
+              <div draggable="true" onDragStart="{{ u.onDragStart }}" onDragOver="{{ u.onDragOver }}" onDrop="{{ u.onDrop }}" onDragEnd="{{ u.onDragEnd }}" style="position:relative;display:flex;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid var(--border-1);cursor:grab">
+                    <sc-if value="{{ u.dropBefore }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:0;right:0;top:-1px;height:2px;border-radius:2px;background:var(--accent);pointer-events:none"></span></sc-if>
+                    <sc-if value="{{ u.dropAfter }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:0;right:0;bottom:-1px;height:2px;border-radius:2px;background:var(--accent);pointer-events:none"></span></sc-if>
+                <span onClick="{{ u.onOpen }}" style="flex:1;min-width:0;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ u.text }}</span>
+                <div style="display:flex;gap:0">
+                  <sc-for list="{{ u.opts }}" as="o" hint-placeholder-count="4">
+                    <button type="button" title="{{ o.title }}" aria-label="{{ o.title }}" onClick="{{ o.onClick }}" style="width:26px;height:28px;border:none;border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:var(--surface-hover)"><span style="{{ o.dot }}"></span></button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noUnsorted }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:8px 0 0;font-size:13px;color:var(--fg-3)">Everything is flagged.</p>
+            </sc-if>
+          </aside>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isHabits }}" hint-placeholder-val="{{ false }}">
+      <div class="st-pad" style="padding:56px 40px 96px;display:flex;flex-direction:column;gap:24px">
+        <h1 style="margin:0;font-size:32px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">Habits</h1>
+        <section style="display:flex;flex-direction:column">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) repeat(7,30px) 44px 28px;gap:4px;align-items:end;padding-bottom:8px">
+            <span></span>
+            <sc-for list="{{ habitDays }}" as="d" hint-placeholder-count="7">
+              <span style="{{ d.style }}"><span style="font-size:11px">{{ d.wd }}</span><span style="font-family:var(--font-mono);font-size:12px">{{ d.num }}</span></span>
+            </sc-for>
+            <span style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3);text-align:right">Streak</span>
+            <span></span>
+          </div>
+          <sc-for list="{{ habitRows }}" as="h" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) repeat(7,30px) 44px 28px;gap:4px;align-items:center;min-height:48px;border-top:1px solid var(--border-1)">
+              <span style="display:flex;flex-direction:column;min-width:0;padding:6px 0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.name }}</span><span style="font-size:12px;color:var(--fg-3)">{{ h.schedule }}</span></span>
+              <sc-for list="{{ h.cells }}" as="c" hint-placeholder-count="7">
+                <span style="display:flex;justify-content:center;align-items:center;height:18px">
+                  <sc-if value="{{ c.on }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="StillDesignSystem_5e6a28.Checkbox" checked="{{ c.checked }}" onChange="{{ c.onChange }}" hint-size="18px,18px"></x-import></sc-if>
+                  <sc-if value="{{ c.off }}" hint-placeholder-val="{{ false }}"><span style="width:4px;height:4px;border-radius:999px;background:var(--border-2)"></span></sc-if>
+                </span>
+              </sc-for>
+              <span style="font-family:var(--font-mono);font-size:13px;color:var(--fg-2);text-align:right">{{ h.streak }}</span>
+              <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="x" label="Remove habit" size="sm" onClick="{{ h.onDelete }}" hint-size="28px,28px"></x-import>
+            </div>
+          </sc-for>
+          <form onSubmit="{{ addHabit }}" style="border-top:1px solid var(--border-1)">
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" variant="bare" icon="plus" placeholder="New habit" value="{{ newHabit }}" onChange="{{ onNewHabit }}" hint-size="100%,44px"></x-import>
+            <sc-if value="{{ habitComposing }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding:4px 0 12px 28px">
+                <x-import component-from-global-scope="StillDesignSystem_5e6a28.Tabs" variant="segmented" size="sm" items="{{ habitFreqs }}" value="{{ habitFreq }}" onChange="{{ onHabitFreq }}" hint-size="280px,30px"></x-import>
+                <div role="group" aria-label="Days" style="display:flex;gap:4px">
+                  <sc-for list="{{ habitDayChips }}" as="d" hint-placeholder-count="7">
+                    <button type="button" aria-label="{{ d.name }}" aria-pressed="{{ d.on }}" onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.letter }}</button>
+                  </sc-for>
+                </div>
+                <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+                  <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3)">{{ habitDraftLabel }}</span>
+                  <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="check" label="Create habit" size="sm" onClick="{{ addHabit }}" disabled="{{ habitNoDays }}" hint-size="28px,28px"></x-import>
+                </span>
+              </div>
+            </sc-if>
+          </form>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isNotes }}" hint-placeholder-val="{{ false }}">
+      <div class="st-pad" style="padding:56px 40px 96px;display:flex;flex-direction:column;gap:24px">
+        <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <h1 style="margin:0;font-size:32px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">Notes <span style="font-family:var(--font-mono);font-size:15px;font-weight:400;color:var(--fg-3);letter-spacing:0">{{ notesCount }}</span></h1>
+          <div style="width:220px;max-width:100%">
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" size="sm" icon="search" placeholder="Search" value="{{ noteQuery }}" onChange="{{ onNoteQuery }}" hint-size="100%,28px"></x-import>
+          </div>
+        </header>
+        <div style="background:var(--surface-1);border:1px solid var(--border-2);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px">
+          <textarea rows="3" placeholder="What's on your mind?" value="{{ noteDraft }}" onChange="{{ onNoteDraft }}" onKeyDown="{{ onNoteKey }}" style="border:none;outline:none;resize:none;background:transparent;color:var(--fg-1);font-family:var(--font-sans);font-size:17px;line-height:1.5;padding:0;width:100%"></textarea>
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px">
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3)">⌘ ↵</span>
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="primary" size="sm" onClick="{{ saveNote }}" hint-size="60px,28px">Save</x-import>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:12px;align-items:start">
+          <sc-for list="{{ noteCards }}" as="n" hint-placeholder-count="4">
+            <div onClick="{{ n.onOpen }}" style="background:var(--surface-1);border:1px solid var(--border-1);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;cursor:pointer" style-hover="border-color:var(--border-strong)">
+              <p style="margin:0;white-space:pre-wrap;text-wrap:pretty;overflow:hidden;display:-webkit-box;-webkit-line-clamp:8;-webkit-box-orient:vertical">{{ n.text }}</p>
+              <div style="display:flex;align-items:center;gap:2px">
+                <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3);flex:1">{{ n.when }}</span>
+                <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="pin" label="Pin" size="sm" active="{{ n.pinned }}" onClick="{{ n.onPin }}" hint-size="28px,28px"></x-import>
+                <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="trash-2" label="Delete" size="sm" onClick="{{ n.onDelete }}" hint-size="28px,28px"></x-import>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ noNotes }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:0;font-size:13px;color:var(--fg-3)">{{ noNotesText }}</p>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isFinance }}" hint-placeholder-val="{{ false }}">
+      <div class="st-pad" style="padding:56px 40px 96px;display:flex;flex-direction:column;gap:32px">
+        <header style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <h1 style="margin:0;font-size:32px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">Finance</h1>
+          <div style="display:flex;align-items:center;gap:4px">
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="chevron-left" label="Previous month" onClick="{{ finPrev }}" hint-size="34px,34px"></x-import>
+            <span style="min-width:132px;text-align:center;font-weight:500">{{ finMonthLabel }}</span>
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="chevron-right" label="Next month" onClick="{{ finNext }}" hint-size="34px,34px"></x-import>
+          </div>
+        </header>
+
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;border-top:1px solid var(--border-1);border-bottom:1px solid var(--border-1);padding:20px 0">
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Earned</span><span style="font-family:var(--font-mono);font-size:24px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums">{{ fin.earned }}</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Spent</span><span style="font-family:var(--font-mono);font-size:24px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums">{{ fin.spent }}</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Net</span><span style="{{ fin.netStyle }}">{{ fin.net }}</span></div>
+        </div>
+
+        <form onSubmit="{{ addEntry }}" style="display:flex;flex-direction:column;gap:12px">
+          <div style="align-self:flex-start">
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Tabs" variant="segmented" size="sm" items="{{ entryTypes }}" value="{{ draft.type }}" onChange="{{ onDraftType }}" hint-size="180px,30px"></x-import>
+          </div>
+          <div class="st-entry" style="display:grid;grid-template-columns:120px 150px minmax(0,1fr) 150px 34px;gap:8px;align-items:center">
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" type="number" placeholder="0.00" value="{{ draft.amount }}" onChange="{{ onDraftAmount }}" hint-size="100%,34px"></x-import>
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Select" options="{{ catOptions }}" value="{{ draft.category }}" onChange="{{ onDraftCat }}" hint-size="100%,34px"></x-import>
+            <div class="st-entry-note"><x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" placeholder="What for?" value="{{ draft.note }}" onChange="{{ onDraftNote }}" hint-size="100%,34px"></x-import></div>
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" type="date" value="{{ draft.date }}" onChange="{{ onDraftDate }}" hint-size="100%,34px"></x-import>
+            <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="plus" label="Log entry" variant="primary" onClick="{{ addEntry }}" hint-size="34px,34px"></x-import>
+          </div>
+        </form>
+
+        <div class="st-two" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px">
+          <section style="display:flex;flex-direction:column;gap:12px">
+            <h2 style="margin:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Spending by category</h2>
+            <sc-for list="{{ catRows }}" as="c" hint-placeholder-count="5">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                  <span style="{{ c.dot }}"></span>
+                  <span style="flex:1">{{ c.name }}</span>
+                  <span style="font-family:var(--font-mono);color:var(--fg-3)">{{ c.pct }}</span>
+                  <span style="font-family:var(--font-mono);width:84px;text-align:right">{{ c.amount }}</span>
+                </div>
+                <div style="height:4px;border-radius:999px;background:var(--surface-sunken);overflow:hidden"><div style="{{ c.bar }}"></div></div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noSpend }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;font-size:13px;color:var(--fg-3)">No spending logged.</p>
+            </sc-if>
+          </section>
+          <section style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+              <h2 style="margin:0;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Last 6 months</h2>
+              <div style="display:flex;gap:12px;font-size:12px;color:var(--fg-3)">
+                <span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:var(--accent)"></span>Earned</span>
+                <span style="display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:var(--border-strong)"></span>Spent</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:end;height:168px;padding-top:8px">
+              <sc-for list="{{ chart }}" as="m" hint-placeholder-count="6">
+                <div onClick="{{ m.onClick }}" title="{{ m.title }}" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer">
+                  <div style="display:flex;align-items:flex-end;gap:3px;height:132px">
+                    <div style="{{ m.earnStyle }}"></div>
+                    <div style="{{ m.spentStyle }}"></div>
+                  </div>
+                  <span style="{{ m.labelStyle }}">{{ m.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </div>
+
+        <section style="display:flex;flex-direction:column;gap:4px">
+          <h2 style="margin:0 0 4px;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-3)">Entries <span style="font-family:var(--font-mono);letter-spacing:0;margin-left:6px">{{ entryCount }}</span></h2>
+          <sc-for list="{{ entryGroups }}" as="g" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column">
+              <div style="display:flex;justify-content:space-between;gap:12px;padding:16px 0 6px;font-size:13px;color:var(--fg-3);border-bottom:1px solid var(--border-1)">
+                <span>{{ g.label }}</span>
+                <span style="font-family:var(--font-mono)">{{ g.total }}</span>
+              </div>
+              <sc-for list="{{ g.items }}" as="e" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:12px;min-height:44px;border-bottom:1px solid var(--border-1)">
+                  <span style="{{ e.dot }}"></span>
+                  <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ e.category }}<span style="color:var(--fg-3);margin-left:8px">{{ e.note }}</span></span>
+                  <span style="{{ e.amountStyle }}">{{ e.amount }}</span>
+                  <x-import component-from-global-scope="StillDesignSystem_5e6a28.IconButton" icon="x" label="Remove" size="sm" onClick="{{ e.onDelete }}" hint-size="28px,28px"></x-import>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noEntries }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:8px 0 0;font-size:13px;color:var(--fg-3)">Nothing logged this month.</p>
+          </sc-if>
+        </section>
+      </div>
+    </sc-if>
+  </main>
+
+  <nav class="st-bottom" style="position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface-2);border-top:1px solid var(--border-1);padding:6px 4px calc(6px + env(safe-area-inset-bottom));justify-content:space-around">
+    <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="7">
+      <div onClick="{{ item.go }}" style="{{ item.mobStyle }}">
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Icon" name="{{ item.icon }}" size="{{ 18 }}" hint-size="18px,18px"></x-import>
+        <span style="font-size:10px">{{ item.label }}</span>
+      </div>
+    </sc-for>
+  </nav>
+
+  <x-import component-from-global-scope="StillDesignSystem_5e6a28.Dialog" open="{{ taskOpen }}" onClose="{{ closeTask }}" title="Task" width="{{ 460 }}" hint-size="0px,0px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" label="Title" value="{{ et.text }}" onChange="{{ et.onText }}" hint-size="100%,58px"></x-import>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Select" label="List" options="{{ listOptions }}" value="{{ et.listId }}" onChange="{{ et.onList }}" hint-size="100%,58px"></x-import>
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" label="Due" type="date" value="{{ et.due }}" onChange="{{ et.onDue }}" hint-size="100%,58px"></x-import>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:13px;font-weight:500;color:var(--fg-2)">Priority</span>
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Tabs" variant="segmented" size="sm" fullWidth="{{ true }}" items="{{ prioTabs }}" value="{{ et.priority }}" onChange="{{ et.onPriority }}" hint-size="100%,30px"></x-import>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:8px;padding-top:8px">
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="ghost" size="sm" icon="trash-2" onClick="{{ et.onDelete }}" hint-size="80px,28px">Delete</x-import>
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="primary" size="sm" onClick="{{ closeTask }}" hint-size="60px,28px">Done</x-import>
+      </div>
+    </div>
+  </x-import>
+
+  <x-import component-from-global-scope="StillDesignSystem_5e6a28.Dialog" open="{{ evOpen }}" onClose="{{ closeEvent }}" title="{{ ee.dlgTitle }}" width="{{ 460 }}" hint-size="0px,0px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" label="Title" autoFocus="{{ true }}" placeholder="What's happening?" value="{{ ee.title }}" onChange="{{ ee.onTitle }}" hint-size="100%,58px"></x-import>
+      <div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);gap:12px">
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" label="Date" type="date" value="{{ ee.date }}" onChange="{{ ee.onDate }}" hint-size="100%,58px"></x-import>
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Input" label="Start" type="time" value="{{ ee.time }}" onChange="{{ ee.onTime }}" hint-size="100%,58px"></x-import>
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Select" label="Length" options="{{ durOptions }}" value="{{ ee.dur }}" onChange="{{ ee.onDur }}" hint-size="100%,58px"></x-import>
+      </div>
+      <sc-if value="{{ ee.hasTask }}" hint-placeholder-val="{{ false }}">
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Checkbox" label="Task done" checked="{{ ee.taskDone }}" onChange="{{ ee.onTaskDone }}" hint-size="120px,24px"></x-import>
+      </sc-if>
+      <div style="display:flex;justify-content:space-between;gap:8px;padding-top:8px">
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="ghost" size="sm" icon="trash-2" onClick="{{ ee.onDelete }}" hint-size="80px,28px">{{ ee.deleteLabel }}</x-import>
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="primary" size="sm" onClick="{{ closeEvent }}" hint-size="60px,28px">Done</x-import>
+      </div>
+    </div>
+  </x-import>
+
+  <x-import component-from-global-scope="StillDesignSystem_5e6a28.Dialog" open="{{ noteOpen }}" onClose="{{ closeNote }}" title="Note" description="{{ en.when }}" width="{{ 560 }}" hint-size="0px,0px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <textarea rows="10" value="{{ en.text }}" onChange="{{ en.onText }}" style="width:100%;box-sizing:border-box;resize:vertical;border:1px solid var(--border-2);border-radius:8px;background:var(--surface-1);color:var(--fg-1);font-family:var(--font-sans);font-size:15px;line-height:1.6;padding:12px;outline:none"></textarea>
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="ghost" size="sm" icon="trash-2" onClick="{{ en.onDelete }}" hint-size="80px,28px">Delete</x-import>
+        <x-import component-from-global-scope="StillDesignSystem_5e6a28.Button" variant="primary" size="sm" onClick="{{ closeNote }}" hint-size="60px,28px">Done</x-import>
+      </div>
+    </div>
+  </x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;currency&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;USD&quot;,&quot;EUR&quot;,&quot;GBP&quot;,&quot;INR&quot;,&quot;JPY&quot;,&quot;CAD&quot;,&quot;AUD&quot;,&quot;PHP&quot;,&quot;NGN&quot;],&quot;default&quot;:&quot;USD&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Finance&quot;},&quot;showFinanceOnToday&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Today&quot;}}">
+class Component extends DCLogic {
+  KEY = 'still-app-v2';
+  DATA = ['view', 'theme', 'calMode', 'lists', 'tasks', 'events', 'habits', 'notes', 'entries', 'sideCollapsed'];
+  WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  MOL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  PRIO = {
+    do: { label: 'Do first', short: 'Do', sub: 'Urgent · important', color: 'var(--clay-500)' },
+    plan: { label: 'Schedule', short: 'Plan', sub: 'Important', color: 'var(--amber-500)' },
+    delegate: { label: 'Delegate', short: 'Delegate', sub: 'Urgent', color: 'var(--mist-500)' },
+    drop: { label: 'Drop', short: 'Drop', sub: 'Neither', color: 'var(--gray-400)' }
+  };
+  PO = ['do', 'plan', 'delegate', 'drop'];
+  CATS = {
+    expense: ['Housing', 'Groceries', 'Dining', 'Transport', 'Bills', 'Shopping', 'Health', 'Fun', 'Other'],
+    income: ['Salary', 'Freelance', 'Gifts', 'Refund', 'Other']
+  };
+  CC = { Housing: 'var(--gray-500)', Groceries: 'var(--moss-500)', Dining: 'var(--amber-500)', Transport: 'var(--mist-500)', Bills: 'var(--sage-500)', Shopping: 'var(--clay-500)', Health: 'var(--moss-700)', Fun: 'var(--amber-700)', Other: 'var(--gray-400)', Salary: 'var(--sage-500)', Freelance: 'var(--mist-500)', Gifts: 'var(--amber-500)', Refund: 'var(--moss-500)' };
+
+  state = this.init();
+
+  init() {
+    let saved = null, fromV1 = false;
+    try { let r = localStorage.getItem(this.KEY); if (!r) { r = localStorage.getItem('still-app-v1'); fromV1 = !!r; } saved = r ? JSON.parse(r) : null; } catch (e) {}
+    const base = saved || this.seed();
+    if (!saved || fromV1) base.tasks = this.sortTasks(base.tasks);
+    const t = this.today();
+    return {
+      ...base, view: base.view || 'today', theme: base.theme || 'dark', calMode: base.calMode || 'week', editEventId: null, uAdd: '', sideCollapsed: !!base.sideCollapsed, colAdd: {}, showDoneLists: {}, dragOver: null,
+      todayTask: '', quickTask: '', quickNote: '', taskFilter: 'all', addingList: false, newList: '', showDone: false,
+      editTaskId: null, calMonth: t.slice(0, 7), calDay: t, evTime: '09:00', evTitle: '',
+      qAdd: { do: '', plan: '', delegate: '', drop: '' }, newHabit: '', habitFreq: 'daily', habitDaysSel: [0, 1, 2, 3, 4, 5, 6],
+      noteDraft: '', noteQuery: '', editNoteId: null,
+      finMonth: t.slice(0, 7), draft: { type: 'expense', amount: '', category: 'Groceries', note: '', date: t }
+    };
+  }
+  componentDidUpdate() {
+    setTimeout(() => this.syncScroll(), 30);
+    const out = {}; this.DATA.forEach(k => out[k] = this.state[k]);
+    try { localStorage.setItem(this.KEY, JSON.stringify(out)); } catch (e) {}
+  }
+
+  k(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  p(k) { const a = k.split('-').map(Number); return new Date(a[0], a[1] - 1, a[2] || 1); }
+  today() { return this.k(new Date()); }
+  add(k, n) { const d = this.p(k); d.setDate(d.getDate() + n); return this.k(d); }
+  addMonth(mk, n) { const a = mk.split('-').map(Number); const d = new Date(a[0], a[1] - 1 + n, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+  uid() { return Math.random().toString(36).slice(2, 10); }
+  rel(k) {
+    const t = this.today();
+    if (k === t) return 'Today';
+    if (k === this.add(t, 1)) return 'Tomorrow';
+    if (k === this.add(t, -1)) return 'Yesterday';
+    const d = this.p(k);
+    if (k.slice(0, 7) === t.slice(0, 7)) return this.WD[d.getDay()] + ' ' + d.getDate();
+    return this.MO[d.getMonth()] + ' ' + d.getDate() + (d.getFullYear() !== new Date().getFullYear() ? ', ' + d.getFullYear() : '');
+  }
+  longDate(k) { const d = this.p(k); return this.WD[d.getDay()] + ', ' + this.MOL[d.getMonth()] + ' ' + d.getDate(); }
+  monthLabel(mk) { const a = mk.split('-').map(Number); return this.MOL[a[1] - 1] + ' ' + a[0]; }
+  ago(ts) {
+    const m = Math.floor((Date.now() - ts) / 60000);
+    if (m < 1) return 'now';
+    if (m < 60) return m + 'm ago';
+    if (m < 1440) return Math.floor(m / 60) + 'h ago';
+    return this.rel(this.k(new Date(ts)));
+  }
+  money(n, sign) {
+    const cur = this.props.currency || 'USD';
+    let s;
+    try { s = new Intl.NumberFormat('en-US', { style: 'currency', currency: cur, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Math.abs(n)); }
+    catch (e) { s = Math.abs(n).toFixed(2); }
+    if (sign) return (n < 0 ? '−' : '+') + s;
+    return (n < 0 ? '−' : '') + s;
+  }
+
+  seed() {
+    const t = this.today(), A = n => this.add(t, n), now = Date.now();
+    const lists = [{ id: 'inbox', name: 'Inbox', color: 'var(--gray-400)' }, { id: 'work', name: 'Work', color: 'var(--mist-500)' }, { id: 'home', name: 'Personal', color: 'var(--moss-500)' }];
+    const tasks = [
+      { id: 't1', text: 'Send invoice to Harbor & Co', listId: 'work', due: t, priority: 'do', done: false },
+      { id: 't2', text: 'Draft Q4 plan outline', listId: 'work', due: A(2), priority: 'plan', done: false },
+      { id: 't3', text: 'Book flights for October', listId: 'home', due: A(-1), priority: 'do', done: false },
+      { id: 't4', text: 'Renew car insurance', listId: 'home', due: A(5), priority: 'plan', done: false },
+      { id: 't5', text: 'Reply to recruiter email', listId: 'inbox', due: t, priority: 'delegate', done: false },
+      { id: 't6', text: 'Clear downloads folder', listId: 'inbox', due: '', priority: 'drop', done: false },
+      { id: 't7', text: 'Pick up dry cleaning', listId: 'home', due: '', priority: null, done: false },
+      { id: 't8', text: 'Review pull requests', listId: 'work', due: A(-1), priority: null, done: true }
+    ];
+    const events = [
+      { id: 'e1', date: t, time: '09:30', title: 'Team standup' }, { id: 'e2', date: t, time: '12:30', title: 'Lunch with Sam' },
+      { id: 'e3', date: t, time: '17:00', title: 'Gym' }, { id: 'e4', date: A(1), time: '10:00', title: 'Design review' },
+      { id: 'e5', date: A(3), time: '19:00', title: 'Dinner at Mira' }, { id: 'e6', date: A(-2), time: '15:00', title: 'Dentist' }
+    ];
+    const mk = (pat) => { const log = {}; for (let i = 1; i < 21; i++) if (pat[i % pat.length] === '1') log[A(-i)] = true; return log; };
+    const habits = [
+      { id: 'h1', name: 'Read 20 minutes', log: mk('1111011') },
+      { id: 'h2', name: 'Walk 8k steps', log: mk('1101101') },
+      { id: 'h3', name: 'No phone after 22:00', log: mk('1001011') }
+    ];
+    const notes = [
+      { id: 'n1', text: 'Studio Wi-Fi: Harbor-5G — password on the fridge', pinned: true, updated: now - 86400000 * 6 },
+      { id: 'n2', text: 'Gift idea for Mom: the ceramic pour-over set from the Sunday market', pinned: false, updated: now - 3600000 * 3 },
+      { id: 'n3', text: 'Book Lena recommended — The Overstory', pinned: false, updated: now - 86400000 * 2 },
+      { id: 'n4', text: 'Parking: level 3, row F', pinned: false, updated: now - 60000 * 25 },
+      { id: 'n5', text: 'Ask landlord about the radiator before winter.\nAlso: spare key for the bike lock.', pinned: false, updated: now - 86400000 * 4 }
+    ];
+    let seedN = 42; const rnd = () => { seedN = (seedN * 9301 + 49297) % 233280; return seedN / 233280; };
+    const entries = []; const cm = t.slice(0, 7); const day = Number(t.slice(8));
+    for (let i = 5; i >= 0; i--) {
+      const m = this.addMonth(cm, -i); const maxD = i === 0 ? day : 31;
+      const push = (d, type, amount, category, note) => { if (d <= maxD) entries.push({ id: this.uid(), type, amount: Math.round(amount * 100) / 100, category, note, date: m + '-' + String(d).padStart(2, '0') }); };
+      push(1, 'income', 4200, 'Salary', 'Monthly salary'); push(1, 'expense', 1450, 'Housing', 'Rent');
+      if (rnd() > 0.4) push(14, 'income', 300 + Math.round(rnd() * 900), 'Freelance', 'Client project');
+      push(5, 'expense', 60 + rnd() * 30, 'Bills', 'Electricity'); push(12, 'expense', 45, 'Bills', 'Phone');
+      [3, 10, 17, 24].forEach(d => push(d, 'expense', 55 + rnd() * 60, 'Groceries', 'Weekly shop'));
+      [6, 15, 22].forEach((d, j) => push(d, 'expense', 14 + rnd() * 40, 'Dining', ['Ramen', 'Coffee & pastry', 'Pizza night'][j]));
+      push(8, 'expense', 40 + rnd() * 30, 'Transport', 'Transit pass');
+      push(19, 'expense', 30 + rnd() * 120, 'Shopping', ['New shoes', 'Kitchen stuff', 'Books'][Math.floor(rnd() * 3)]);
+      push(21, 'expense', 15, 'Fun', 'Streaming');
+      if (rnd() > 0.6) push(11, 'expense', 25 + rnd() * 50, 'Health', 'Pharmacy');
+    }
+    return { view: 'today', theme: 'dark', lists, tasks, events, habits, notes, entries };
+  }
+
+  setTask(id, patch) { this.setState(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, ...patch } : t) })); }
+  newTask(text, extra) { text = (text || '').trim(); if (!text) return null; return { id: this.uid(), text, listId: 'inbox', due: '', priority: null, done: false, ...extra }; }
+  pushTask(text, extra, resetKey) {
+    const t = this.newTask(text, extra); if (!t) return;
+    this.setState(s => { const o = { tasks: [t, ...s.tasks] }; if (resetKey) o[resetKey] = ''; return o; });
+  }
+  sortTasks(arr) {
+    return arr.slice().sort((a, b) => (a.due || '9999') < (b.due || '9999') ? -1 : (a.due || '9999') > (b.due || '9999') ? 1 : (this.PO.indexOf(a.priority) + 5) % 9 - (this.PO.indexOf(b.priority) + 5) % 9);
+  }
+  taskVM(t, showList) {
+    const t0 = this.today(); const overdue = !t.done && t.due && t.due < t0;
+    const list = this.state.lists.find(l => l.id === t.listId) || this.state.lists[0];
+    const pr = this.PRIO[t.priority];
+    return {
+      id: t.id, text: t.text, done: !!t.done,
+      onDragStart: e => { e.dataTransfer.setData('text/plain', 'task:' + t.id); e.dataTransfer.effectAllowed = 'move'; },
+      onToggle: c => this.setTask(t.id, { done: c }),
+      onOpen: () => this.setState({ editTaskId: t.id }),
+      dueLabel: t.due ? this.rel(t.due) : '',
+      dueStyle: { fontFamily: 'var(--font-mono)', fontSize: 12, color: overdue ? 'var(--danger-fg)' : 'var(--fg-3)', flex: 'none' },
+      textStyle: { flex: 1, minWidth: 0, cursor: 'pointer', color: t.done ? 'var(--fg-3)' : 'var(--fg-1)', textDecoration: t.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+      hasPrio: !!pr, prioLabel: pr ? pr.label : '', prioStyle: { width: 7, height: 7, borderRadius: 2, background: pr ? pr.color : 'transparent', flex: 'none' },
+      showList: !!showList, listName: list ? list.name : '', listDot: { width: 7, height: 7, borderRadius: 2, background: list ? list.color : 'var(--gray-400)' }
+    };
+  }
+  toggleHabit(id, day, c) {
+    this.setState(s => ({ habits: s.habits.map(h => { if (h.id !== id) return h; const log = { ...h.log }; if (c) log[day] = true; else delete log[day]; return { ...h, log }; }) }));
+  }
+  FREQ = { daily: [0, 1, 2, 3, 4, 5, 6], weekdays: [1, 2, 3, 4, 5], weekends: [0, 6] };
+  onDay(h, d) { return !h.days || h.days.includes(this.p(d).getDay()); }
+  schedLabel(days) {
+    if (!days || days.length === 7) return 'Daily';
+    const k = days.slice().sort().join();
+    if (k === '1,2,3,4,5') return 'Weekdays';
+    if (k === '0,6') return 'Weekends';
+    return [1, 2, 3, 4, 5, 6, 0].filter(i => days.includes(i)).map(i => this.WD[i]).join(', ');
+  }
+  streak(h) {
+    const t = this.today(); let d = t, n = 0;
+    if (this.onDay(h, t) && !h.log[t]) d = this.add(t, -1);
+    for (let i = 0; i < 400; i++) { if (this.onDay(h, d)) { if (!h.log[d]) break; n++; } d = this.add(d, -1); }
+    return n;
+  }
+  addNote(text, key) {
+    text = (text || '').trim(); if (!text) return;
+    this.setState(s => ({ notes: [{ id: this.uid(), text, pinned: false, updated: Date.now() }, ...s.notes], [key]: '' }));
+  }
+  setDraft(patch) { this.setState(s => ({ draft: { ...s.draft, ...patch } })); }
+  sumMonth(mk) {
+    let earned = 0, spent = 0;
+    this.state.entries.forEach(e => { if (e.date.slice(0, 7) === mk) { if (e.type === 'income') earned += e.amount; else spent += e.amount; } });
+    return { earned, spent };
+  }
+  HH = 48;
+  mins(t) { const a = (t || '0:0').split(':').map(Number); return a[0] * 60 + (a[1] || 0); }
+  hm(m) { m = Math.max(0, Math.min(1439, m)); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+  durLabel(d) { const h = Math.floor(d / 60), m = d % 60; return (h ? h + 'h' : '') + (h && m ? ' ' : '') + (m ? m + 'm' : ''); }
+  syncScroll() { const el = document.querySelector('[data-tg-scroll]'); if (el && el !== this._sc) { this._sc = el; el.scrollTop = 7 * this.HH; } if (!el) this._sc = null; }
+  componentDidMount() { setTimeout(() => this.syncScroll(), 60); }
+  layout(evs) {
+    const items = evs.map(e => { const s = this.mins(e.time); return { e, s, en: Math.min(1440, s + (e.dur || 60)) }; }).sort((a, b) => a.s - b.s || b.en - a.en);
+    let cluster = [], ends = [], clEnd = -1;
+    const flush = () => { const n = ends.length; cluster.forEach(c => c.n = n); cluster = []; ends = []; };
+    items.forEach(it => {
+      if (it.s >= clEnd) flush();
+      let l = ends.findIndex(x => x <= it.s); if (l < 0) { l = ends.length; ends.push(it.en); } else ends[l] = it.en;
+      it.lane = l; cluster.push(it); clEnd = Math.max(clEnd, it.en);
+    });
+    flush(); return items;
+  }
+  calShift(n) {
+    this.setState(st => {
+      const m = st.calMode || 'week';
+      if (m === 'month') { const cm = this.addMonth(st.calMonth, n); return { calMonth: cm, calDay: cm === this.today().slice(0, 7) ? this.today() : cm + '-01' }; }
+      if (m === 'year') { const d = this.p(st.calDay); d.setFullYear(d.getFullYear() + n); const k = this.k(d); return { calDay: k, calMonth: k.slice(0, 7) }; }
+      const k = this.add(st.calDay, n * ({ day: 1, '3day': 3, week: 7, agenda: 14 }[m] || 7)); return { calDay: k, calMonth: k.slice(0, 7) };
+    });
+  }
+  newBlock(date, m, dur) { const id = this.uid(); this.setState(st => ({ events: [...st.events, { id, date, time: this.hm(m), dur: dur || 60, title: '' }], editEventId: id })); }
+  startCreate(date, e) {
+    if (e.button !== 0) return; e.preventDefault();
+    const col = e.currentTarget.parentElement, HH = this.HH;
+    const at = y => Math.max(0, Math.min(1440, Math.round((y - col.getBoundingClientRect().top) / HH * 4) * 15));
+    const a = Math.min(1425, Math.floor((e.clientY - col.getBoundingClientRect().top) / HH * 4) * 15);
+    let lo = a, hi = a + 15, moved = false;
+    const mv = ev => { const b = at(ev.clientY); if (Math.abs(b - a) >= 15) moved = true; if (!moved) return; lo = Math.min(a, b); hi = Math.max(a + 15, b); this.setState({ tgDraft: { date, s: lo, e: hi } }); };
+    const up = () => { window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up); this.setState({ tgDraft: null }); if (moved) this.newBlock(date, lo, hi - lo); else this.newBlock(date, Math.floor(a / 30) * 30, 60); };
+    window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
+  }
+  dragData(e) { const d = (e.dataTransfer.getData('text/plain') || '').split(':'); return { kind: d[0], id: d[1] }; }
+  dropAt(date, m, e) {
+    e.preventDefault(); const { kind, id } = this.dragData(e); const time = this.hm(m);
+    if (kind === 'ev') this.setState(st => ({ events: st.events.map(x => x.id === id ? { ...x, date, time } : x) }));
+    if (kind === 'task') { const t = this.state.tasks.find(x => x.id === id); if (!t) return; this.setState(st => ({ events: [...st.events, { id: this.uid(), date, time, dur: 60, title: t.text, taskId: id }] })); }
+  }
+  dot(color, size) { return { width: size || 7, height: size || 7, borderRadius: 2, background: color, flex: 'none' }; }
+  boardRef = React.createRef();
+  moveTask(dragId, targetId, pos, patch) {
+    this.setState(st => {
+      if (dragId === targetId) return { dragOver: null };
+      const arr = st.tasks.slice(); const i = arr.findIndex(x => x.id === dragId); if (i < 0) return { dragOver: null };
+      const t = { ...arr.splice(i, 1)[0], ...patch }; const j = targetId ? arr.findIndex(x => x.id === targetId) : -1;
+      if (j < 0) arr.push(t); else arr.splice(pos === 'after' ? j + 1 : j, 0, t);
+      return { tasks: arr, dragOver: null };
+    });
+  }
+  dnd(t, patch) {
+    const dv = this.state.dragOver;
+    const pos = e => { const r = e.currentTarget.getBoundingClientRect(); return e.clientY < r.top + r.height / 2 ? 'before' : 'after'; };
+    return {
+      dropBefore: !!dv && dv.id === t.id && dv.pos === 'before', dropAfter: !!dv && dv.id === t.id && dv.pos === 'after',
+      onDragOver: e => { e.preventDefault(); e.stopPropagation(); const p = pos(e), c = this.state.dragOver; if (!c || c.id !== t.id || c.pos !== p) this.setState({ dragOver: { id: t.id, pos: p } }); },
+      onDrop: e => { e.preventDefault(); e.stopPropagation(); const d = this.dragData(e); if (d.kind === 'task') this.moveTask(d.id, t.id, pos(e), patch); else this.setState({ dragOver: null }); },
+      onDragEnd: () => { if (this.state.dragOver) this.setState({ dragOver: null }); }
+    };
+  }
+  clearOver(e) { e.preventDefault(); if (this.state.dragOver) this.setState({ dragOver: null }); }
+  onBoardDown = e => {
+    if (e.button !== 0 || e.target.closest('[draggable="true"],input,button,textarea,select,a,label')) return;
+    const el = this.boardRef.current; if (!el) return;
+    const x0 = e.clientX, s0 = el.scrollLeft, c0 = el.style.cursor;
+    el.style.cursor = 'grabbing'; e.preventDefault();
+    const mv = ev => { el.scrollLeft = s0 - (ev.clientX - x0); };
+    const up = () => { el.style.cursor = c0; window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
+  };
+  scrollBoardEnd() { setTimeout(() => { const el = this.boardRef.current; if (el) el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' }); }, 40); }
+
+  renderVals() {
+    const s = this.state, t0 = this.today(), P = this.PRIO;
+    const go = v => e => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: v, addingList: false }); };
+    const open = s.tasks.filter(t => !t.done);
+    const todayOpen = this.sortTasks(open.filter(t => t.due && t.due <= t0));
+    const navDefs = [['today', 'Today', 'sun', String(todayOpen.length || '')], ['tasks', 'Tasks', 'list-checks', String(open.length || '')], ['calendar', 'Calendar', 'calendar', ''], ['matrix', 'Matrix', 'grid-2x2', ''], ['habits', 'Habits', 'repeat', ''], ['notes', 'Notes', 'sticky-note', String(s.notes.length || '')], ['finance', 'Finance', 'wallet', '']];
+    const navItems = navDefs.map(([key, label, icon, count]) => {
+      const on = s.view === key;
+      return {
+        key, label, icon, count, go: go(key),
+        style: { display: 'flex', alignItems: 'center', gap: 10, height: 34, boxSizing: 'border-box', whiteSpace: 'nowrap', justifyContent: s.sideCollapsed ? 'center' : 'flex-start', width: s.sideCollapsed ? 40 : 'auto', alignSelf: s.sideCollapsed ? 'center' : 'stretch', padding: s.sideCollapsed ? 0 : '0 10px', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: on ? 500 : 400, background: on ? 'var(--surface-active)' : 'transparent', color: on ? 'var(--fg-1)' : 'var(--fg-2)', transition: 'background 120ms' },
+        mobStyle: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '6px 4px', minWidth: 44, borderRadius: 8, cursor: 'pointer', color: on ? 'var(--fg-1)' : 'var(--fg-3)', background: on ? 'var(--surface-active)' : 'transparent' }
+      };
+    });
+
+    // Today
+    const todayHabits = s.habits.filter(h => this.onDay(h, t0)).map(h => ({ name: h.name, checked: !!h.log[t0], onChange: c => this.toggleHabit(h.id, t0, c) }));
+    const sortedNotes = s.notes.slice().sort((a, b) => (b.pinned - a.pinned) || (b.updated - a.updated));
+    const recentNotes = s.notes.slice().sort((a, b) => b.updated - a.updated).slice(0, 3).map(n => ({ preview: n.text.split('\n')[0], when: this.ago(n.updated), onOpen: () => this.setState({ editNoteId: n.id }) }));
+    const cm = this.sumMonth(t0.slice(0, 7));
+
+    // Tasks
+    const filt = s.taskFilter;
+    const inList = t => filt === 'all' || t.listId === filt;
+    const openTasks = this.sortTasks(open.filter(inList)).map(t => this.taskVM(t, filt === 'all'));
+    const doneTasks = s.tasks.filter(t => t.done && inList(t)).map(t => this.taskVM(t, false));
+
+    // Calendar
+    const taskById = {}; s.tasks.forEach(t => taskById[t.id] = t);
+    const evTitle = e => e.taskId && taskById[e.taskId] ? taskById[e.taskId].text : e.title;
+    const [cy, cmn] = s.calMonth.split('-').map(Number);
+    const first = new Date(cy, cmn - 1, 1); const offset = (first.getDay() + 6) % 7;
+    const start = this.add(this.k(first), -offset); const dim = new Date(cy, cmn, 0).getDate();
+    const weeks = Math.ceil((offset + dim) / 7);
+    const calCells = [];
+    for (let i = 0; i < weeks * 7; i++) {
+      const key = this.add(start, i); const inMonth = key.slice(0, 7) === s.calMonth; const sel = key === s.calDay; const isT = key === t0;
+      const evs = s.events.filter(e => e.date === key).sort((a, b) => a.time < b.time ? -1 : 1);
+      calCells.push({
+        num: Number(key.slice(8)), chips: evs.slice(0, 2).map(e => ({ time: e.time, title: evTitle(e) })), hasMore: evs.length > 2, more: '+' + (evs.length - 2),
+        onClick: () => this.setState({ calDay: key, calMonth: key.slice(0, 7), calMode: 'day' }),
+        style: { minHeight: 96, padding: 8, boxSizing: 'border-box', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, cursor: 'pointer', background: sel ? 'var(--surface-1)' : 'var(--bg-app)', boxShadow: sel ? 'inset 0 0 0 1px var(--border-strong)' : 'none' },
+        numStyle: { fontFamily: 'var(--font-mono)', fontSize: 12, width: 22, height: 22, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', background: isT ? 'var(--surface-inverse)' : 'transparent', color: isT ? 'var(--fg-inverse)' : inMonth ? 'var(--fg-1)' : 'var(--fg-disabled)' }
+      });
+    }
+    const dayEvents = s.events.filter(e => e.date === s.calDay).sort((a, b) => a.time < b.time ? -1 : 1).map(e => ({ time: e.time, title: evTitle(e), onOpen: () => this.setState({ editEventId: e.id }), onDelete: () => this.setState(st => ({ events: st.events.filter(x => x.id !== e.id) })) }));
+    const dayTasks = s.tasks.filter(t => t.due === s.calDay).map(t => this.taskVM(t));
+    const addEvent = e => {
+      if (e && e.preventDefault) e.preventDefault();
+      const title = s.evTitle.trim(); if (!title) return;
+      this.setState(st => ({ events: [...st.events, { id: this.uid(), date: st.calDay, time: st.evTime || '', title }], evTitle: '' }));
+    };
+
+    // Time grid, year, agenda
+    const mode = s.calMode || 'week', anchor = s.calDay, HH = this.HH;
+    let colDays = [];
+    if (mode === 'day') colDays = [anchor];
+    else if (mode === '3day') colDays = [0, 1, 2].map(i => this.add(anchor, i));
+    else { const dw = (this.p(anchor).getDay() + 6) % 7; const st0 = this.add(anchor, -dw); colDays = [0, 1, 2, 3, 4, 5, 6].map(i => this.add(st0, i)); }
+    const nd = new Date(), nowM = nd.getHours() * 60 + nd.getMinutes();
+    const tgCols = colDays.map(d => {
+      const dt = this.p(d), isT = d === t0;
+      const blocks = this.layout(s.events.filter(e => e.date === d && e.time)).map(it => {
+        const e = it.e, tk = e.taskId ? taskById[e.taskId] : null, done = !!(tk && tk.done);
+        const h = Math.max(20, (it.en - it.s) / 60 * HH - 2), tall = h >= 40, range = this.hm(it.s) + '–' + this.hm(it.en);
+        return {
+          title: evTitle(e) || 'Untitled', range: tall ? range : '', tip: (evTitle(e) || 'Untitled') + ' · ' + range,
+          onClick: () => this.setState({ editEventId: e.id }),
+          onDragStart: ev => { ev.dataTransfer.setData('text/plain', 'ev:' + e.id); ev.dataTransfer.effectAllowed = 'move'; setTimeout(() => this.setState({ dragEv: true }), 0); },
+          onDragEnd: () => this.setState({ dragEv: false }),
+          style: { position: 'absolute', top: it.s / 60 * HH + 1, height: h, left: 'calc(' + (it.lane / it.n * 100) + '% + 2px)', width: 'calc(' + (100 / it.n) + '% - 4px)', boxSizing: 'border-box', padding: '3px 6px', borderRadius: 6, overflow: 'hidden', cursor: 'pointer', display: 'flex', flexDirection: tall ? 'column' : 'row', gap: tall ? 0 : 6, alignItems: tall ? 'stretch' : 'center', zIndex: 1, background: tk ? 'var(--accent-subtle)' : 'var(--surface-1)', border: '1px solid ' + (tk ? 'var(--accent-muted)' : 'var(--border-2)'), opacity: done ? 0.6 : 1 },
+          titleStyle: { fontSize: 12, fontWeight: 500, lineHeight: 1.3, minWidth: 0, color: tk ? 'var(--accent-subtle-fg)' : 'var(--fg-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: tall ? 'normal' : 'nowrap', textDecoration: done ? 'line-through' : 'none' }
+        };
+      });
+      const slots = []; for (let i = 0; i < 48; i++) slots.push({ onDown: ev => this.startCreate(d, ev), onDragOver: ev => ev.preventDefault(), onDrop: ev => this.dropAt(d, i * 30, ev), style: { height: 24, boxSizing: 'border-box', borderTop: i % 2 === 0 && i > 0 ? '1px solid var(--border-1)' : 'none', cursor: 'pointer' } });
+      return {
+        wd: this.WD[dt.getDay()], num: dt.getDate(), blocks, slots, hasNow: isT,
+        hasDraft: !!(s.tgDraft && s.tgDraft.date === d), draftLabel: s.tgDraft ? this.hm(s.tgDraft.s) + '–' + this.hm(s.tgDraft.e) : '',
+        draftStyle: s.tgDraft ? { position: 'absolute', top: s.tgDraft.s / 60 * HH + 1, height: Math.max(10, (s.tgDraft.e - s.tgDraft.s) / 60 * HH - 2), left: 2, right: 2, boxSizing: 'border-box', padding: '3px 6px', borderRadius: 6, background: 'var(--accent-subtle)', border: '1px solid var(--accent)', zIndex: 3, pointerEvents: 'none', overflow: 'hidden' } : {},
+        nowStyle: { position: 'absolute', left: 0, right: 0, top: nowM / 60 * HH, height: 2, background: 'var(--accent)', zIndex: 2, pointerEvents: 'none' },
+        onHead: () => this.setState({ calMode: 'day', calDay: d, calMonth: d.slice(0, 7) }),
+        numStyle: { fontFamily: 'var(--font-mono)', fontSize: 13, minWidth: 24, height: 24, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isT ? 'var(--surface-inverse)' : 'transparent', color: isT ? 'var(--fg-inverse)' : 'var(--fg-1)' }
+      };
+    });
+    const tgHours = []; for (let h = 1; h < 24; h++) tgHours.push({ label: this.hm(h * 60), style: { position: 'absolute', top: h * HH - 8, right: 8, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-3)' } });
+    const blockedIds = new Set(s.events.filter(e => e.taskId).map(e => e.taskId));
+    const unscheduled = this.sortTasks(open.filter(t => !blockedIds.has(t.id))).map(t => this.taskVM(t));
+    const fmtRange = (a, b) => { const A = this.p(a), B = this.p(b); return A.getMonth() === B.getMonth() ? this.MOL[A.getMonth()] + ' ' + A.getDate() + '–' + B.getDate() : this.MO[A.getMonth()] + ' ' + A.getDate() + ' – ' + this.MO[B.getMonth()] + ' ' + B.getDate(); };
+    const yr = Number(anchor.slice(0, 4));
+    const evDates = new Set(s.events.map(e => e.date));
+    const yearMonths = this.MOL.map((name, mi) => {
+      const f = new Date(yr, mi, 1), off = (f.getDay() + 6) % 7, n = new Date(yr, mi + 1, 0).getDate(), days = [];
+      for (let i = 0; i < off; i++) days.push({ num: '', onClick: null, style: { height: 30 }, dotStyle: { display: 'none' } });
+      for (let d = 1; d <= n; d++) {
+        const key = yr + '-' + String(mi + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0'), isT = key === t0, sel = key === anchor, has = evDates.has(key);
+        days.push({
+          num: d, onClick: () => this.setState({ calDay: key, calMonth: key.slice(0, 7), calMode: 'day' }),
+          style: { height: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, borderRadius: 6, cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 11, lineHeight: 1, background: isT ? 'var(--surface-inverse)' : sel ? 'var(--surface-active)' : 'transparent', color: isT ? 'var(--fg-inverse)' : 'var(--fg-1)' },
+          dotStyle: { width: 3, height: 3, borderRadius: 999, background: has ? (isT ? 'var(--fg-inverse)' : 'var(--accent)') : 'transparent' }
+        });
+      }
+      const isCur = yr === nd.getFullYear() && mi === nd.getMonth();
+      return { name, letters: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], days, nameStyle: { fontWeight: 600, fontSize: 15, cursor: 'pointer', color: isCur ? 'var(--fg-1)' : 'var(--fg-2)' }, onClick: () => { const mk = yr + '-' + String(mi + 1).padStart(2, '0'); this.setState({ calMode: 'month', calMonth: mk, calDay: mk === t0.slice(0, 7) ? t0 : mk + '-01' }); } };
+    });
+    const agenda = [];
+    for (let i = 0; i < 14; i++) {
+      const d = this.add(anchor, i), dt = this.p(d);
+      const evs = s.events.filter(e => e.date === d).sort((a, b) => a.time < b.time ? -1 : 1);
+      const tks = s.tasks.filter(t => t.due === d && !blockedIds.has(t.id));
+      if (!evs.length && !tks.length) continue;
+      agenda.push({
+        label: this.rel(d), sub: this.WD[dt.getDay()] + ', ' + this.MO[dt.getMonth()] + ' ' + dt.getDate(),
+        labelStyle: { fontWeight: 600, color: d === t0 ? 'var(--fg-1)' : 'var(--fg-2)' },
+        events: evs.map(e => { const tk = e.taskId ? taskById[e.taskId] : null, st = this.mins(e.time); return {
+          range: e.time ? this.hm(st) + '–' + this.hm(st + (e.dur || 60)) : 'All day', title: evTitle(e) || 'Untitled',
+          dot: this.dot(tk ? 'var(--accent)' : 'var(--border-strong)'),
+          titleStyle: { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tk && tk.done ? 'var(--fg-3)' : 'var(--fg-1)', textDecoration: tk && tk.done ? 'line-through' : 'none' },
+          onOpen: () => this.setState({ editEventId: e.id }) }; }),
+        tasks: tks.map(t => this.taskVM(t))
+      });
+    }
+    const calTitle = mode === 'month' ? this.monthLabel(s.calMonth) : mode === 'year' ? String(yr) : mode === 'agenda' ? 'Agenda' : mode === 'day' ? this.longDate(anchor) : fmtRange(colDays[0], colDays[colDays.length - 1]);
+    const ee = s.events.find(e => e.id === s.editEventId), eeTask = ee && ee.taskId ? taskById[ee.taskId] : null;
+    const setEv = patch => this.setState(st => ({ events: st.events.map(e => e.id === st.editEventId ? { ...e, ...patch } : e) }));
+    const allowDrop = e => e.preventDefault();
+
+    // Matrix
+    const quads = this.PO.map(q => {
+      const list = open.filter(t => t.priority === q);
+      return {
+        key: q, cardStyle: { background: 'color-mix(in oklch, ' + P[q].color + ' 5%, var(--surface-1))', border: '1px solid color-mix(in oklch, ' + P[q].color + ' 28%, var(--border-1))', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 4, minHeight: 240, boxShadow: 'inset 0 3px 0 0 color-mix(in oklch, ' + P[q].color + ' 45%, transparent)' }, onDragOver: e => this.clearOver(e), onDrop: e => { e.preventDefault(); const d = this.dragData(e); if (d.kind === 'task') this.moveTask(d.id, null, 'end', { priority: q }); }, label: P[q].label, sub: P[q].sub, count: String(list.length), dotStyle: this.dot(P[q].color, 8),
+        tasks: list.map(t => ({ ...this.taskVM(t), ...this.dnd(t, { priority: q }) })), addValue: s.qAdd[q],
+        onAddChange: e => { const v = e.target.value; this.setState(st => ({ qAdd: { ...st.qAdd, [q]: v } })); },
+        onAdd: e => { e.preventDefault(); const tk = this.newTask(s.qAdd[q], { priority: q }); if (!tk) return; this.setState(st => ({ tasks: [tk, ...st.tasks], qAdd: { ...st.qAdd, [q]: '' } })); }
+      };
+    });
+    const unsorted = open.filter(t => !t.priority).map(t => ({
+      ...this.dnd(t, { priority: null }), text: t.text, onDragStart: e => { e.dataTransfer.setData('text/plain', 'task:' + t.id); }, onOpen: () => this.setState({ editTaskId: t.id }),
+      opts: this.PO.map(q => ({ title: P[q].label, dot: this.dot(P[q].color, 9), onClick: () => this.setTask(t.id, { priority: q }) }))
+    }));
+
+    // Habits
+    const days = []; for (let i = 6; i >= 0; i--) days.push(this.add(t0, -i));
+    const habitDays = days.map(d => { const dt = this.p(d); return { wd: this.WD[dt.getDay()].slice(0, 1), num: dt.getDate(), style: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, color: d === t0 ? 'var(--fg-1)' : 'var(--fg-3)', fontWeight: d === t0 ? 600 : 400 } }; });
+    const habitRows = s.habits.map(h => ({
+      name: h.name, schedule: this.schedLabel(h.days), streak: this.streak(h) + 'd',
+      cells: days.map(d => { const on = this.onDay(h, d); return { on, off: !on, checked: !!h.log[d], onChange: c => this.toggleHabit(h.id, d, c) }; }),
+      onDelete: () => this.setState(st => ({ habits: st.habits.filter(x => x.id !== h.id) }))
+    }));
+
+    // Notes
+    const q = s.noteQuery.trim().toLowerCase();
+    const noteCards = sortedNotes.filter(n => !q || n.text.toLowerCase().includes(q)).map(n => ({
+      text: n.text, pinned: !!n.pinned, when: this.ago(n.updated),
+      onOpen: () => this.setState({ editNoteId: n.id }),
+      onPin: e => { e.stopPropagation(); this.setState(st => ({ notes: st.notes.map(x => x.id === n.id ? { ...x, pinned: !x.pinned } : x) })); },
+      onDelete: e => { e.stopPropagation(); this.setState(st => ({ notes: st.notes.filter(x => x.id !== n.id) })); }
+    }));
+    const saveNote = () => this.addNote(s.noteDraft, 'noteDraft');
+    const editNote = s.notes.find(n => n.id === s.editNoteId);
+    const closeNote = () => this.setState(st => ({ editNoteId: null, notes: st.notes.filter(n => n.text.trim()) }));
+
+    // Finance
+    const fm = s.finMonth; const cur = this.sumMonth(fm); const net = cur.earned - cur.spent;
+    const monthEntries = s.entries.filter(e => e.date.slice(0, 7) === fm).sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
+    const byCat = {}; monthEntries.forEach(e => { if (e.type === 'expense') byCat[e.category] = (byCat[e.category] || 0) + e.amount; });
+    const catList = Object.entries(byCat).sort((a, b) => b[1] - a[1]); const maxCat = catList.length ? catList[0][1] : 1;
+    const catRows = catList.map(([name, amt]) => ({
+      name, amount: this.money(amt), pct: Math.round(amt / (cur.spent || 1) * 100) + '%', dot: this.dot(this.CC[name] || 'var(--gray-400)'),
+      bar: { width: Math.max(2, amt / maxCat * 100) + '%', height: '100%', borderRadius: 999, background: this.CC[name] || 'var(--gray-400)' }
+    }));
+    const months = []; for (let i = 5; i >= 0; i--) months.push(this.addMonth(fm, -i));
+    const sums = months.map(m => this.sumMonth(m));
+    const maxV = Math.max(1, ...sums.map(x => Math.max(x.earned, x.spent)));
+    const chart = months.map((m, i) => {
+      const x = sums[i]; const on = m === fm; const mo = this.MO[Number(m.slice(5)) - 1];
+      const bar = (v, c) => ({ width: 12, height: Math.max(2, Math.round(v / maxV * 132)), background: c, borderRadius: '3px 3px 0 0', opacity: on ? 1 : 0.55, transition: 'height 600ms cubic-bezier(.2,.8,.2,1)' });
+      return {
+        label: mo, title: mo + ' — earned ' + this.money(x.earned) + ', spent ' + this.money(x.spent),
+        earnStyle: bar(x.earned, 'var(--accent)'), spentStyle: bar(x.spent, 'var(--border-strong)'),
+        labelStyle: { fontFamily: 'var(--font-mono)', fontSize: 11, color: on ? 'var(--fg-1)' : 'var(--fg-3)', fontWeight: on ? 600 : 400 },
+        onClick: () => this.setState({ finMonth: m })
+      };
+    });
+    const groupsMap = {}; monthEntries.forEach(e => { (groupsMap[e.date] = groupsMap[e.date] || []).push(e); });
+    const entryGroups = Object.keys(groupsMap).sort().reverse().map(d => {
+      const items = groupsMap[d]; const tot = items.reduce((a, e) => a + (e.type === 'income' ? e.amount : -e.amount), 0);
+      return {
+        label: this.rel(d), total: this.money(tot, true),
+        items: items.map(e => ({
+          category: e.category, note: e.note || '', dot: this.dot(this.CC[e.category] || 'var(--gray-400)'),
+          amount: this.money(e.type === 'income' ? e.amount : -e.amount, true),
+          amountStyle: { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', flex: 'none', color: e.type === 'income' ? 'var(--success-fg)' : 'var(--fg-1)' },
+          onDelete: () => this.setState(st => ({ entries: st.entries.filter(x => x.id !== e.id) }))
+        }))
+      };
+    });
+    const addEntry = e => {
+      if (e && e.preventDefault) e.preventDefault();
+      const d = s.draft; const amt = parseFloat(d.amount); if (!(amt > 0)) return;
+      const date = d.date || t0;
+      this.setState(st => ({ entries: [...st.entries, { id: this.uid(), type: d.type, amount: Math.round(amt * 100) / 100, category: d.category, note: d.note.trim(), date }], draft: { ...st.draft, amount: '', note: '' }, finMonth: date.slice(0, 7) }));
+    };
+
+    const boardCols = s.lists.map(l => {
+      const lt = open.filter(t => t.listId === l.id), ld = s.tasks.filter(t => t.done && t.listId === l.id), sd = !!s.showDoneLists[l.id];
+      return {
+        id: l.id, name: l.name, dot: this.dot(l.color, 8), count: String(lt.length), canDelete: l.id !== 'inbox',
+        onDelete: () => this.setState(st => ({ lists: st.lists.filter(x => x.id !== l.id), tasks: st.tasks.map(t => t.listId === l.id ? { ...t, listId: 'inbox' } : t) })),
+        addValue: s.colAdd[l.id] || '', onAddChange: e => { const v = e.target.value; this.setState(st => ({ colAdd: { ...st.colAdd, [l.id]: v } })); },
+        onAdd: e => { e.preventDefault(); const tk = this.newTask(s.colAdd[l.id], { listId: l.id }); if (!tk) return; this.setState(st => ({ tasks: [tk, ...st.tasks], colAdd: { ...st.colAdd, [l.id]: '' } })); },
+        onDragOver: e => this.clearOver(e),
+        onDrop: e => { e.preventDefault(); const d = this.dragData(e); if (d.kind === 'task') this.moveTask(d.id, null, 'end', { listId: l.id }); },
+        tasks: lt.map(t => ({ ...this.taskVM(t), ...this.dnd(t, { listId: l.id }) })), empty: lt.length === 0,
+        doneTasks: ld.map(t => this.taskVM(t)), hasDone: ld.length > 0, showDone: sd, doneLabel: 'Completed · ' + ld.length, doneChevron: sd ? 'chevron-up' : 'chevron-down',
+        toggleDone: () => this.setState(st => ({ showDoneLists: { ...st.showDoneLists, [l.id]: !st.showDoneLists[l.id] } }))
+      };
+    });
+    const sideC = !!s.sideCollapsed, sideW = sideC ? 64 : 232, ease = 'cubic-bezier(.2,.8,.2,1)';
+    const et = s.tasks.find(t => t.id === s.editTaskId);
+    const userList = s.lists.find(l => l.id === filt && l.id !== 'inbox');
+
+    return {
+      theme: s.theme, themeIcon: s.theme === 'dark' ? 'sun' : 'moon',
+      toggleTheme: () => this.setState(st => ({ theme: st.theme === 'dark' ? 'light' : 'dark' })),
+      navItems,
+      isToday: s.view === 'today', isTasks: s.view === 'tasks', isCalendar: s.view === 'calendar', isMatrix: s.view === 'matrix', isHabits: s.view === 'habits', isNotes: s.view === 'notes', isFinance: s.view === 'finance',
+      goTasks: go('tasks'), goHabits: go('habits'), goNotes: go('notes'), goFinance: go('finance'),
+      goCalendarToday: e => { if (e) e.preventDefault(); this.setState({ view: 'calendar', calMode: 'day', calDay: t0, calMonth: t0.slice(0, 7) }); },
+
+      todayLong: this.longDate(t0),
+      todayTasks: todayOpen.map(t => this.taskVM(t)), noTodayTasks: todayOpen.length === 0, todayLeftLabel: todayOpen.length ? todayOpen.length + ' left' : '',
+      todayTask: s.todayTask, onTodayTask: e => this.setState({ todayTask: e.target.value }),
+      addTodayTask: e => { e.preventDefault(); this.pushTask(s.todayTask, { due: t0 }, 'todayTask'); },
+      todayEvents: s.events.filter(e => e.date === t0).sort((a, b) => a.time < b.time ? -1 : 1).map(e => ({ time: e.time, title: evTitle(e) })), noTodayEvents: !s.events.some(e => e.date === t0),
+      todayHabits, habitsDoneLabel: todayHabits.filter(h => h.checked).length + '/' + todayHabits.length,
+      quickNote: s.quickNote, onQuickNote: e => this.setState({ quickNote: e.target.value }),
+      addQuickNote: e => { e.preventDefault(); this.addNote(s.quickNote, 'quickNote'); },
+      recentNotes,
+      showFinanceOnToday: this.props.showFinanceOnToday ?? true,
+      curMonthShort: this.MOL[new Date().getMonth()],
+      todayFin: { spent: this.money(cm.spent), earned: this.money(cm.earned), net: this.money(cm.earned - cm.spent, true) },
+
+      sideOpen: !sideC, sideIcon: sideC ? 'panel-left-open' : 'panel-left-close', sideLabel: sideC ? 'Expand sidebar' : 'Collapse sidebar',
+      toggleSide: () => this.setState(st => ({ sideCollapsed: !st.sideCollapsed })),
+      sideStyle: { width: sideW, flex: 'none', boxSizing: 'border-box', height: '100vh', position: 'sticky', top: 0, background: 'var(--surface-2)', borderRight: '1px solid var(--border-1)', padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: 24, overflow: 'hidden', transition: 'width 280ms ' + ease },
+      sideHeadStyle: { display: 'flex', alignItems: 'center', justifyContent: sideC ? 'center' : 'space-between', padding: sideC ? 0 : '0 4px 0 10px', minHeight: 30 },
+      sideFootStyle: { marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: sideC ? 'center' : 'space-between', padding: sideC ? 0 : '0 4px 0 10px' },
+      pillWrap: { position: 'fixed', left: sideW, right: 0, bottom: 24, zIndex: 15, display: 'flex', justifyContent: 'center', pointerEvents: 'none', transition: 'left 280ms ' + ease },
+      pillTabs: { style: { background: 'transparent', padding: 0, borderRadius: 999 } },
+      boardRef: this.boardRef, onBoardDown: this.onBoardDown, boardCols, notAddingList: !s.addingList,
+      openCountLabel: open.length + ' open',
+      listTabs: [{ value: 'all', label: 'All' }, ...s.lists.map(l => ({ value: l.id, label: l.name }))],
+      taskFilter: filt, onTaskFilter: v => this.setState({ taskFilter: v }),
+      startList: () => { this.setState({ addingList: true, newList: '' }); this.scrollBoardEnd(); },
+      addingList: s.addingList, newList: s.newList, onNewList: e => this.setState({ newList: e.target.value }),
+      cancelList: () => setTimeout(() => this.setState({ addingList: false }), 120),
+      addList: e => { e.preventDefault(); const name = s.newList.trim(); if (!name) return; const id = this.uid(); const colors = ['var(--amber-500)', 'var(--clay-500)', 'var(--sage-500)', 'var(--mist-500)', 'var(--moss-500)']; this.setState(st => ({ lists: [...st.lists, { id, name, color: colors[st.lists.length % colors.length] }], addingList: false, newList: '' })); this.scrollBoardEnd(); },
+      quickTask: s.quickTask, onQuickTask: e => this.setState({ quickTask: e.target.value }),
+      addTaskHere: e => { e.preventDefault(); this.pushTask(s.quickTask, { listId: filt === 'all' ? 'inbox' : filt }, 'quickTask'); },
+      openTasks, noOpenTasks: openTasks.length === 0,
+      doneTasks, hasDone: doneTasks.length > 0, showDone: s.showDone, doneLabel: 'Completed · ' + doneTasks.length, doneChevron: s.showDone ? 'chevron-up' : 'chevron-down',
+      toggleShowDone: () => this.setState(st => ({ showDone: !st.showDone })),
+      canDeleteList: !!userList,
+      deleteList: () => userList && this.setState(st => ({ lists: st.lists.filter(l => l.id !== userList.id), tasks: st.tasks.map(t => t.listId === userList.id ? { ...t, listId: 'inbox' } : t), taskFilter: 'all' })),
+
+      calTitle, weekdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], calCells,
+      calPrev: () => this.calShift(-1), calNext: () => this.calShift(1),
+      calToday: () => this.setState({ calMonth: t0.slice(0, 7), calDay: t0 }),
+      dayTitle: this.rel(s.calDay), dayLong: this.longDate(s.calDay), dayEvents, noDayEvents: dayEvents.length === 0,
+      dayTasks, hasDayTasks: dayTasks.length > 0,
+      evTime: s.evTime, evTitle: s.evTitle, onEvTime: e => this.setState({ evTime: e.target.value }), onEvTitle: e => this.setState({ evTitle: e.target.value }), addEvent,
+      calMode: mode, onCalMode: v => this.setState(st => ({ calMode: v, calMonth: st.calDay.slice(0, 7) })),
+      calModes: [{ value: 'day', label: 'Day' }, { value: '3day', label: '3 days' }, { value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }, { value: 'year', label: 'Year' }, { value: 'agenda', label: 'Agenda' }],
+      isTimeGrid: mode === 'day' || mode === '3day' || mode === 'week', isMonth: mode === 'month', isYear: mode === 'year', isAgenda: mode === 'agenda',
+      tgCols, tgHours, unscheduled, noUnscheduled: unscheduled.length === 0, unscheduledCount: String(unscheduled.length),
+      allowDrop, unschedHint: s.dragEv ? 'Drop to unschedule.' : 'Drag onto the grid to block time.',
+      unschedStyle: { display: 'flex', flexDirection: 'column', gap: 4, position: 'sticky', top: 24, minHeight: 240, padding: 12, margin: -12, borderRadius: 12, border: '1px dashed ' + (s.dragEv ? 'var(--accent)' : 'transparent'), background: s.dragEv ? 'var(--accent-subtle)' : 'transparent', transition: 'background 180ms, border-color 180ms' },
+      onUnscheduleDrop: e => {
+        e.preventDefault(); const d = this.dragData(e); if (d.kind !== 'ev') return;
+        this.setState(st => {
+          const ev = st.events.find(x => x.id === d.id); if (!ev) return { dragEv: false };
+          const events = st.events.filter(x => x.id !== d.id);
+          if (ev.taskId) return { events, dragEv: false };
+          const tk = this.newTask(ev.title || 'Untitled', { due: ev.date });
+          return { events, tasks: [tk, ...st.tasks], dragEv: false };
+        });
+      },
+      yearMonths, agenda, noAgenda: agenda.length === 0, agendaRange: this.rel(anchor) + ' – ' + this.rel(this.add(anchor, 13)),
+      evOpen: !!ee, closeEvent: () => this.setState(st => ({ editEventId: null, events: st.events.filter(e => e.taskId || (e.title || '').trim()) })),
+      durOptions: [...new Set([15, 30, 45, 60, 90, 120, 180, 240, ee ? ee.dur || 60 : 60])].sort((a, b) => a - b).map(v => ({ value: String(v), label: this.durLabel(v) })),
+      ee: {
+        dlgTitle: eeTask ? 'Time block' : 'Event', deleteLabel: eeTask ? 'Unblock' : 'Delete',
+        title: ee ? evTitle(ee) : '', date: ee ? ee.date : '', time: ee ? ee.time : '', dur: String(ee ? ee.dur || 60 : 60),
+        onTitle: e => { const v = e.target.value; if (eeTask) this.setTask(eeTask.id, { text: v }); else setEv({ title: v }); },
+        onDate: e => setEv({ date: e.target.value }), onTime: e => setEv({ time: e.target.value }), onDur: e => setEv({ dur: Number(e.target.value) }),
+        hasTask: !!eeTask, taskDone: !!(eeTask && eeTask.done), onTaskDone: c => eeTask && this.setTask(eeTask.id, { done: c }),
+        onDelete: () => this.setState(st => ({ events: st.events.filter(e => e.id !== st.editEventId), editEventId: null }))
+      },
+
+      quads, unsorted, noUnsorted: unsorted.length === 0, unsortedCount: String(unsorted.length),
+      uAdd: s.uAdd, onUAdd: e => this.setState({ uAdd: e.target.value }),
+      addUnflagged: e => { e.preventDefault(); this.pushTask(s.uAdd, {}, 'uAdd'); },
+      onUnflagDrop: e => { e.preventDefault(); const d = this.dragData(e); if (d.kind === 'task') this.moveTask(d.id, null, 'end', { priority: null }); },
+
+      habitDays, habitRows, newHabit: s.newHabit, onNewHabit: e => this.setState({ newHabit: e.target.value }),
+      addHabit: e => { if (e) e.preventDefault(); const name = s.newHabit.trim(); if (!name || !s.habitDaysSel.length) return; const days = s.habitDaysSel.length === 7 ? null : s.habitDaysSel.slice().sort(); this.setState(st => ({ habits: [...st.habits, { id: this.uid(), name, log: {}, days }], newHabit: '', habitFreq: 'daily', habitDaysSel: [0, 1, 2, 3, 4, 5, 6] })); },
+      habitComposing: !!s.newHabit.trim(), habitFreq: s.habitFreq, habitNoDays: !s.habitDaysSel.length,
+      habitFreqs: [{ value: 'daily', label: 'Daily' }, { value: 'weekdays', label: 'Weekdays' }, { value: 'weekends', label: 'Weekends' }, { value: 'custom', label: 'Custom' }],
+      onHabitFreq: v => this.setState({ habitFreq: v, habitDaysSel: this.FREQ[v] ? this.FREQ[v].slice() : s.habitDaysSel }),
+      habitDraftLabel: s.habitDaysSel.length ? s.habitDaysSel.length + '×/wk' : '0×/wk',
+      habitDayChips: [1, 2, 3, 4, 5, 6, 0].map(i => { const on = s.habitDaysSel.includes(i); return {
+        name: this.WD[i], letter: this.WD[i].slice(0, 1), on,
+        onClick: () => this.setState(st => { const sel = on ? st.habitDaysSel.filter(x => x !== i) : [...st.habitDaysSel, i]; const k = sel.slice().sort().join(); const freq = Object.keys(this.FREQ).find(f => this.FREQ[f].join() === k) || 'custom'; return { habitDaysSel: sel, habitFreq: freq }; }),
+        style: { width: 30, height: 30, borderRadius: 999, border: '1px solid ' + (on ? 'var(--accent)' : 'var(--border-2)'), background: on ? 'var(--accent)' : 'transparent', color: on ? 'var(--accent-fg)' : 'var(--fg-2)', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, cursor: 'pointer', padding: 0, transition: 'background 180ms cubic-bezier(.2,.8,.2,1), border-color 180ms cubic-bezier(.2,.8,.2,1)' }
+      }; }),
+
+      notesCount: String(s.notes.length), noteQuery: s.noteQuery, onNoteQuery: e => this.setState({ noteQuery: e.target.value }),
+      noteDraft: s.noteDraft, onNoteDraft: e => this.setState({ noteDraft: e.target.value }),
+      onNoteKey: e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveNote(); } },
+      saveNote, noteCards, noNotes: noteCards.length === 0, noNotesText: q ? 'No matches.' : 'No notes yet.',
+      noteOpen: !!editNote, closeNote,
+      en: {
+        text: editNote ? editNote.text : '', when: editNote ? 'Edited ' + this.ago(editNote.updated) : '',
+        onText: e => { const v = e.target.value; this.setState(st => ({ notes: st.notes.map(n => n.id === st.editNoteId ? { ...n, text: v, updated: Date.now() } : n) })); },
+        onDelete: () => this.setState(st => ({ notes: st.notes.filter(n => n.id !== st.editNoteId), editNoteId: null }))
+      },
+
+      finMonthLabel: this.monthLabel(fm),
+      finPrev: () => this.setState(st => ({ finMonth: this.addMonth(st.finMonth, -1) })),
+      finNext: () => this.setState(st => ({ finMonth: this.addMonth(st.finMonth, 1) })),
+      fin: { earned: this.money(cur.earned), spent: this.money(cur.spent), net: this.money(net, true), netStyle: { fontFamily: 'var(--font-mono)', fontSize: 24, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: net < 0 ? 'var(--danger-fg)' : 'var(--fg-1)' } },
+      entryTypes: [{ value: 'expense', label: 'Expense' }, { value: 'income', label: 'Income' }],
+      draft: s.draft,
+      onDraftType: v => this.setDraft({ type: v, category: this.CATS[v][0] === 'Housing' ? 'Groceries' : this.CATS[v][0] }),
+      onDraftAmount: e => this.setDraft({ amount: e.target.value }), onDraftCat: e => this.setDraft({ category: e.target.value }),
+      onDraftNote: e => this.setDraft({ note: e.target.value }), onDraftDate: e => this.setDraft({ date: e.target.value }),
+      catOptions: this.CATS[s.draft.type], addEntry,
+      catRows, noSpend: catRows.length === 0, chart,
+      entryGroups, noEntries: monthEntries.length === 0, entryCount: String(monthEntries.length),
+
+      taskOpen: !!et, closeTask: () => this.setState(st => ({ editTaskId: null, tasks: st.tasks.filter(t => t.text.trim()) })),
+      listOptions: s.lists.map(l => ({ value: l.id, label: l.name })),
+      prioTabs: [{ value: 'none', label: 'None' }, ...this.PO.map(k => ({ value: k, label: P[k].short }))],
+      et: {
+        text: et ? et.text : '', listId: et ? et.listId : 'inbox', due: et ? et.due || '' : '', priority: et && et.priority ? et.priority : 'none',
+        onText: e => this.setTask(s.editTaskId, { text: e.target.value }),
+        onList: e => this.setTask(s.editTaskId, { listId: e.target.value }),
+        onDue: e => this.setTask(s.editTaskId, { due: e.target.value }),
+        onPriority: v => this.setTask(s.editTaskId, { priority: v === 'none' ? null : v }),
+        onDelete: () => this.setState(st => ({ tasks: st.tasks.filter(t => t.id !== st.editTaskId), events: st.events.filter(e => e.taskId !== st.editTaskId), editTaskId: null }))
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+/* Still — color tokens. Near-monochrome, low chroma. oklch throughout. */
+:root{
+/* Neutrals — cool graphite, chroma ≤ 0.012 */
+--gray-0:oklch(99.2% 0.002 250);--gray-25:oklch(98.2% 0.003 250);--gray-50:oklch(96.6% 0.004 250);--gray-100:oklch(94.2% 0.005 250);--gray-150:oklch(91.2% 0.006 250);--gray-200:oklch(87.6% 0.007 250);--gray-300:oklch(80% 0.008 250);--gray-400:oklch(68% 0.01 250);--gray-500:oklch(55% 0.011 250);--gray-600:oklch(46% 0.012 250);--gray-700:oklch(37% 0.012 250);--gray-800:oklch(28% 0.011 250);--gray-850:oklch(23.5% 0.01 250);--gray-900:oklch(19.5% 0.009 250);--gray-950:oklch(15.5% 0.008 250);
+/* Accent — muted sage. Used sparingly: progress, checked, focus. */
+--sage-50:oklch(96.6% 0.012 165);--sage-100:oklch(93.2% 0.02 165);--sage-200:oklch(86% 0.03 165);--sage-300:oklch(76% 0.04 165);--sage-400:oklch(66% 0.046 165);--sage-500:oklch(56% 0.046 165);--sage-600:oklch(47% 0.042 165);--sage-700:oklch(39% 0.036 165);
+/* Status — desaturated */
+--moss-100:oklch(94.5% 0.022 145);--moss-500:oklch(57% 0.06 145);--moss-700:oklch(42% 0.05 145);
+--amber-100:oklch(95.2% 0.028 80);--amber-500:oklch(68% 0.08 75);--amber-700:oklch(46% 0.065 65);
+--clay-100:oklch(94.6% 0.022 25);--clay-500:oklch(57% 0.09 25);--clay-700:oklch(45% 0.08 25);
+--mist-100:oklch(94.6% 0.016 245);--mist-500:oklch(57% 0.05 245);--mist-700:oklch(42% 0.045 245);
+
+/* Semantic — light (default) */
+--bg-app:var(--gray-25);
+--surface-1:var(--gray-0);
+--surface-2:var(--gray-50);
+--surface-sunken:var(--gray-100);
+--surface-hover:var(--gray-100);
+--surface-active:var(--gray-150);
+--surface-inverse:var(--gray-900);
+--surface-inverse-hover:var(--gray-800);
+--fg-1:var(--gray-900);
+--fg-2:var(--gray-600);
+--fg-3:var(--gray-500);
+--fg-disabled:var(--gray-400);
+--fg-inverse:var(--gray-25);
+--border-1:var(--gray-150);
+--border-2:var(--gray-200);
+--border-strong:var(--gray-300);
+--accent:var(--sage-600);
+--accent-hover:var(--sage-700);
+--accent-fg:var(--gray-0);
+--accent-subtle:var(--sage-50);
+--accent-subtle-fg:var(--sage-700);
+--accent-muted:var(--sage-200);
+--success-bg:var(--moss-100);--success-fg:var(--moss-700);--success:var(--moss-500);
+--warning-bg:var(--amber-100);--warning-fg:var(--amber-700);--warning:var(--amber-500);
+--danger-bg:var(--clay-100);--danger-fg:var(--clay-700);--danger:var(--clay-500);
+--info-bg:var(--mist-100);--info-fg:var(--mist-700);--info:var(--mist-500);
+--overlay:oklch(19.5% 0.009 250 / 0.28);
+--ring-color:oklch(56% 0.046 165 / 0.32);
+--selection:var(--sage-100);
+}
+
+/* Semantic — dark. Never pure black or pure white. */
+[data-theme="dark"]{
+--bg-app:var(--gray-950);
+--surface-1:var(--gray-900);
+--surface-2:var(--gray-850);
+--surface-sunken:var(--gray-950);
+--surface-hover:var(--gray-850);
+--surface-active:var(--gray-800);
+--surface-inverse:var(--gray-100);
+--surface-inverse-hover:var(--gray-200);
+--fg-1:var(--gray-100);
+--fg-2:var(--gray-400);
+--fg-3:var(--gray-500);
+--fg-disabled:var(--gray-600);
+--fg-inverse:var(--gray-900);
+--border-1:var(--gray-850);
+--border-2:var(--gray-800);
+--border-strong:var(--gray-700);
+--accent:var(--sage-400);
+--accent-hover:var(--sage-300);
+--accent-fg:var(--gray-950);
+--accent-subtle:oklch(26% 0.022 165);
+--accent-subtle-fg:var(--sage-200);
+--accent-muted:oklch(36% 0.03 165);
+--success-bg:oklch(27% 0.025 145);--success-fg:oklch(80% 0.05 145);
+--warning-bg:oklch(28% 0.03 70);--warning-fg:oklch(82% 0.06 75);
+--danger-bg:oklch(27% 0.03 25);--danger-fg:oklch(78% 0.06 25);
+--info-bg:oklch(27% 0.02 245);--info-fg:oklch(80% 0.04 245);
+--overlay:oklch(10% 0.006 250 / 0.55);
+--ring-color:oklch(66% 0.046 165 / 0.38);
+--selection:oklch(34% 0.03 165);
+}

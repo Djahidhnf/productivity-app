@@ -1,0 +1,64 @@
+/* ============================================================
+   KLIVR · TYPOGRAPHY
+   Space Grotesk (display) · Geist (body/UI) · JetBrains Mono (code)
+   ============================================================ */
+
+:root {
+  /* Families */
+  --font-display: 'Space Grotesk', 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* Type scale (1.250 major-third-ish, tuned) */
+  --text-2xs: 0.6875rem;  /* 11 */
+  --text-xs:  0.75rem;    /* 12 */
+  --text-sm:  0.875rem;   /* 14 */
+  --text-base:1rem;       /* 16 */
+  --text-md:  1.0625rem;  /* 17 */
+  --text-lg:  1.25rem;    /* 20 */
+  --text-xl:  1.5rem;     /* 24 */
+  --text-2xl: 1.875rem;   /* 30 */
+  --text-3xl: 2.375rem;   /* 38 */
+  --text-4xl: 3rem;       /* 48 */
+  --text-5xl: 3.875rem;   /* 62 */
+  --text-6xl: 4.75rem;    /* 76 */
+
+  /* Weights */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Line heights */
+  --leading-none: 1;
+  --leading-tight: 1.12;
+  --leading-snug: 1.28;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  /* Letter spacing */
+  --tracking-tighter: -0.03em;
+  --tracking-tight: -0.015em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-wider: 0.08em;   /* eyebrows / labels */
+
+  /* Semantic roles */
+  --display-font: var(--font-display);
+  --display-weight: var(--weight-bold);
+  --display-tracking: var(--tracking-tight);
+
+  --heading-font: var(--font-display);
+  --heading-weight: var(--weight-semibold);
+
+  --body-font: var(--font-sans);
+  --body-weight: var(--weight-regular);
+  --body-leading: var(--leading-normal);
+
+  --label-font: var(--font-sans);
+  --label-weight: var(--weight-medium);
+
+  --eyebrow-font: var(--font-mono);
+  --eyebrow-tracking: var(--tracking-wider);
+}

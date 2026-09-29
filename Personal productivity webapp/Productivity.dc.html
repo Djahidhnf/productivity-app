@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/nocturne-17583ff3-685a-436a-901f-a8af6844e6d4/styles.css">
+<script src="_ds/nocturne-17583ff3-685a-436a-901f-a8af6844e6d4/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+body{margin:0}
+a{color:var(--color-accent);text-decoration:none}
+a:hover{color:var(--color-accent-400)}
+input[type="date"]::-webkit-calendar-picker-indicator,input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(1) opacity(0.6)}
+.pw-bottomnav{display:none}
+.pw-board{display:flex;align-items:flex-start;gap:var(--space-4);overflow-x:auto;overflow-y:hidden;padding:0 14px;cursor:grab}
+.pw-list-col{flex:none;width:264px;display:flex;flex-direction:column;gap:var(--space-2);max-height:100%}
+.pw-scroll::-webkit-scrollbar{width:10px;height:10px}
+.pw-scroll::-webkit-scrollbar-track{background:transparent}
+.pw-scroll::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--color-text) 13%,transparent);border-radius:99px;border:3px solid transparent;background-clip:padding-box}
+.pw-scroll:hover::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--color-text) 26%,transparent);background-clip:padding-box}
+.pw-scroll::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--color-accent) 60%,transparent);background-clip:padding-box}
+.pw-scroll{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--color-text) 16%,transparent) transparent}
+.pw-viewpill{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:18;display:flex;gap:2px;padding:4px;border-radius:999px;background:color-mix(in srgb,var(--color-surface) 92%,transparent);border:1px solid var(--color-divider);box-shadow:var(--shadow-lg);backdrop-filter:blur(10px)}
+.pw-viewpill button{appearance:none;border:none;background:transparent;color:var(--color-neutral-400);font-family:var(--font-heading);font-size:12px;padding:7px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.pw-viewpill button:hover{color:var(--color-text);background:color-mix(in srgb,var(--color-text) 8%,transparent)}
+.pw-viewpill button[data-on="1"]{color:var(--color-bg);background:var(--color-accent)}
+.pw-matrix{display:flex;height:calc(100vh - 28px);min-height:0}
+.pw-habit-split{display:flex;gap:0;flex:1;min-height:0;align-items:stretch}
+.pw-habit-left{flex:none;width:auto;max-width:60%;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;padding:0 var(--space-4) 24px clamp(16px,3vw,32px)}
+.pw-habit-right{flex:1;min-width:0;border-left:1px solid var(--color-divider);overflow-y:auto;padding:0 clamp(16px,3vw,32px) 24px var(--space-4)}
+@media (max-width:900px){
+  .pw-matrix{flex-direction:column;height:auto;overflow:visible}
+  .pw-matrix-left,.pw-matrix-right{overflow:visible !important;flex:none !important;border-left:none !important}
+  .pw-matrix-right{border-top:1px solid var(--color-divider);padding-top:var(--space-4) !important}
+}
+@media (max-width:560px){
+  .pw-quadgrid{grid-template-columns:minmax(0,1fr) !important}
+}
+@media (max-width:900px){
+  .pw-habit-split{flex-direction:column;overflow-y:auto}
+  .pw-habit-left{width:100%;max-width:100%;overflow:visible;padding-right:clamp(16px,3vw,32px)}
+  .pw-habit-right{border-left:none;border-top:1px solid var(--color-divider);overflow:visible;padding-top:var(--space-4);padding-left:clamp(16px,3vw,32px)}
+}
+@media (max-width:860px){
+  .pw-sidebar{display:none}
+  .pw-bottomnav{display:flex}
+  .pw-today-grid{grid-template-columns:1fr}
+  .pw-main{padding-bottom:92px}
+  .pw-viewpill{bottom:78px}
+}
+</style>
+</helmet>
+
+<div style="display:flex;min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+
+  <aside class="pw-sidebar" style="width:{{ sidebarWidth }};flex:none;display:flex;flex-direction:column;gap:var(--space-4);padding:var(--space-4) 10px;border-right:1px solid var(--color-divider);transition:width .16s ease">
+    <div style="display:flex;align-items:center;gap:8px;padding:0 4px;min-height:26px">
+      <sc-if value="{{ sidebarOpen }}" hint-placeholder-val="{{ true }}">
+        <i class="ph ph-square-half" style="font-size:20px;color:var(--color-accent);flex:none"></i>
+        <span style="font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:17px;flex:1;white-space:nowrap;overflow:hidden">Daybook</span>
+      </sc-if>
+      <button type="button" onClick="{{ toggleSidebar }}" aria-label="Toggle sidebar" title="Toggle sidebar" style="background:transparent;border:none;color:var(--color-neutral-500);cursor:pointer;padding:6px;border-radius:var(--radius-sm);flex:none;margin:0 auto" style-hover="color:var(--color-accent);background:color-mix(in srgb, var(--color-text) 8%, transparent)"><i class="{{ sidebarToggleIcon }}" style="font-size:17px"></i></button>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="6">
+        <div onClick="{{ item.onClick }}" title="{{ item.label }}" style="{{ item.sideStyle }}">
+          <i class="{{ item.icon }}" style="font-size:17px;flex:none"></i>
+          <sc-if value="{{ sidebarOpen }}" hint-placeholder-val="{{ true }}">
+            <span style="white-space:nowrap">{{ item.label }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </nav>
+    <sc-if value="{{ sidebarOpen }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:auto;font-size:11px;color:var(--color-neutral-500);padding:0 var(--space-2)">Saved locally on this device</div>
+    </sc-if>
+  </aside>
+
+  <main class="pw-main" style="flex:1;min-width:0;padding:28px 0 0">
+
+    <sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+      <div style="max-width:1320px;padding:0 clamp(16px,3vw,32px)">
+      <div class="pw-today-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-6)">
+
+        <section style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <h3 style="margin:0">Tasks</h3>
+            <a href="#tasks" onClick="{{ goTasks }}" style="font-size:12px">View all</a>
+          </div>
+          <form onSubmit="{{ quickAddDash }}" style="display:flex;gap:6px">
+            <input class="input" placeholder="Add a task…" value="{{ dashQuickText }}" onChange="{{ onDashQuickChange }}" style="flex:1"/>
+            <button type="submit" class="btn btn-primary btn-icon" aria-label="Add task"><i class="ph ph-plus"></i></button>
+          </form>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ dashboardTasks }}" as="t" hint-placeholder-count="5">
+              <div onClick="{{ t.onOpen }}" style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--color-divider);cursor:pointer">
+                <div onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><i class="ph ph-check" style="{{ t.checkIconStyle }}"></i></div>
+                <span style="{{ t.textStyle }}">{{ t.text }}</span>
+                <sc-if value="{{ t.hasPriority }}" hint-placeholder-val="{{ false }}">
+                  <span style="{{ t.flagStyle }}"><i class="ph ph-flag-fill"></i></span>
+                </sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noDashboardTasks }}" hint-placeholder-val="{{ false }}">
+              <p style="font-size:13px;color:var(--color-neutral-500);margin:6px 4px">Nothing left — nice work.</p>
+            </sc-if>
+          </div>
+        </section>
+
+        <section style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <h3 style="margin:0">Today's schedule</h3>
+            <a href="#calendar" onClick="{{ goCalendarToday }}" style="font-size:12px">Open</a>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ dashboardSchedule }}" as="b" hint-placeholder-count="5">
+              <div onClick="{{ b.onOpen }}" style="display:flex;align-items:baseline;gap:10px;padding:9px 4px;border-bottom:1px solid var(--color-divider);cursor:pointer">
+                <span style="font-size:12px;color:var(--color-accent-300);font-family:var(--font-heading);flex:none;width:78px">{{ b.timeLabel }}</span>
+                <span style="font-size:13px">{{ b.label }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noDashboardSchedule }}" hint-placeholder-val="{{ false }}">
+              <p style="font-size:13px;color:var(--color-neutral-500);margin:6px 4px">Nothing scheduled yet.</p>
+            </sc-if>
+          </div>
+          <button type="button" class="btn btn-secondary btn-icon" onClick="{{ goCalendarToday }}" aria-label="Schedule something" title="Schedule something" style="align-self:flex-start"><i class="ph ph-plus"></i></button>
+        </section>
+
+        <section style="display:flex;flex-direction:column;gap:var(--space-6)">
+          <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <h3 style="margin:0">Habits</h3>
+              <a href="#habits" onClick="{{ goHabits }}" style="font-size:12px">View all</a>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ dashboardHabits }}" as="h" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--color-divider)">
+                  <span style="{{ h.dotStyle }}"></span>
+                  <div onClick="{{ h.onToggleToday }}" style="{{ h.checkStyle }}"><i class="ph ph-check" style="{{ h.checkIconStyle }}"></i></div>
+                  <span style="font-size:13px;flex:1">{{ h.name }}</span>
+                  <span style="font-size:11px;color:var(--color-neutral-500)">{{ h.progressLabel }}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ noHabits }}" hint-placeholder-val="{{ false }}">
+                <p style="font-size:13px;color:var(--color-neutral-500);margin:6px 4px">No habits yet.</p>
+              </sc-if>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <h3 style="margin:0">Journal</h3>
+              <a href="#journal" onClick="{{ goJournal }}" style="font-size:12px">Open</a>
+            </div>
+            <textarea class="input" rows="4" placeholder="How's today going?" value="{{ todayJournalText }}" onChange="{{ onTodayJournalChange }}"></textarea>
+          </div>
+        </section>
+      </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTasks }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;height:calc(100vh - 28px)">
+      <div class="pw-board pw-scroll" onMouseDown="{{ onBoardDragStart }}" style="flex:1;min-height:0;padding-top:4px">
+        <sc-for list="{{ listCols }}" as="col" hint-placeholder-count="2">
+          <div class="pw-list-col" onDrop="{{ col.onDropColumn }}" onDragOver="{{ col.onDragOverColumn }}" style="{{ col.colStyle }}">
+            <div draggable="{{ true }}" onDragStart="{{ col.onListDragStart2 }}" onDragEnd="{{ col.onListDragEnd }}" style="display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:grab;padding:2px 0">
+              <div style="display:flex;align-items:center;gap:6px;min-width:0">
+                <i class="ph ph-dots-six-vertical" style="font-size:14px;color:var(--color-neutral-600);flex:none"></i>
+                <h4 style="margin:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ col.name }} <span style="color:var(--color-neutral-500);font-weight:400">{{ col.count }}</span></h4>
+              </div>
+              <div style="display:flex;gap:2px">
+                <button type="button" onClick="{{ col.onAddClick }}" style="background:transparent;border:none;color:var(--color-neutral-500);cursor:pointer;padding:4px;border-radius:var(--radius-sm)" style-hover="color:var(--color-accent);background:color-mix(in srgb, var(--color-text) 8%, transparent)" aria-label="Add task"><i class="ph ph-plus"></i></button>
+                <button type="button" onClick="{{ col.onDelete }}" style="background:transparent;border:none;color:var(--color-neutral-600);cursor:pointer;padding:4px;border-radius:var(--radius-sm)" style-hover="color:var(--color-accent);background:color-mix(in srgb, var(--color-text) 8%, transparent)" aria-label="Delete list"><i class="ph ph-trash"></i></button>
+              </div>
+            </div>
+            <div class="pw-tasks-scroll pw-scroll" onMouseDown="{{ col.onListDragStart }}" onDragLeave="{{ col.onDragLeaveList }}" style="display:flex;flex-direction:column;gap:6px;flex:1;min-height:0;overflow-y:auto;padding-bottom:20px">
+              <sc-if value="{{ col.isAdding }}" hint-placeholder-val="{{ false }}">
+                <form onSubmit="{{ col.onQuickAdd }}">
+                  <input class="input" autoFocus="{{ true }}" placeholder="Task name, Enter to add…" value="{{ col.quickAddValue }}" onChange="{{ col.onQuickAddChange }}" onBlur="{{ col.onQuickAddBlur }}" style="font-size:13px"/>
+                </form>
+              </sc-if>
+              <sc-for list="{{ col.tasks }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex;flex-direction:column;gap:4px">
+                <sc-if value="{{ t.lineBefore }}" hint-placeholder-val="{{ false }}">
+                  <div style="height:2px;border-radius:2px;background:var(--color-accent);box-shadow:0 0 6px var(--color-accent)"></div>
+                </sc-if>
+                <div class="card" draggable="{{ true }}" onDragStart="{{ t.onDragStart }}" onDragEnd="{{ t.onDragEnd }}" onDrop="{{ t.onDropOnTask }}" onDragOver="{{ t.onDragOverTask }}" onClick="{{ t.onOpen }}" style="{{ t.cardStyle }}">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><i class="ph ph-check" style="{{ t.checkIconStyle }}"></i></div>
+                    <span style="{{ t.textStyle }}">{{ t.text }}</span>
+                    <sc-if value="{{ t.hasPriority }}" hint-placeholder-val="{{ false }}">
+                      <span style="{{ t.flagStyle }}"><i class="ph ph-flag-fill"></i></span>
+                    </sc-if>
+                  </div>
+                  <sc-if value="{{ t.hasDue }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:11px;color:var(--color-neutral-500)"><i class="ph ph-calendar-blank"></i> {{ t.dueLabel }}</span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ t.lineAfter }}" hint-placeholder-val="{{ false }}">
+                  <div style="height:2px;border-radius:2px;background:var(--color-accent);box-shadow:0 0 6px var(--color-accent)"></div>
+                </sc-if>
+                </div>
+              </sc-for>
+              <sc-if value="{{ col.empty }}" hint-placeholder-val="{{ false }}"><p style="font-size:12px;color:var(--color-neutral-500);padding:4px">No tasks.</p></sc-if>
+            </div>
+          </div>
+        </sc-for>
+        <div class="pw-list-col" style="width:200px">
+          <h4 style="margin:0;font-size:13px;color:var(--color-neutral-500)">New list</h4>
+          <form onSubmit="{{ addListSubmit }}" style="display:flex;gap:6px">
+            <input class="input" placeholder="List name…" value="{{ newListName }}" onChange="{{ onNewListNameChange }}" style="flex:1;font-size:13px"/>
+            <button type="submit" class="btn btn-secondary btn-icon" aria-label="Add list"><i class="ph ph-plus"></i></button>
+          </form>
+        </div>
+      </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;height:calc(100vh - 28px)">
+      <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3);flex-wrap:wrap;gap:var(--space-3);padding:0 clamp(16px,3vw,32px);flex:none">
+        <span style="font-size:15px;font-family:var(--font-heading);color:var(--color-neutral-200)">{{ calTitle }}</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <button type="button" class="btn btn-secondary btn-icon" onClick="{{ calPrevBtn }}" aria-label="Previous"><i class="ph ph-caret-left"></i></button>
+          <button type="button" class="btn btn-secondary" onClick="{{ calTodayBtn }}">Today</button>
+          <button type="button" class="btn btn-secondary btn-icon" onClick="{{ calNextBtn }}" aria-label="Next"><i class="ph ph-caret-right"></i></button>
+          <button type="button" class="btn btn-primary btn-icon" onClick="{{ openNewTask }}" aria-label="New task" title="New task"><i class="ph ph-plus"></i></button>
+        </div>
+      </header>
+
+      <sc-if value="{{ calIsGrid }}" hint-placeholder-val="{{ true }}">
+        <div class="pw-cal-scroll pw-scroll" ref="{{ calGridRef }}" onScroll="{{ onCalScroll }}" style="border-top:1px solid var(--color-divider);overflow:auto;flex:1;min-height:0;overscroll-behavior-x:contain">
+          <div style="display:flex;width:max-content;min-width:100%;position:sticky;top:0;z-index:3;background:var(--color-surface);border-bottom:1px solid var(--color-divider);height:40px">
+            <div style="width:56px;flex:none;position:sticky;left:0;background:var(--color-surface);z-index:2"></div>
+            <sc-for list="{{ calColumns }}" as="col" hint-placeholder-count="7">
+              <div style="{{ col.headerStyle }}">{{ col.headerLabel }}</div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ calHasAllDay }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;width:max-content;min-width:100%;position:sticky;top:40px;z-index:3;background:var(--color-bg);border-bottom:1px solid var(--color-divider)">
+              <div style="width:56px;flex:none;position:sticky;left:0;background:var(--color-bg);z-index:2;font-size:10px;color:var(--color-neutral-500);padding:6px 4px;text-align:right">All day</div>
+              <sc-for list="{{ calColumns }}" as="col" hint-placeholder-count="7">
+                <div onDrop="{{ col.onDropAllDay }}" onDragOver="{{ preventDefault }}" style="{{ col.allDayStyle }}">
+                  <sc-for list="{{ col.allDay }}" as="ad" hint-placeholder-count="0">
+                    <div draggable="{{ true }}" onDragStart="{{ ad.onDragStart }}" onClick="{{ ad.onOpen }}" style="{{ ad.style }}">{{ ad.label }}</div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="display:flex;width:max-content;min-width:100%">
+            <div style="width:56px;flex:none;position:sticky;left:0;background:var(--color-bg);z-index:1;position:relative;height:{{ calGridHeightPx }}">
+              <sc-for list="{{ calHourLabels }}" as="hl" hint-placeholder-count="12">
+                <span style="{{ hl.style }}">{{ hl.label }}</span>
+              </sc-for>
+            </div>
+            <sc-for list="{{ calColumns }}" as="col" hint-placeholder-count="7">
+              <div onDrop="{{ col.onDrop }}" onDragOver="{{ preventDefault }}" onClick="{{ col.onGridClick }}" style="{{ col.gridStyle }}">
+                <sc-for list="{{ col.blocks }}" as="b" hint-placeholder-count="3">
+                  <div draggable="{{ true }}" onDragStart="{{ b.onDragStart }}" onClick="{{ b.onOpen }}" style="{{ b.style }}">
+                    <div style="font-size:12px;font-family:var(--font-heading);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.label }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <div style="height:72px"></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ calIsMonth }}" hint-placeholder-val="{{ false }}">
+        <div class="pw-scroll" style="flex:1;min-height:0;overflow:auto;padding-bottom:76px">
+        <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--color-divider);border-top:1px solid var(--color-divider)">
+          <sc-for list="{{ calWeekdayLabels }}" as="wl" hint-placeholder-count="7">
+            <div style="background:var(--color-surface);padding:6px 8px;font-size:11px;color:var(--color-neutral-400);text-transform:uppercase;letter-spacing:0.06em">{{ wl }}</div>
+          </sc-for>
+          <sc-for list="{{ calMonthCells }}" as="c" hint-placeholder-count="42">
+            <div onClick="{{ c.onClick }}" onDrop="{{ c.onDrop }}" onDragOver="{{ preventDefault }}" style="{{ c.cellStyle }}">
+              <span style="{{ c.dayNumStyle }}">{{ c.dayNum }}</span>
+              <div style="display:flex;flex-direction:column;gap:2px;margin-top:2px;min-width:0;overflow:hidden">
+                <sc-for list="{{ c.chips }}" as="ch" hint-placeholder-count="0">
+                  <div draggable="{{ true }}" onDragStart="{{ ch.onDragStart }}" onClick="{{ ch.onOpen }}" style="{{ ch.style }}">{{ ch.label }}</div>
+                </sc-for>
+                <sc-if value="{{ c.hasMore }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;color:var(--color-neutral-500)">+{{ c.moreCount }} more</span></sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ calIsYear }}" hint-placeholder-val="{{ false }}">
+        <div class="pw-scroll" style="flex:1;min-height:0;overflow:auto;padding:0 clamp(16px,3vw,32px) 32px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4)">
+          <sc-for list="{{ calYearMonths }}" as="m" hint-placeholder-count="12">
+            <div class="card" onClick="{{ m.onOpen }}" style="cursor:pointer;gap:6px;padding:12px">
+              <div class="card-title" style="font-size:13px">{{ m.label }}</div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+                <sc-for list="{{ calWeekdayShort }}" as="wl" hint-placeholder-count="7">
+                  <div style="font-size:9px;color:var(--color-neutral-500);text-align:center">{{ wl }}</div>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+                <sc-for list="{{ m.days }}" as="d" hint-placeholder-count="35">
+                  <div style="{{ d.style }}">{{ d.num }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ calIsAgenda }}" hint-placeholder-val="{{ false }}">
+        <div class="pw-scroll" style="flex:1;min-height:0;overflow:auto;padding:0 clamp(16px,3vw,32px) 40px;border-top:1px solid var(--color-divider)">
+          <sc-for list="{{ agendaDays }}" as="d" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:var(--space-4);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)">
+              <div style="display:flex;flex-direction:column;gap:1px">
+                <span style="{{ d.dayNumStyle }}">{{ d.dayNum }}</span>
+                <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-neutral-400)">{{ d.weekday }}</span>
+                <span style="font-size:11px;color:var(--color-neutral-600)">{{ d.monthLabel }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                <sc-for list="{{ d.items }}" as="it" hint-placeholder-count="2">
+                  <div onClick="{{ it.onOpen }}" style="{{ it.rowStyle }}">
+                    <span style="font-size:12px;font-family:var(--font-heading);color:var(--color-accent-300);flex:none;width:84px">{{ it.timeLabel }}</span>
+                    <span style="{{ it.textStyle }}">{{ it.text }}</span>
+                    <sc-if value="{{ it.hasPriority }}" hint-placeholder-val="{{ false }}">
+                      <span style="{{ it.flagStyle }}"><i class="ph ph-flag-fill"></i></span>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noAgenda }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:13px;color:var(--color-neutral-500);padding:var(--space-6) 0">Nothing scheduled in the next 60 days.</p>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <div class="pw-viewpill">
+        <sc-for list="{{ calViewOptions }}" as="v" hint-placeholder-count="6">
+          <button type="button" data-on="{{ v.on }}" onClick="{{ v.onSelect }}">{{ v.label }}</button>
+        </sc-for>
+      </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isMatrix }}" hint-placeholder-val="{{ false }}">
+      <div class="pw-matrix">
+        <div class="pw-matrix-left pw-scroll" style="flex:65;min-width:0;overflow:auto;padding:0 var(--space-4) 24px clamp(16px,3vw,32px)">
+          <div class="pw-quadgrid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3);align-content:start">
+            <sc-for list="{{ matrixQuadrants }}" as="q" hint-placeholder-count="4">
+              <div style="{{ q.boxStyle }}">
+                <div style="display:flex;align-items:center;gap:8px;padding:var(--space-3) var(--space-4);flex:none">
+                  <span style="{{ q.dotStyle }}"></span>
+                  <span style="font-family:var(--font-heading);font-size:13px">{{ q.title }}</span>
+                  <span style="{{ q.countStyle }}">{{ q.count }}</span>
+                  <span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-neutral-500);margin-left:auto">{{ q.subtitle }}</span>
+                </div>
+                <div class="pw-scroll" style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding:0 var(--space-4) var(--space-3)">
+                  <sc-for list="{{ q.tasks }}" as="t" hint-placeholder-count="2">
+                    <div onClick="{{ t.onOpen }}" style="{{ t.rowStyle }}">
+                      <div onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><i class="ph ph-check" style="{{ t.checkIconStyle }}"></i></div>
+                      <span style="{{ t.textStyle }}">{{ t.text }}</span>
+                      <sc-if value="{{ t.hasDue }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;color:var(--color-neutral-500);flex:none;white-space:nowrap">{{ t.dueLabel }}</span></sc-if>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ q.empty }}" hint-placeholder-val="{{ false }}"><p style="font-size:12px;color:var(--color-neutral-600);padding:6px 2px;margin:0">Nothing here.</p></sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <aside class="pw-matrix-right pw-scroll" style="flex:35;min-width:0;border-left:1px solid var(--color-divider);overflow:auto;padding:0 clamp(16px,3vw,32px) 24px var(--space-4);display:flex;flex-direction:column;gap:var(--space-2)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:10px;letter-spacing:0.09em;text-transform:uppercase;color:var(--color-neutral-400)">Unflagged</span>
+            <span style="font-size:11px;color:var(--color-neutral-600)">{{ unflaggedCount }}</span>
+          </div>
+          <sc-for list="{{ unflaggedTasks }}" as="t" hint-placeholder-count="3">
+            <div onClick="{{ t.onOpen }}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);background:var(--color-surface);border:1px solid var(--color-divider);cursor:pointer" style-hover="border-color:var(--color-accent-700)">
+              <div onClick="{{ t.onToggle }}" style="{{ t.checkStyle }}"><i class="ph ph-check" style="{{ t.checkIconStyle }}"></i></div>
+              <span style="{{ t.textStyle }}">{{ t.text }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noUnflagged }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:12px;color:var(--color-neutral-600);margin:2px 0">Everything is flagged.</p>
+          </sc-if>
+        </aside>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isJournal }}" hint-placeholder-val="{{ false }}">
+      <div style="max-width:1320px;padding:0 clamp(16px,3vw,32px)">
+      <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);flex-wrap:wrap;gap:var(--space-3)">
+        <span style="font-size:14px;font-family:var(--font-heading);color:var(--color-neutral-300)">{{ journalDateLabel }}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button type="button" class="btn btn-secondary btn-icon" onClick="{{ jPrevDay }}" aria-label="Previous day"><i class="ph ph-caret-left"></i></button>
+          <button type="button" class="btn btn-secondary" onClick="{{ jToday }}">Today</button>
+          <button type="button" class="btn btn-secondary btn-icon" onClick="{{ jNextDay }}" aria-label="Next day"><i class="ph ph-caret-right"></i></button>
+        </div>
+      </header>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:var(--space-6)">
+        <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <div class="seg">
+            <label class="seg-opt"><input type="radio" name="mood" checked="{{ moodGreatChecked }}" onChange="{{ onMoodGreat }}"/>Great</label>
+            <label class="seg-opt"><input type="radio" name="mood" checked="{{ moodGoodChecked }}" onChange="{{ onMoodGood }}"/>Good</label>
+            <label class="seg-opt"><input type="radio" name="mood" checked="{{ moodOkayChecked }}" onChange="{{ onMoodOkay }}"/>Okay</label>
+            <label class="seg-opt"><input type="radio" name="mood" checked="{{ moodLowChecked }}" onChange="{{ onMoodLow }}"/>Low</label>
+            <label class="seg-opt"><input type="radio" name="mood" checked="{{ moodRoughChecked }}" onChange="{{ onMoodRough }}"/>Rough</label>
+          </div>
+          <textarea class="input" rows="14" placeholder="Write about your day…" value="{{ journalText }}" onChange="{{ onJournalTextChange }}"></textarea>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+          <h4 style="margin:0 0 var(--space-1);color:var(--color-neutral-400);font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Past entries</h4>
+          <sc-for list="{{ journalHistory }}" as="e" hint-placeholder-count="3">
+            <div onClick="{{ e.onOpen }}" class="card" style="cursor:pointer;gap:6px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span class="card-title" style="font-size:14px">{{ e.dateLabel }}</span>
+                <span class="tag tag-outline">{{ e.mood }}</span>
+              </div>
+              <p class="card-body" style="font-size:12px">{{ e.preview }}</p>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noJournalHistory }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:13px;color:var(--color-neutral-500)">Past entries will show up here.</p>
+          </sc-if>
+        </div>
+      </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isHabits }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;height:calc(100vh - 28px)">
+      <header style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:var(--space-3);gap:var(--space-3);padding:0 clamp(16px,3vw,32px);flex:none">
+        <button type="button" class="btn btn-primary btn-icon" onClick="{{ openNewHabit }}" aria-label="New habit" title="New habit"><i class="ph ph-plus"></i></button>
+      </header>
+      <div class="pw-habit-split">
+        <div class="pw-habit-left pw-scroll">
+          <sc-for list="{{ habitsCompact }}" as="h" hint-placeholder-count="4">
+            <div onClick="{{ h.onSelect }}" draggable="{{ true }}" onDragStart="{{ h.onDragStart }}" onDragOver="{{ h.onDragOver }}" onDrop="{{ h.onDrop }}" onDragEnd="{{ h.onDragEnd }}" style="{{ h.cardStyle }}">
+              <div style="display:flex;align-items:center;gap:10px">
+                <i class="ph ph-dots-six-vertical" style="font-size:14px;color:var(--color-neutral-600);flex:none;cursor:grab"></i>
+                <div onClick="{{ h.onToggleToday }}" style="{{ h.checkStyle }}"><i class="ph ph-check" style="{{ h.checkIconStyle }}"></i></div>
+                <span style="{{ h.dotStyle }}"></span>
+                <span style="flex:1;min-width:0;font-size:14px;font-family:var(--font-heading);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.name }}</span>
+                <span style="font-size:11px;color:var(--color-neutral-500);flex:none">{{ h.freqLabel }}</span>
+                <sc-if value="{{ h.hasStreak }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--color-neutral-300);flex:none"><i class="ph ph-fire" style="font-size:13px"></i>{{ h.streak }}</span>
+                </sc-if>
+              </div>
+              <div style="display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,13px);gap:0;justify-content:start;overflow:hidden;border-radius:3px">
+                <sc-for list="{{ h.heatCells }}" as="c" hint-placeholder-count="147">
+                  <div onClick="{{ c.onToggle }}" title="{{ c.title }}" style="{{ c.style }}"></div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--color-neutral-600)">
+                <span>{{ h.heatStartLabel }}</span>
+                <span>Today</span>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noHabits }}" hint-placeholder-val="{{ false }}"><p style="font-size:13px;color:var(--color-neutral-500);padding:8px">No habits yet — add one to start tracking.</p></sc-if>
+        </div>
+
+        <sc-if value="{{ hasSelectedHabit }}" hint-placeholder-val="{{ false }}">
+          <div class="pw-habit-right pw-scroll" style="display:flex;flex-direction:column;gap:var(--space-3)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="{{ selectedHabit.bigDotStyle }}"></span>
+              <div style="flex:1;min-width:0">
+                <div class="card-title" style="font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ selectedHabit.name }}</div>
+                <div class="card-meta" style="margin-top:2px">{{ selectedHabit.freqLabel }}</div>
+              </div>
+              <button type="button" class="btn btn-ghost btn-icon" onClick="{{ selectedHabit.onEdit }}" aria-label="Edit"><i class="ph ph-pencil-simple"></i></button>
+              <button type="button" class="btn btn-ghost btn-icon" onClick="{{ selectedHabit.onDelete }}" aria-label="Delete"><i class="ph ph-trash"></i></button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-2)">
+              <div style="background:var(--color-neutral-900);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:var(--space-3) var(--space-2);text-align:center">
+                <div style="font-size:20px;font-family:var(--font-heading)">{{ selectedHabit.streak }}</div>
+                <div style="font-size:10px;color:var(--color-neutral-500);margin-top:2px">Day streak</div>
+              </div>
+              <div style="background:var(--color-neutral-900);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:var(--space-3) var(--space-2);text-align:center">
+                <div style="font-size:20px;font-family:var(--font-heading)">{{ selectedHabit.total }}</div>
+                <div style="font-size:10px;color:var(--color-neutral-500);margin-top:2px">Check-ins</div>
+              </div>
+              <div style="background:var(--color-neutral-900);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:var(--space-3) var(--space-2);text-align:center">
+                <div style="font-size:20px;font-family:var(--font-heading)">{{ selectedHabit.monthlyPct }}%</div>
+                <div style="font-size:10px;color:var(--color-neutral-500);margin-top:2px">This month</div>
+              </div>
+            </div>
+            <div class="card" style="gap:var(--space-3)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <button type="button" class="btn btn-ghost btn-icon" onClick="{{ habitMonthPrev }}" aria-label="Previous month"><i class="ph ph-caret-left"></i></button>
+                <span style="font-size:13px;font-family:var(--font-heading)">{{ habitMonthLabel }}</span>
+                <button type="button" class="btn btn-ghost btn-icon" onClick="{{ habitMonthNext }}" aria-label="Next month"><i class="ph ph-caret-right"></i></button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+                <sc-for list="{{ calWeekdayShort }}" as="wl" hint-placeholder-count="7">
+                  <div style="font-size:10px;color:var(--color-neutral-500);text-align:center">{{ wl }}</div>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+                <sc-for list="{{ habitMonthCells }}" as="d" hint-placeholder-count="42">
+                  <div onClick="{{ d.onToggle }}" title="{{ d.title }}" style="{{ d.style }}">{{ d.num }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      </div>
+    </sc-if>
+
+  </main>
+
+  <nav class="pw-bottomnav" style="position:fixed;left:0;right:0;bottom:0;border-top:1px solid var(--color-divider);background:var(--color-bg);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:20">
+    <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="6">
+      <div onClick="{{ item.onClick }}" style="{{ item.tabStyle }}">
+        <i class="{{ item.icon }}" style="font-size:18px"></i>
+        <span>{{ item.label }}</span>
+      </div>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{ showTaskDialog }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="z-index:30" onClick="{{ closeTaskDialog }}">
+      <form class="dialog" onClick="{{ stop }}" onSubmit="{{ saveTaskDialog }}">
+        <div class="dialog-title">{{ taskDialogTitle }}</div>
+        <div class="field" style="margin:0"><label>Task</label><input class="input" placeholder="What needs doing?" value="{{ taskDialog.text }}" onChange="{{ onTDTextChange }}" autoFocus="{{ true }}"/></div>
+        <div class="field" style="margin:0"><label>List</label>
+          <select class="input" value="{{ taskDialog.listId }}" onChange="{{ onTDListChange }}">
+            <sc-for list="{{ lists }}" as="l" hint-placeholder-count="2"><option value="{{ l.id }}">{{ l.name }}</option></sc-for>
+          </select>
+        </div>
+        <div class="field" style="margin:0"><label>Priority (optional)</label>
+          <div style="display:flex;gap:8px">
+            <sc-for list="{{ priorityOptions }}" as="p" hint-placeholder-count="5">
+              <button type="button" onClick="{{ p.onSelect }}" style="{{ p.style }}" aria-label="{{ p.label }}">
+                <sc-if value="{{ p.isNone }}" hint-placeholder-val="{{ false }}"><i class="ph ph-prohibit" style="font-size:12px;color:var(--color-neutral-400)"></i></sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+          <div class="field" style="margin:0"><label>Due date</label><input class="input" type="date" value="{{ taskDialog.due }}" onChange="{{ onTDDueChange }}"/></div>
+          <div class="field" style="margin:0"><label>Time (optional)</label><input class="input" type="time" value="{{ taskDialog.dueTime }}" onChange="{{ onTDTimeChange }}"/></div>
+        </div>
+        <sc-if value="{{ taskDialogHasTime }}" hint-placeholder-val="{{ false }}">
+          <div class="field" style="margin:0"><label>Duration</label>
+            <select class="input" value="{{ taskDialog.duration }}" onChange="{{ onTDDurationChange }}">
+              <option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option>
+              <option value="60">1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option>
+            </select>
+          </div>
+        </sc-if>
+        <div class="dialog-actions">
+          <sc-if value="{{ taskDialogIsEdit }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn btn-ghost" onClick="{{ deleteTaskDialog }}" style="margin-right:auto">Delete</button></sc-if>
+          <button type="button" class="btn btn-secondary" onClick="{{ closeTaskDialog }}">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showHabitDialog }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="z-index:30" onClick="{{ closeHabitDialog }}">
+      <form class="dialog" onClick="{{ stop }}" onSubmit="{{ saveHabitDialog }}">
+        <div class="dialog-title">{{ habitDialogTitle }}</div>
+        <div class="field" style="margin:0"><label>Habit name</label><input class="input" placeholder="e.g. Stretch" value="{{ habitDialog.name }}" onChange="{{ onHDNameChange }}" autoFocus="{{ true }}"/></div>
+        <div class="field" style="margin:0"><label>Frequency</label>
+          <div class="seg">
+            <label class="seg-opt"><input type="radio" name="hfreq" checked="{{ hFreqDailyChecked }}" onChange="{{ onHFreqDaily }}"/>Every day</label>
+            <label class="seg-opt"><input type="radio" name="hfreq" checked="{{ hFreqWeeklyChecked }}" onChange="{{ onHFreqWeekly }}"/>X / week</label>
+          </div>
+        </div>
+        <sc-if value="{{ habitDialogIsWeekly }}" hint-placeholder-val="{{ false }}">
+          <div class="field" style="margin:0"><label>Times per week</label><input class="input" type="number" min="1" max="7" value="{{ habitDialog.timesPerWeek }}" onChange="{{ onHDTimesChange }}"/></div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+          <div class="field" style="margin:0"><label>Start date</label><input class="input" type="date" value="{{ habitDialog.startDate }}" onChange="{{ onHDStartChange }}"/></div>
+          <div class="field" style="margin:0"><label>Objective date (optional)</label><input class="input" type="date" value="{{ habitDialog.endDate }}" onChange="{{ onHDEndChange }}"/></div>
+        </div>
+        <div class="dialog-actions">
+          <sc-if value="{{ habitDialogIsEdit }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn btn-ghost" onClick="{{ deleteHabitDialog }}" style="margin-right:auto">Delete</button></sc-if>
+          <button type="button" class="btn btn-secondary" onClick="{{ closeHabitDialog }}">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.STORAGE_KEY = 'nocturne-productivity-v3';
+    this.HOUR_PX = 64;
+    this.CAL_BACK = 7;
+    this.CAL_SPAN = 35;
+    this.calGridRef = React.createRef();
+    this.PRIORITY = {
+      red: { label: 'Red', color: '#ef5b5f', title: 'Urgent & Important', subtitle: 'Do first' },
+      orange: { label: 'Orange', color: '#f2a35c', title: 'Important', subtitle: 'Schedule' },
+      blue: { label: 'Blue', color: '#5aa0f2', title: 'Urgent', subtitle: 'Delegate' },
+      green: { label: 'Green', color: '#57c58d', title: 'Neither', subtitle: 'Eliminate' }
+    };
+    this.PRIORITY_ORDER = ['red', 'orange', 'blue', 'green'];
+    this.HABIT_COLORS = ['#9184d9', '#5aa0f2', '#57c58d', '#f2a35c', '#ef5b5f', '#5cc2c8'];
+    this.priColor = (p) => (p && this.PRIORITY[p]) ? this.PRIORITY[p].color : null;
+    const loaded = this.loadState();
+    this.state = loaded || this.seedState();
+    if (!this.state.activeView) this.state.activeView = this.props.defaultView || 'today';
+    if (this.state.selectedHabitId === undefined) this.state.selectedHabitId = (this.state.habits[0] || {}).id || null;
+    if (this.state.addingTo === undefined) this.state.addingTo = null;
+    if (this.state.sidebarOpen === undefined) this.state.sidebarOpen = true;
+    if (!this.state.habitMonth) { const n = new Date(); this.state.habitMonth = this.fmtKey(new Date(n.getFullYear(), n.getMonth(), 1)); }
+    this.state.dropTarget = null;
+    this.state.taskDialog = null;
+    this.state.habitDialog = null;
+    this.state.calWindowStart = this.addDays(this.state.calDate || this.todayKey(), -this.CAL_BACK);
+    this.state.gridW = 0;
+    this.state.dragListId = null;
+  }
+  componentDidMount() {
+    this.measureGrid();
+    this._onResize = () => this.measureGrid();
+    window.addEventListener('resize', this._onResize);
+    this._needScroll = true;
+    this.syncCalScroll();
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this._onResize); }
+  componentDidUpdate() { this.persist(); this.measureGrid(); this.syncCalScroll(); }
+  measureGrid() {
+    const el = this.calGridRef && this.calGridRef.current;
+    if (!el) return;
+    const w = el.clientWidth;
+    if (w && Math.abs(w - (this.state.gridW || 0)) > 2) { this._needScroll = true; this.setState({ gridW: w }); }
+  }
+  syncCalScroll() {
+    if (!this._needScroll) return;
+    const el = this.calGridRef && this.calGridRef.current;
+    if (!el || !this._colW) return;
+    this._needScroll = false;
+    this._suppressScroll = true;
+    el.scrollLeft = this.CAL_BACK * this._colW;
+    setTimeout(() => { this._suppressScroll = false; }, 60);
+  }
+  recenterCal(key) { this._needScroll = true; this.setState({ calDate: key, calWindowStart: this.addDays(key, -this.CAL_BACK) }); }
+  onCalScroll(e) {
+    if (this._suppressScroll) return;
+    const el = e.currentTarget;
+    const left = el.scrollLeft;
+    clearTimeout(this._scrollT);
+    this._scrollT = setTimeout(() => {
+      if (!this._colW) return;
+      const idx = Math.round(left / this._colW);
+      const start = this.state.calWindowStart || this.state.calDate;
+      const key = this.addDays(start, idx);
+      const visible = this.state.calView === 'week' ? 7 : this.state.calView === '3day' ? 3 : 1;
+      if (idx <= 1 || idx >= this.CAL_SPAN - visible - 1) this.recenterCal(key);
+      else if (key !== this.state.calDate) this.setState({ calDate: key });
+    }, 130);
+  }
+
+  fmtKey(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  todayKey() { return this.fmtKey(new Date()); }
+  addDays(key, n) { const d = new Date(key + 'T00:00:00'); d.setDate(d.getDate() + n); return this.fmtKey(d); }
+  monthAdd(key, n) { const d = new Date(key + 'T00:00:00'); return this.fmtKey(new Date(d.getFullYear(), d.getMonth() + n, 1)); }
+  yearAdd(key, n) { const d = new Date(key + 'T00:00:00'); return this.fmtKey(new Date(d.getFullYear() + n, d.getMonth(), 1)); }
+  fmtDateLabel(key) {
+    const today = this.todayKey();
+    if (key === today) return 'Today';
+    if (key === this.addDays(today, -1)) return 'Yesterday';
+    if (key === this.addDays(today, 1)) return 'Tomorrow';
+    const d = new Date(key + 'T00:00:00');
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+  fmtShort(key) { const d = new Date(key + 'T00:00:00'); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); }
+  fmtTime(min) {
+    let h = Math.floor(min / 60), m = min % 60;
+    const ampm = h < 12 ? 'AM' : 'PM';
+    let h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+  }
+  minToTimeInput(min) { const h = Math.floor(min / 60), m = min % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
+  timeToMinutes(str) { if (!str) return null; const [h, m] = str.split(':').map(Number); return h * 60 + m; }
+  startOfWeek(key) {
+    const pref = this.props.weekStart || 'mon';
+    const d = new Date(key + 'T00:00:00');
+    const dow = d.getDay();
+    const offset = pref === 'mon' ? (dow === 0 ? -6 : 1 - dow) : -dow;
+    d.setDate(d.getDate() + offset);
+    return this.fmtKey(d);
+  }
+  weekDatesFrom(startKey) { const days = []; for (let i = 0; i < 7; i++) days.push(this.addDays(startKey, i)); return days; }
+
+  loadState() { try { const raw = localStorage.getItem(this.STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } }
+  persist() { try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state)); } catch (e) {} }
+
+  seedState() {
+    const todayK = this.todayKey();
+    const y = this.addDays(todayK, -1);
+    const t2 = this.addDays(todayK, 1);
+    return {
+      activeView: null,
+      calView: 'day', calDate: todayK,
+      journalDate: todayK,
+      selectedHabitId: 'h1', addingTo: null,
+      lists: [{ id: 'list-work', name: 'Work' }, { id: 'list-personal', name: 'Personal' }],
+      tasks: [
+        { id: 't1', text: 'Finalize Q3 roadmap deck', listId: 'list-work', priority: 'red', due: todayK, dueTime: 9 * 60, duration: 90, tags: [], done: false },
+        { id: 't2', text: 'Reply to design review comments', listId: 'list-work', priority: 'orange', due: todayK, dueTime: 11 * 60, duration: 45, tags: [], done: false },
+        { id: 't3', text: 'Book dentist appointment', listId: 'list-personal', priority: 'blue', due: t2, dueTime: null, duration: 60, tags: [], done: false },
+        { id: 't4', text: 'Read a chapter of current book', listId: 'list-personal', priority: 'green', due: null, dueTime: null, duration: 60, tags: [], done: false },
+        { id: 't5', text: 'Grocery run', listId: 'list-personal', priority: null, due: todayK, dueTime: null, duration: 60, tags: [], done: true },
+        { id: 't6', text: 'Renew gym membership', listId: 'list-personal', priority: null, due: t2, dueTime: null, duration: 60, tags: [], done: false },
+        { id: 't7', text: 'Team sync', listId: 'list-work', priority: null, due: todayK, dueTime: 14 * 60, duration: 60, tags: [], done: false }
+      ],
+      journal: { [y]: { text: 'Good focus in the morning, dragged a bit after lunch. A walk in the evening helped clear my head.', mood: 'good' } },
+      habits: [
+        { id: 'h1', name: 'Meditate', color: '#9184d9', freqType: 'weekly', timesPerWeek: 5, startDate: this.addDays(todayK, -30), endDate: null, log: [y, todayK] },
+        { id: 'h2', name: 'Read 20 min', color: '#5aa0f2', freqType: 'weekly', timesPerWeek: 4, startDate: this.addDays(todayK, -30), endDate: null, log: [y] },
+        { id: 'h3', name: 'Exercise', color: '#57c58d', freqType: 'daily', timesPerWeek: null, startDate: this.addDays(todayK, -30), endDate: null, log: [] },
+        { id: 'h4', name: 'Drink 2L water', color: '#f2a35c', freqType: 'daily', timesPerWeek: null, startDate: this.addDays(todayK, -30), endDate: null, log: [y, todayK] }
+      ],
+      quickAdd: {}, newListName: '', dashQuickText: '',
+      taskDialog: null, habitDialog: null
+    };
+  }
+
+  setView(v) { this.setState({ activeView: v }); }
+  goCalendarToday() { this.setState({ activeView: 'calendar', calView: 'day', calDate: this.todayKey() }); }
+
+  // ---- tasks ----
+  toggleTask(id) { this.setState(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t) })); }
+  deleteTask(id) { this.setState(s => ({ tasks: s.tasks.filter(t => t.id !== id) })); }
+
+  onDashQuickChange(e) { const v = e.target.value; this.setState({ dashQuickText: v }); }
+  quickAddDash(e) {
+    e.preventDefault();
+    const text = this.state.dashQuickText.trim();
+    if (!text) return;
+    const listId = (this.state.lists[0] || {}).id || null;
+    this.setState(s => ({ tasks: [...s.tasks, { id: 'task-' + Date.now(), text, listId, priority: null, due: null, dueTime: null, duration: 60, tags: [], done: false }], dashQuickText: '' }));
+  }
+  onQuickAddChange(listId) { return (e) => { const v = e.target.value; this.setState(s => ({ quickAdd: { ...s.quickAdd, [listId]: v } })); }; }
+  onQuickAdd(listId) { return (e) => {
+    e.preventDefault();
+    const text = ((this.state.quickAdd || {})[listId] || '').trim();
+    if (!text) { this.setState({ addingTo: null }); return; }
+    this.setState(s => ({ tasks: [...s.tasks, { id: 'task-' + Date.now(), text, listId, priority: null, due: null, dueTime: null, duration: 60, tags: [], done: false }], quickAdd: { ...s.quickAdd, [listId]: '' } }));
+  }; }
+  onQuickAddBlur(listId) { return () => {
+    const val = ((this.state.quickAdd || {})[listId]) || '';
+    if (!val.trim() && this.state.addingTo === listId) this.setState({ addingTo: null });
+  }; }
+  onNewListNameChange(e) { const v = e.target.value; this.setState({ newListName: v }); }
+  addListSubmit(e) {
+    e.preventDefault();
+    const name = this.state.newListName.trim();
+    if (!name) return;
+    this.setState(s => ({ lists: [...s.lists, { id: 'list-' + Date.now(), name }], newListName: '' }));
+  }
+  deleteList(id) { this.setState(s => ({ lists: s.lists.filter(l => l.id !== id), tasks: s.tasks.filter(t => t.listId !== id) })); }
+
+  reorderTask(draggedId, targetId, pos) {
+    if (!draggedId || draggedId === targetId) { this.setState({ dropTarget: null }); return; }
+    this.setState(s => {
+      const tasks = [...s.tasks];
+      const fromIdx = tasks.findIndex(t => t.id === draggedId);
+      const target = tasks.find(t => t.id === targetId);
+      if (fromIdx < 0 || !target) return { dropTarget: null };
+      const [moved] = tasks.splice(fromIdx, 1);
+      moved.listId = target.listId;
+      const toIdx = tasks.findIndex(t => t.id === targetId);
+      tasks.splice(pos === 'after' ? toIdx + 1 : toIdx, 0, moved);
+      return { tasks, dropTarget: null };
+    });
+  }
+  setDropTarget(id, pos) {
+    const cur = this.state.dropTarget;
+    if (cur && cur.id === id && cur.pos === pos) return;
+    this.setState({ dropTarget: { id, pos } });
+  }
+  clearDropTarget() { if (this.state.dropTarget) this.setState({ dropTarget: null }); }
+  dropOnColumn(listId) {
+    return (e) => {
+      e.preventDefault();
+      const id = e.dataTransfer.getData('text/plain');
+      if (!id) return;
+      this.setState(s => {
+        const tasks = [...s.tasks];
+        const idx = tasks.findIndex(t => t.id === id);
+        if (idx < 0) return {};
+        const [moved] = tasks.splice(idx, 1);
+        moved.listId = listId;
+        tasks.push(moved);
+        return { tasks, dropTarget: null };
+      });
+    };
+  }
+  dragScrollHandler(axis) {
+    return (e) => {
+      if (e.target.closest('input,button,textarea,select,form,[draggable="true"]')) return;
+      const el = e.currentTarget;
+      const startX = e.pageX, startY = e.pageY, sl = el.scrollLeft, st = el.scrollTop;
+      const onMove = (ev) => {
+        if (axis !== 'y') el.scrollLeft = sl - (ev.pageX - startX);
+        if (axis !== 'x') el.scrollTop = st - (ev.pageY - startY);
+      };
+      const onUp = () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    };
+  }
+
+  openTaskDialog(partial) {
+    const defaults = { id: null, text: '', listId: (this.state.lists[0] || {}).id || '', priority: null, due: '', dueTime: '', duration: '60' };
+    this.setState({ taskDialog: { ...defaults, ...partial } });
+  }
+  closeTaskDialog() { this.setState({ taskDialog: null }); }
+  updateTD(field, value) { this.setState(s => ({ taskDialog: { ...s.taskDialog, [field]: value } })); }
+  saveTaskDialog(e) {
+    e.preventDefault();
+    const td = this.state.taskDialog;
+    if (!td || !td.text.trim()) return;
+    const task = {
+      id: td.id || 'task-' + Date.now(), text: td.text.trim(), listId: td.listId,
+      priority: td.priority || null, due: td.due || null,
+      dueTime: this.timeToMinutes(td.dueTime), duration: Number(td.duration) || 60,
+      tags: [], done: td._done || false
+    };
+    this.setState(s => {
+      const exists = s.tasks.some(t => t.id === task.id);
+      return { tasks: exists ? s.tasks.map(t => t.id === task.id ? { ...t, ...task } : t) : [...s.tasks, task], taskDialog: null };
+    });
+  }
+  deleteTaskDialog() {
+    const td = this.state.taskDialog;
+    if (td && td.id) this.deleteTask(td.id);
+    this.setState({ taskDialog: null });
+  }
+  editTaskFromObj(t) {
+    this.openTaskDialog({ id: t.id, text: t.text, listId: t.listId, priority: t.priority, due: t.due || '', dueTime: t.dueTime != null ? this.minToTimeInput(t.dueTime) : '', duration: String(t.duration || 60), _done: t.done });
+  }
+
+  moveTaskToSlot(id, dateKey, minutes) {
+    this.setState(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, due: dateKey, dueTime: minutes } : t) }));
+  }
+  moveTaskDate(id, dateKey) {
+    this.setState(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, due: dateKey } : t) }));
+  }
+
+  // ---- calendar nav ----
+  setCalView(v) { this._needScroll = true; this.setState(s => ({ calView: v, calWindowStart: this.addDays(s.calDate, -this.CAL_BACK) })); }
+  calPrev() {
+    const v = this.state.calView;
+    if (v === 'month') this.setState(s => ({ calDate: this.monthAdd(s.calDate, -1) }));
+    else if (v === 'year') this.setState(s => ({ calDate: this.yearAdd(s.calDate, -1) }));
+    else { const n = v === 'day' ? 1 : v === '3day' ? 3 : 7; this.recenterCal(this.addDays(this.state.calDate, -n)); }
+  }
+  calNext() {
+    const v = this.state.calView;
+    if (v === 'month') this.setState(s => ({ calDate: this.monthAdd(s.calDate, 1) }));
+    else if (v === 'year') this.setState(s => ({ calDate: this.yearAdd(s.calDate, 1) }));
+    else { const n = v === 'day' ? 1 : v === '3day' ? 3 : 7; this.recenterCal(this.addDays(this.state.calDate, n)); }
+  }
+  calToday() { const v = this.state.calView; if (v === 'day' || v === '3day' || v === 'week') this.recenterCal(this.todayKey()); else this.setState({ calDate: this.todayKey() }); }
+
+  moveList(fromId, toId) {
+    if (!fromId || fromId === toId) return;
+    this.setState(s => {
+      const lists = [...s.lists];
+      const from = lists.findIndex(l => l.id === fromId), to = lists.findIndex(l => l.id === toId);
+      if (from < 0 || to < 0) return { dragListId: null };
+      const [m] = lists.splice(from, 1);
+      lists.splice(to, 0, m);
+      return { lists, dragListId: null };
+    });
+  }
+  moveHabit(fromId, toId) {
+    if (!fromId || fromId === toId) return;
+    this.setState(s => {
+      const habits = [...s.habits];
+      const from = habits.findIndex(h => h.id === fromId), to = habits.findIndex(h => h.id === toId);
+      if (from < 0 || to < 0) return { dragHabitId: null };
+      const [m] = habits.splice(from, 1);
+      habits.splice(to, 0, m);
+      return { habits, dragHabitId: null };
+    });
+  }
+
+  // ---- journal ----
+  changeJournalDate(delta) { this.setState(s => ({ journalDate: this.addDays(s.journalDate, delta) })); }
+  setJournalToday() { this.setState({ journalDate: this.todayKey() }); }
+  setJournalDate(k) { this.setState({ journalDate: k }); }
+  updateJournal(field, value) {
+    const s = this.state, date = s.journalDate;
+    const cur = s.journal[date] || { text: '', mood: 'okay' };
+    this.setState({ journal: { ...s.journal, [date]: { ...cur, [field]: value } } });
+  }
+  onJournalTextChange(e) { this.updateJournal('text', e.target.value); }
+
+  // ---- habits ----
+  openHabitDialog(existing) {
+    if (existing) this.setState({ habitDialog: { id: existing.id, name: existing.name, freqType: existing.freqType, timesPerWeek: existing.timesPerWeek || 3, startDate: existing.startDate, endDate: existing.endDate || '' } });
+    else this.setState({ habitDialog: { id: null, name: '', freqType: 'daily', timesPerWeek: 3, startDate: this.todayKey(), endDate: '' } });
+  }
+  closeHabitDialog() { this.setState({ habitDialog: null }); }
+  updateHD(field, value) { this.setState(s => ({ habitDialog: { ...s.habitDialog, [field]: value } })); }
+  saveHabitDialog(e) {
+    e.preventDefault();
+    const hd = this.state.habitDialog;
+    if (!hd || !hd.name.trim()) return;
+    this.setState(s => {
+      const existing = s.habits.find(h => h.id === hd.id);
+      const habit = {
+        id: hd.id || 'habit-' + Date.now(), name: hd.name.trim(), freqType: hd.freqType,
+        timesPerWeek: hd.freqType === 'weekly' ? (Number(hd.timesPerWeek) || 1) : null,
+        startDate: hd.startDate || this.todayKey(), endDate: hd.endDate || null,
+        color: existing ? existing.color : this.HABIT_COLORS[s.habits.length % this.HABIT_COLORS.length],
+        log: existing ? existing.log : []
+      };
+      const habits = existing ? s.habits.map(h => h.id === habit.id ? habit : h) : [...s.habits, habit];
+      return { habits, habitDialog: null, selectedHabitId: s.selectedHabitId || habit.id };
+    });
+  }
+  deleteHabitDialog() {
+    const hd = this.state.habitDialog;
+    if (hd && hd.id) this.setState(s => ({ habits: s.habits.filter(h => h.id !== hd.id), selectedHabitId: s.selectedHabitId === hd.id ? ((s.habits.find(h => h.id !== hd.id) || {}).id || null) : s.selectedHabitId }));
+    this.setState({ habitDialog: null });
+  }
+  toggleHabitLog(id, dateKey) {
+    this.setState(s => ({ habits: s.habits.map(h => {
+      if (h.id !== id) return h;
+      const has = h.log.includes(dateKey);
+      return { ...h, log: has ? h.log.filter(d => d !== dateKey) : [...h.log, dateKey] };
+    }) }));
+  }
+  streakFor(log) {
+    let count = 0, cursor = this.todayKey();
+    if (!log.includes(cursor)) cursor = this.addDays(cursor, -1);
+    while (log.includes(cursor)) { count++; cursor = this.addDays(cursor, -1); }
+    return count;
+  }
+  monthlyPct(h) {
+    const now = new Date();
+    const monthStartKey = this.fmtKey(new Date(now.getFullYear(), now.getMonth(), 1));
+    const todayK = this.todayKey();
+    const daysElapsed = now.getDate();
+    const completions = h.log.filter(d => d >= monthStartKey && d <= todayK).length;
+    let goal;
+    if (h.freqType === 'daily') goal = daysElapsed;
+    else { const weeksElapsed = Math.max(1, Math.ceil(daysElapsed / 7)); goal = weeksElapsed * (h.timesPerWeek || 1); }
+    return Math.min(100, Math.round((completions / Math.max(goal, 1)) * 100));
+  }
+  buildHeat(habit, color, weeks) {
+    const todayK = this.todayKey();
+    const W = weeks || 30, SZ = 13;
+    const todayDow = new Date(todayK + 'T00:00:00').getDay();
+    const gridStart = this.addDays(this.addDays(todayK, -todayDow), -(W - 1) * 7);
+    const cells = [];
+    for (let i = 0; i < W * 7; i++) {
+      const dateKey = this.addDays(gridStart, i);
+      const future = dateKey > todayK;
+      const logged = habit.log.includes(dateKey);
+      const beforeStart = dateKey < habit.startDate;
+      const bg = future ? 'transparent' : (logged ? color : 'var(--color-neutral-800)');
+      cells.push({
+        title: future ? '' : dateKey + (logged ? ' — done' : ''),
+        style: { width: SZ + 'px', height: SZ + 'px', background: bg, cursor: (future || beforeStart) ? 'default' : 'pointer', boxShadow: (future || logged) ? 'none' : 'inset 0 0 0 0.5px color-mix(in srgb, var(--color-bg) 55%, transparent)' },
+        onToggle: (future || beforeStart) ? (e) => e.stopPropagation() : (e) => { e.stopPropagation(); this.toggleHabitLog(habit.id, dateKey); }
+      });
+    }
+    return { cells, startLabel: new Date(gridStart + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) };
+  }
+  buildHabitMonth(habit, color) {
+    const todayK = this.todayKey();
+    const anchor = new Date(this.state.habitMonth + 'T00:00:00');
+    const yr = anchor.getFullYear(), mo = anchor.getMonth();
+    const pref = this.props.weekStart || 'mon';
+    const dow = new Date(yr, mo, 1).getDay();
+    const shift = pref === 'mon' ? (dow === 0 ? 6 : dow - 1) : dow;
+    const cells = [];
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(yr, mo, 1 - shift + i);
+      if (i >= 35 && d.getMonth() !== mo) break;
+      const dateKey = this.fmtKey(d);
+      const inMonth = d.getMonth() === mo;
+      const logged = habit.log.includes(dateKey);
+      const isToday = dateKey === todayK;
+      const future = dateKey > todayK;
+      cells.push({
+        num: d.getDate(), title: dateKey,
+        style: { aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', borderRadius: 'var(--radius-sm)',
+          background: logged ? color : (inMonth ? 'var(--color-neutral-900)' : 'transparent'),
+          color: logged ? 'var(--color-bg)' : (isToday ? 'var(--color-accent)' : (inMonth ? 'var(--color-neutral-300)' : 'var(--color-neutral-700)')),
+          border: isToday ? '1px solid var(--color-accent)' : '1px solid transparent',
+          opacity: future ? 0.5 : 1, cursor: future ? 'default' : 'pointer' },
+        onToggle: future ? () => {} : () => this.toggleHabitLog(habit.id, dateKey)
+      });
+    }
+    return cells;
+  }
+  habitMonthShift(n) { this.setState(s => ({ habitMonth: this.monthAdd(s.habitMonth, n) })); }
+
+  // ---- shared styles ----
+  checkStyle(active) { return { width: '20px', height: '20px', flex: 'none', borderRadius: '6px', border: '1.5px solid ' + (active ? 'var(--color-accent)' : 'var(--color-divider)'), background: active ? 'var(--color-accent)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }; }
+  checkIconStyle(active) { return { fontSize: '13px', color: 'var(--color-bg)', opacity: active ? 1 : 0 }; }
+  textStyle(done) { return { flex: 1, fontSize: '13.5px', color: done ? 'var(--color-neutral-600)' : 'var(--color-text)', textDecoration: done ? 'line-through' : 'none' }; }
+  navBaseIcon(key) { return { today: 'ph ph-house', tasks: 'ph ph-check-square', calendar: 'ph ph-calendar-blank', matrix: 'ph ph-squares-four', habits: 'ph ph-flame', journal: 'ph ph-book-open-text' }[key]; }
+  chipStyle(color) { return { display: 'block', minWidth: 0, maxWidth: '100%', lineHeight: 1.45, fontSize: '11px', padding: '3px 6px', borderRadius: 'var(--radius-sm)', background: 'var(--color-neutral-800)', borderLeft: '3px solid ' + (color || 'var(--color-neutral-500)'), color: 'var(--color-text)', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }; }
+  blockStyle(top, height, color) {
+    return { position: 'absolute', top: top + 'px', left: '6px', right: '6px', height: Math.max(height - 2, 22) + 'px',
+      background: color ? 'color-mix(in srgb, ' + color + ' 20%, var(--color-surface))' : 'var(--color-accent-800)',
+      border: '1px solid ' + (color || 'var(--color-accent-600)'), borderRadius: 'var(--radius-sm)', padding: '4px 8px',
+      color: 'var(--color-text)', overflow: 'hidden', cursor: 'grab', zIndex: 2 };
+  }
+  taskCardStyle(t) {
+    const color = this.priColor(t.priority);
+    return { cursor: 'pointer', padding: '10px 12px', gap: '6px',
+      borderLeft: '3px solid ' + (color || 'var(--color-divider)'),
+      background: color ? 'color-mix(in srgb, ' + color + ' 12%, var(--color-surface))' : 'var(--color-surface)' };
+  }
+
+  tasksByDate(tasks, dateKey) { return tasks.filter(t => t.due === dateKey); }
+
+  buildTaskCard(t) {
+    const meta = t.priority ? this.PRIORITY[t.priority] : null;
+    const dt = this.state.dropTarget;
+    return {
+      id: t.id, text: t.text, hasPriority: !!meta, flagStyle: meta ? { color: meta.color, fontSize: '12px', display: 'flex' } : {},
+      checkStyle: this.checkStyle(t.done), checkIconStyle: this.checkIconStyle(t.done), textStyle: this.textStyle(t.done),
+      cardStyle: this.taskCardStyle(t),
+      onToggle: (e) => { e.stopPropagation(); this.toggleTask(t.id); },
+      onOpen: () => this.editTaskFromObj(t),
+      onDragStart: (e) => { e.stopPropagation(); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', t.id); },
+      onDragEnd: () => this.clearDropTarget(),
+      onDragOverTask: (e) => {
+        e.preventDefault(); e.stopPropagation();
+        e.dataTransfer.dropEffect = 'move';
+        const r = e.currentTarget.getBoundingClientRect();
+        this.setDropTarget(t.id, (e.clientY - r.top) < r.height / 2 ? 'before' : 'after');
+      },
+      lineBefore: !!(dt && dt.id === t.id && dt.pos === 'before'),
+      lineAfter: !!(dt && dt.id === t.id && dt.pos === 'after'),
+      onDropOnTask: (e) => { e.preventDefault(); e.stopPropagation(); const dtg = this.state.dropTarget; this.reorderTask(e.dataTransfer.getData('text/plain'), t.id, dtg && dtg.id === t.id ? dtg.pos : 'before'); },
+      hasDue: !!t.due, dueLabel: t.due ? this.fmtDateLabel(t.due) + (t.dueTime != null ? ' · ' + this.fmtTime(t.dueTime) : '') : ''
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const todayK = this.todayKey();
+    const PRIORITY = this.PRIORITY, ORDER = this.PRIORITY_ORDER;
+    const priorityRank = (p) => p ? ORDER.indexOf(p) : 99;
+
+    const navItems = ['today', 'tasks', 'calendar', 'matrix', 'habits', 'journal'].map(key => {
+      const active = s.activeView === key;
+      const label = { today: 'Today', tasks: 'Tasks', calendar: 'Calendar', matrix: 'Matrix', habits: 'Habits', journal: 'Journal' }[key];
+      return {
+        key, label, icon: this.navBaseIcon(key), onClick: () => this.setView(key),
+        sideStyle: { display: 'flex', alignItems: 'center', justifyContent: s.sidebarOpen ? 'flex-start' : 'center', gap: 'var(--space-3)', padding: '10px 12px', borderRadius: 'var(--radius-md)', fontSize: '14px', fontFamily: 'var(--font-heading)', cursor: 'pointer', color: active ? 'var(--color-accent)' : 'var(--color-text)', background: active ? 'color-mix(in srgb, var(--color-accent) 14%, transparent)' : 'transparent' },
+        tabStyle: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', padding: '6px 2px', fontSize: '10px', cursor: 'pointer', flex: 1, color: active ? 'var(--color-accent)' : 'var(--color-neutral-400)' }
+      };
+    });
+
+    // ---- Today dashboard ----
+    const sortedTasks = [...s.tasks].sort((a, b) => (a.done - b.done) || (priorityRank(a.priority) - priorityRank(b.priority)));
+    const dashboardTasks = sortedTasks.filter(t => !t.done).slice(0, 6).map(t => this.buildTaskCard(t));
+    const todaySchedule = s.tasks.filter(t => t.due === todayK).sort((a, b) => (a.dueTime == null) - (b.dueTime == null) || (a.dueTime || 0) - (b.dueTime || 0)).slice(0, 6)
+      .map(t => ({ timeLabel: t.dueTime != null ? this.fmtTime(t.dueTime) : 'All day', label: t.text, onOpen: () => this.editTaskFromObj(t) }));
+
+    // ---- Tasks board ----
+    const listCols = s.lists.map(list => {
+      const tasks = s.tasks.filter(t => t.listId === list.id).sort((a, b) => (a.done - b.done));
+      return {
+        id: list.id, name: list.name, count: tasks.length, empty: tasks.length === 0,
+        tasks: tasks.map(t => this.buildTaskCard(t)),
+        onDelete: () => this.deleteList(list.id),
+        onAddClick: () => this.setState({ addingTo: list.id }),
+        isAdding: s.addingTo === list.id,
+        quickAddValue: (s.quickAdd || {})[list.id] || '', onQuickAddChange: this.onQuickAddChange(list.id), onQuickAdd: this.onQuickAdd(list.id), onQuickAddBlur: this.onQuickAddBlur(list.id),
+        onDropColumn: (e) => {
+          if (this.state.dragListId) { e.preventDefault(); this.moveList(this.state.dragListId, list.id); return; }
+          this.dropOnColumn(list.id)(e);
+        },
+        onDragOverColumn: (e) => { e.preventDefault(); if (this.state.dragListId) e.dataTransfer.dropEffect = 'move'; },
+        onListDragStart2: (e) => { e.stopPropagation(); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ''); this.setState({ dragListId: list.id }); },
+        onListDragEnd: () => this.setState({ dragListId: null }),
+        colStyle: { opacity: s.dragListId === list.id ? 0.45 : 1 },
+        onListDragStart: this.dragScrollHandler('y'),
+        onDragLeaveList: (e) => { if (!e.currentTarget.contains(e.relatedTarget)) this.clearDropTarget(); }
+      };
+    });
+
+    // ---- Calendar ----
+    const timeRange = this.props.timeRange || 'full';
+    const hourStart = timeRange === 'waking' ? 6 : 0;
+    const hourEnd = timeRange === 'waking' ? 23 : 24;
+    const HOUR_PX = this.HOUR_PX, pxPerMin = HOUR_PX / 60;
+    const rangeStartMin = hourStart * 60;
+    const calGridHeight = (hourEnd - hourStart) * HOUR_PX;
+    const calHourLabels = [];
+    for (let h = hourStart; h < hourEnd; h++) {
+      calHourLabels.push({ label: this.fmtTime(h * 60), style: { position: 'absolute', top: ((h - hourStart) * HOUR_PX - 7) + 'px', left: 0, width: '48px', textAlign: 'right', fontSize: '11px', color: 'var(--color-neutral-500)' } });
+    }
+
+    const visibleDays = s.calView === 'week' ? 7 : s.calView === '3day' ? 3 : 1;
+    const gridW = s.gridW || 900;
+    const colW = Math.max(s.calView === 'day' ? 240 : 132, Math.floor((gridW - 56) / visibleDays));
+    this._colW = colW;
+    const windowStart = s.calWindowStart || this.addDays(s.calDate, -this.CAL_BACK);
+    let colDates = [];
+    if (s.calView === 'day' || s.calView === '3day' || s.calView === 'week') {
+      for (let i = 0; i < this.CAL_SPAN; i++) colDates.push(this.addDays(windowStart, i));
+    }
+    const visibleDates = [];
+    for (let i = 0; i < visibleDays; i++) visibleDates.push(this.addDays(s.calDate, i));
+
+    const buildDrop = (dateKey) => (e) => {
+      e.preventDefault();
+      const id = e.dataTransfer.getData('text/plain'); if (!id) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      let minutes = rangeStartMin + Math.round((y / pxPerMin) / 15) * 15;
+      minutes = Math.max(rangeStartMin, Math.min(minutes, rangeStartMin + (hourEnd - hourStart) * 60 - 15));
+      this.moveTaskToSlot(id, dateKey, minutes);
+    };
+    const buildDropAllDay = (dateKey) => (e) => { e.preventDefault(); const id = e.dataTransfer.getData('text/plain'); if (!id) return; this.moveTaskToSlot(id, dateKey, null); };
+    const dragStart = (id) => (e) => { e.dataTransfer.setData('text/plain', id); };
+
+    const calColumns = colDates.map(dateKey => {
+      const dayTasks = this.tasksByDate(s.tasks, dateKey);
+      const allDay = dayTasks.filter(t => t.dueTime == null);
+      const timed = dayTasks.filter(t => t.dueTime != null);
+      const isToday = dateKey === todayK;
+      const d = new Date(dateKey + 'T00:00:00');
+      return {
+        dateKey, isToday,
+        headerLabel: d.toLocaleDateString(undefined, { weekday: 'short' }) + ' ' + d.getDate(),
+        headerStyle: { width: colW + 'px', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', padding: '0 4px', fontSize: '12px', fontFamily: 'var(--font-heading)', color: isToday ? 'var(--color-accent)' : 'var(--color-text)', borderLeft: '1px solid var(--color-divider)' },
+        allDayStyle: { width: colW + 'px', flex: 'none', padding: '4px', display: 'flex', flexDirection: 'column', gap: '3px', borderLeft: '1px solid var(--color-divider)', overflow: 'hidden' },
+        allDay: allDay.map(t => ({ label: t.text, style: this.chipStyle(this.priColor(t.priority)), onOpen: (e) => { e.stopPropagation(); this.editTaskFromObj(t); }, onDragStart: (e) => { e.stopPropagation(); dragStart(t.id)(e); } })),
+        blocks: timed.map(t => ({
+          id: t.id, label: t.text, timeLabel: this.fmtTime(t.dueTime) + '–' + this.fmtTime(t.dueTime + (t.duration || 60)),
+          onOpen: (e) => { e.stopPropagation(); this.editTaskFromObj(t); }, onDragStart: (e) => { e.stopPropagation(); dragStart(t.id)(e); },
+          style: this.blockStyle((t.dueTime - rangeStartMin) * pxPerMin, (t.duration || 60) * pxPerMin, this.priColor(t.priority))
+        })),
+        gridStyle: { position: 'relative', width: colW + 'px', flex: 'none', height: calGridHeight + 'px', borderLeft: '1px solid var(--color-divider)', cursor: 'crosshair', backgroundImage: 'repeating-linear-gradient(to bottom, var(--color-divider) 0, var(--color-divider) 1px, transparent 1px, transparent ' + HOUR_PX + 'px)' },
+        onDrop: buildDrop(dateKey), onDropAllDay: buildDropAllDay(dateKey),
+        onGridClick: (e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const y = e.clientY - rect.top;
+          let minutes = rangeStartMin + Math.round((y / pxPerMin) / 30) * 30;
+          minutes = Math.max(rangeStartMin, Math.min(minutes, rangeStartMin + (hourEnd - hourStart) * 60 - 30));
+          this.openTaskDialog({ due: dateKey, dueTime: this.minToTimeInput(minutes), listId: (s.lists[0] || {}).id || '' });
+        }
+      };
+    });
+
+    // month view
+    const anchorDate = new Date(s.calDate + 'T00:00:00');
+    const year = anchorDate.getFullYear(), monthIdx = anchorDate.getMonth();
+    const weekdayPref = this.props.weekStart || 'mon';
+    const weekdayBase = weekdayPref === 'mon' ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const buildMonthGrid = (yr, mo) => {
+      const first = new Date(yr, mo, 1);
+      const dow = first.getDay();
+      const shift = weekdayPref === 'mon' ? (dow === 0 ? 6 : dow - 1) : dow;
+      const gridStart = new Date(yr, mo, 1 - shift);
+      const cells = [];
+      for (let i = 0; i < 42; i++) { const d = new Date(gridStart); d.setDate(gridStart.getDate() + i); cells.push({ dateKey: this.fmtKey(d), inMonth: d.getMonth() === mo, date: d }); }
+      return cells;
+    };
+    const monthGridCells = buildMonthGrid(year, monthIdx);
+    const calMonthCells = monthGridCells.map(cell => {
+      const dayTasks = this.tasksByDate(s.tasks, cell.dateKey);
+      const isToday = cell.dateKey === todayK;
+      const chips = dayTasks.slice(0, 3).map(t => ({ label: t.text, style: this.chipStyle(this.priColor(t.priority)), onOpen: (e) => { e.stopPropagation(); this.editTaskFromObj(t); }, onDragStart: (e) => { e.stopPropagation(); dragStart(t.id)(e); } }));
+      return {
+        dateKey: cell.dateKey, dayNum: cell.date.getDate(),
+        cellStyle: { background: 'var(--color-bg)', minWidth: 0, height: 'calc((100vh - 150px) / 6)', minHeight: '116px', padding: '6px', cursor: 'pointer', overflow: 'hidden', display: 'flex', flexDirection: 'column', opacity: cell.inMonth ? 1 : 0.45 },
+        dayNumStyle: { fontSize: '12px', fontFamily: 'var(--font-heading)', color: isToday ? 'var(--color-accent)' : 'var(--color-text)', fontWeight: isToday ? 600 : 400 },
+        chips, hasMore: dayTasks.length > 3, moreCount: dayTasks.length - 3,
+        onClick: () => this.openTaskDialog({ due: cell.dateKey, listId: (s.lists[0] || {}).id || '' }),
+        onDrop: (e) => { e.preventDefault(); const id = e.dataTransfer.getData('text/plain'); if (id) this.moveTaskDate(id, cell.dateKey); }
+      };
+    });
+
+    // year view — 4-column layout with weekday header and day numbers
+    const calYearMonths = Array.from({ length: 12 }, (_, mo) => {
+      const cells = buildMonthGrid(year, mo).slice(0, 35);
+      return {
+        label: new Date(year, mo, 1).toLocaleDateString(undefined, { month: 'short' }),
+        onOpen: () => this.setState({ calView: 'month', calDate: this.fmtKey(new Date(year, mo, 1)) }),
+        days: cells.map(cell => {
+          if (!cell.inMonth) return { num: '', style: { aspectRatio: '1' } };
+          const dayTasks = this.tasksByDate(s.tasks, cell.dateKey);
+          const isToday = cell.dateKey === todayK;
+          let bg = 'transparent';
+          const withPriority = ORDER.find(k => dayTasks.some(t => t.priority === k));
+          if (withPriority) bg = PRIORITY[withPriority].color;
+          else if (dayTasks.length) bg = 'var(--color-neutral-700)';
+          return {
+            num: cell.date.getDate(),
+            style: { aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', borderRadius: '2px', background: bg,
+              color: withPriority ? 'var(--color-bg)' : (isToday ? 'var(--color-accent)' : 'var(--color-neutral-300)'),
+              fontWeight: isToday ? 600 : 400, border: isToday ? '1px solid var(--color-accent)' : 'none' }
+          };
+        })
+      };
+    });
+
+    // ---- Agenda ----
+    const agendaStart = s.calDate, agendaEnd = this.addDays(s.calDate, 60);
+    const agendaMap = {};
+    s.tasks.filter(t => t.due && t.due >= agendaStart && t.due <= agendaEnd).forEach(t => { (agendaMap[t.due] = agendaMap[t.due] || []).push(t); });
+    const agendaDays = Object.keys(agendaMap).sort().map(key => {
+      const d = new Date(key + 'T00:00:00');
+      const isToday = key === todayK;
+      return {
+        dayNum: d.getDate(),
+        dayNumStyle: { fontSize: '26px', fontFamily: 'var(--font-heading)', lineHeight: 1, color: isToday ? 'var(--color-accent)' : 'var(--color-text)' },
+        weekday: d.toLocaleDateString(undefined, { weekday: 'short' }),
+        monthLabel: d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' }),
+        items: agendaMap[key].sort((a, b) => (a.dueTime == null) - (b.dueTime == null) || (a.dueTime || 0) - (b.dueTime || 0)).map(t => {
+          const c = this.priColor(t.priority);
+          return {
+            text: t.text, timeLabel: t.dueTime != null ? this.fmtTime(t.dueTime) : 'All day',
+            textStyle: this.textStyle(t.done), hasPriority: !!c, flagStyle: c ? { color: c, fontSize: '12px', display: 'flex' } : {},
+            rowStyle: { display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+              background: c ? 'color-mix(in srgb, ' + c + ' 10%, var(--color-surface))' : 'var(--color-surface)',
+              borderLeft: '3px solid ' + (c || 'var(--color-divider)') },
+            onOpen: () => this.editTaskFromObj(t)
+          };
+        })
+      };
+    });
+
+    // ---- Matrix ----
+    const matrixQuadrants = ORDER.map(key => {
+      const meta = PRIORITY[key];
+      const tasks = s.tasks.filter(t => t.priority === key).sort((a, b) => a.done - b.done).map(t => ({
+        ...this.buildTaskCard(t),
+        rowStyle: { display: 'flex', alignItems: 'center', gap: '9px', padding: '8px 10px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+          background: 'color-mix(in srgb, ' + meta.color + ' 9%, var(--color-neutral-900))',
+          border: '1px solid color-mix(in srgb, ' + meta.color + ' 18%, transparent)' }
+      }));
+      return { key, title: meta.title, subtitle: meta.subtitle, tasks, empty: tasks.length === 0, count: tasks.length,
+        boxStyle: { display: 'flex', flexDirection: 'column', height: 'clamp(230px, calc((100vh - 130px) / 2), 400px)',
+          background: 'linear-gradient(180deg, color-mix(in srgb, ' + meta.color + ' 7%, var(--color-surface)) 0%, var(--color-surface) 62%)',
+          border: '1px solid var(--color-divider)', borderTop: '2px solid ' + meta.color, borderRadius: 'var(--radius-md)', overflow: 'hidden' },
+        countStyle: { fontSize: '10px', fontFamily: 'var(--font-heading)', color: meta.color, background: 'color-mix(in srgb, ' + meta.color + ' 16%, transparent)', borderRadius: '999px', padding: '1px 7px' },
+        dotStyle: { width: '8px', height: '8px', borderRadius: '50%', background: meta.color, flex: 'none', boxShadow: '0 0 8px ' + meta.color }
+      };
+    });
+    const unflaggedTasks = s.tasks.filter(t => !t.priority && !t.done).map(t => this.buildTaskCard(t));
+
+    // ---- Journal ----
+    const entry = s.journal[s.journalDate] || { text: '', mood: 'okay' };
+    const journalHistory = Object.keys(s.journal).filter(k => k !== s.journalDate && s.journal[k].text).sort((a, b) => b.localeCompare(a)).map(k => ({
+      dateLabel: this.fmtDateLabel(k), mood: s.journal[k].mood, preview: s.journal[k].text.slice(0, 140) + (s.journal[k].text.length > 140 ? '…' : ''), onOpen: () => this.setJournalDate(k)
+    }));
+
+    // ---- Habits ----
+    const weekStartKey = this.startOfWeek(todayK);
+    const thisWeekDates = this.weekDatesFrom(weekStartKey);
+    const habitColor = (h, idx) => h.color || this.HABIT_COLORS[idx % this.HABIT_COLORS.length];
+
+    const dashboardHabits = s.habits.slice(0, 4).map((h, idx) => {
+      const color = habitColor(h, idx);
+      const weekCount = thisWeekDates.filter(d => h.log.includes(d)).length;
+      const goal = h.freqType === 'daily' ? 7 : (h.timesPerWeek || 1);
+      const loggedToday = h.log.includes(todayK);
+      return {
+        id: h.id, name: h.name, progressLabel: weekCount + '/' + goal + ' this week',
+        dotStyle: { width: '7px', height: '7px', borderRadius: '50%', background: color, flex: 'none' },
+        checkStyle: this.checkStyle(loggedToday), checkIconStyle: this.checkIconStyle(loggedToday),
+        onToggleToday: () => this.toggleHabitLog(h.id, todayK)
+      };
+    });
+
+    const habitsCompact = s.habits.map((h, idx) => {
+      const color = habitColor(h, idx);
+      const selected = h.id === s.selectedHabitId;
+      const streak = this.streakFor(h.log);
+      const loggedToday = h.log.includes(todayK);
+      const heat = this.buildHeat(h, color, 30);
+      return {
+        id: h.id, name: h.name, hasStreak: streak > 0, streak,
+        freqLabel: h.freqType === 'daily' ? 'Daily' : (h.timesPerWeek || 1) + 'x / week',
+        heatCells: heat.cells, heatStartLabel: heat.startLabel,
+        dotStyle: { width: '8px', height: '8px', borderRadius: '50%', background: color, flex: 'none' },
+        checkStyle: { ...this.checkStyle(loggedToday), width: '18px', height: '18px' },
+        checkIconStyle: { ...this.checkIconStyle(loggedToday), fontSize: '11px' },
+        cardStyle: { display: 'flex', flexDirection: 'column', gap: '10px', padding: 'var(--space-3)', borderRadius: 'var(--radius-md)', cursor: 'pointer', width: 'fit-content', minWidth: '0', maxWidth: '100%',
+          opacity: s.dragHabitId === h.id ? 0.45 : 1,
+          background: selected ? 'color-mix(in srgb, ' + color + ' 10%, var(--color-surface))' : 'var(--color-surface)',
+          border: '1px solid ' + (selected ? color : 'var(--color-divider)') },
+        onSelect: () => this.setState({ selectedHabitId: h.id }),
+        onDragStart: (e) => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ''); this.setState({ dragHabitId: h.id }); },
+        onDragOver: (e) => { if (this.state.dragHabitId) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } },
+        onDrop: (e) => { e.preventDefault(); e.stopPropagation(); this.moveHabit(this.state.dragHabitId, h.id); },
+        onDragEnd: () => this.setState({ dragHabitId: null }),
+        onToggleToday: (e) => { e.stopPropagation(); this.toggleHabitLog(h.id, todayK); }
+      };
+    });
+
+    const selHabit = s.habits.find(h => h.id === s.selectedHabitId) || s.habits[0];
+    let selectedHabit = null;
+    let habitMonthCells = [];
+    if (selHabit) {
+      const idx = s.habits.indexOf(selHabit);
+      const color = habitColor(selHabit, idx);
+      habitMonthCells = this.buildHabitMonth(selHabit, color);
+      selectedHabit = {
+        name: selHabit.name, freqLabel: selHabit.freqType === 'daily' ? 'Every day' : (selHabit.timesPerWeek + 'x / week'),
+        bigDotStyle: { width: '14px', height: '14px', borderRadius: '50%', background: color, flex: 'none' },
+        streak: this.streakFor(selHabit.log), total: selHabit.log.length, monthlyPct: this.monthlyPct(selHabit),
+        onEdit: () => this.openHabitDialog(selHabit),
+        onDelete: () => this.setState(st => { const habits = st.habits.filter(x => x.id !== selHabit.id); return { habits, selectedHabitId: st.selectedHabitId === selHabit.id ? ((habits[0] || {}).id || null) : st.selectedHabitId }; })
+      };
+    }
+
+    // priority option buttons for task dialog
+    const td = s.taskDialog || { priority: null };
+    const priorityOptions = [{ key: null, label: 'None', isNone: true }, ...ORDER.map(k => ({ key: k, label: PRIORITY[k].label, isNone: false, color: PRIORITY[k].color }))].map(opt => {
+      const selected = td.priority === opt.key;
+      return {
+        ...opt,
+        onSelect: () => this.updateTD('priority', opt.key),
+        style: { width: '28px', height: '28px', borderRadius: '50%', border: '2px solid ' + (selected ? (opt.color || 'var(--color-accent)') : 'var(--color-divider)'), background: opt.color ? ('color-mix(in srgb, ' + opt.color + ' 35%, transparent)') : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }
+      };
+    });
+
+    return {
+      isToday: s.activeView === 'today', isTasks: s.activeView === 'tasks', isCalendar: s.activeView === 'calendar',
+      isMatrix: s.activeView === 'matrix', isHabits: s.activeView === 'habits', isJournal: s.activeView === 'journal',
+      navItems,
+      sidebarOpen: s.sidebarOpen, sidebarWidth: s.sidebarOpen ? '216px' : '62px',
+      sidebarToggleIcon: s.sidebarOpen ? 'ph ph-sidebar-simple' : 'ph ph-list',
+      toggleSidebar: () => this.setState(st => ({ sidebarOpen: !st.sidebarOpen })),
+      longDateLabel: new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }),
+      goTasks: () => this.setView('tasks'), goHabits: () => this.setView('habits'), goJournal: () => this.setView('journal'),
+      goCalendarToday: () => this.goCalendarToday(),
+      dashQuickText: s.dashQuickText, onDashQuickChange: (e) => this.onDashQuickChange(e), quickAddDash: (e) => this.quickAddDash(e),
+      dashboardTasks, noDashboardTasks: dashboardTasks.length === 0,
+      dashboardSchedule: todaySchedule, noDashboardSchedule: todaySchedule.length === 0,
+      dashboardHabits, noHabits: s.habits.length === 0,
+      todayJournalText: (s.journal[todayK] || {}).text || '',
+      onTodayJournalChange: (e) => { const cur = s.journal[todayK] || { text: '', mood: 'okay' }; this.setState({ journal: { ...s.journal, [todayK]: { ...cur, text: e.target.value } } }); },
+
+      listCols, newListName: s.newListName, onNewListNameChange: (e) => this.onNewListNameChange(e), addListSubmit: (e) => this.addListSubmit(e),
+      openNewTask: () => this.openTaskDialog({}), preventDefault: (e) => e.preventDefault(),
+      onBoardDragStart: this.dragScrollHandler('x'),
+
+      calTitle: s.calView === 'day' ? this.fmtDateLabel(s.calDate)
+        : s.calView === '3day' ? this.fmtShort(visibleDates[0]) + ' – ' + this.fmtShort(visibleDates[2])
+        : s.calView === 'week' ? this.fmtShort(visibleDates[0]) + ' – ' + this.fmtShort(visibleDates[6])
+        : s.calView === 'month' ? anchorDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+        : s.calView === 'agenda' ? 'From ' + this.fmtDateLabel(s.calDate)
+        : String(year),
+      calViewOptions: [['day','Day'],['3day','3-Day'],['week','Week'],['month','Month'],['year','Year'],['agenda','Agenda']].map(([k,l]) => ({ key: k, label: l, checked: s.calView === k, on: s.calView === k ? '1' : '0', onSelect: () => this.setCalView(k) })),
+      calPrevBtn: () => this.calPrev(), calNextBtn: () => this.calNext(), calTodayBtn: () => this.calToday(),
+      calIsGrid: s.calView === 'day' || s.calView === '3day' || s.calView === 'week',
+      calIsMonth: s.calView === 'month', calIsYear: s.calView === 'year', calIsAgenda: s.calView === 'agenda',
+      agendaDays, noAgenda: agendaDays.length === 0,
+      calColumns, calHasAllDay: calColumns.some(c => c.allDay.length > 0),
+      calGridRef: this.calGridRef, onCalScroll: (e) => this.onCalScroll(e),
+      calGridHeightPx: calGridHeight + 'px', calHourLabels,
+      calWeekdayLabels: weekdayBase, calWeekdayShort: weekdayBase.map(w => w[0]), calMonthCells, calYearMonths,
+
+      matrixQuadrants, hasUnflagged: unflaggedTasks.length > 0, unflaggedTasks,
+      unflaggedCount: unflaggedTasks.length, noUnflagged: unflaggedTasks.length === 0,
+
+      journalDateLabel: this.fmtDateLabel(s.journalDate), jPrevDay: () => this.changeJournalDate(-1), jNextDay: () => this.changeJournalDate(1), jToday: () => this.setJournalToday(),
+      journalText: entry.text, onJournalTextChange: (e) => this.onJournalTextChange(e),
+      moodGreatChecked: entry.mood === 'great', moodGoodChecked: entry.mood === 'good', moodOkayChecked: entry.mood === 'okay', moodLowChecked: entry.mood === 'low', moodRoughChecked: entry.mood === 'rough',
+      onMoodGreat: () => this.updateJournal('mood', 'great'), onMoodGood: () => this.updateJournal('mood', 'good'), onMoodOkay: () => this.updateJournal('mood', 'okay'), onMoodLow: () => this.updateJournal('mood', 'low'), onMoodRough: () => this.updateJournal('mood', 'rough'),
+      journalHistory, noJournalHistory: journalHistory.length === 0,
+
+      habitsCompact, hasSelectedHabit: !!selectedHabit, selectedHabit: selectedHabit || {}, openNewHabit: () => this.openHabitDialog(null),
+      habitMonthCells, habitMonthLabel: new Date(s.habitMonth + 'T00:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' }),
+      habitMonthPrev: () => this.habitMonthShift(-1), habitMonthNext: () => this.habitMonthShift(1),
+
+      showTaskDialog: !!s.taskDialog, taskDialog: s.taskDialog || { text: '', listId: '', priority: null, due: '', dueTime: '', duration: '60' },
+      taskDialogTitle: s.taskDialog && s.taskDialog.id ? 'Edit task' : 'New task', taskDialogIsEdit: !!(s.taskDialog && s.taskDialog.id),
+      taskDialogHasTime: !!(s.taskDialog && s.taskDialog.dueTime),
+      closeTaskDialog: () => this.closeTaskDialog(), saveTaskDialog: (e) => this.saveTaskDialog(e), deleteTaskDialog: () => this.deleteTaskDialog(),
+      onTDTextChange: (e) => this.updateTD('text', e.target.value), onTDListChange: (e) => this.updateTD('listId', e.target.value),
+      onTDDueChange: (e) => this.updateTD('due', e.target.value), onTDTimeChange: (e) => this.updateTD('dueTime', e.target.value), onTDDurationChange: (e) => this.updateTD('duration', e.target.value),
+      lists: s.lists, priorityOptions,
+
+      showHabitDialog: !!s.habitDialog, habitDialog: s.habitDialog || { name: '', freqType: 'daily', timesPerWeek: 3, startDate: todayK, endDate: '' },
+      habitDialogTitle: s.habitDialog && s.habitDialog.id ? 'Edit habit' : 'New habit', habitDialogIsEdit: !!(s.habitDialog && s.habitDialog.id),
+      habitDialogIsWeekly: !!(s.habitDialog && s.habitDialog.freqType === 'weekly'),
+      hFreqDailyChecked: !!(s.habitDialog && s.habitDialog.freqType === 'daily'), hFreqWeeklyChecked: !!(s.habitDialog && s.habitDialog.freqType === 'weekly'),
+      onHFreqDaily: () => this.updateHD('freqType', 'daily'), onHFreqWeekly: () => this.updateHD('freqType', 'weekly'),
+      onHDNameChange: (e) => this.updateHD('name', e.target.value), onHDTimesChange: (e) => this.updateHD('timesPerWeek', e.target.value),
+      onHDStartChange: (e) => this.updateHD('startDate', e.target.value), onHDEndChange: (e) => this.updateHD('endDate', e.target.value),
+      closeHabitDialog: () => this.closeHabitDialog(), saveHabitDialog: (e) => this.saveHabitDialog(e), deleteHabitDialog: () => this.deleteHabitDialog(),
+
+      stop: (e) => e.stopPropagation()
+    };
+  }
+}
+
+</script>
+</body>
+</html>

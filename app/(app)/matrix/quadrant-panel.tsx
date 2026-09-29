@@ -1,7 +1,7 @@
 'use client';
 
 import type { DragEvent, TouchEvent } from 'react';
-import { PRIORITY_COLORS, PRIORITY_ON_COLORS, type PriorityKey } from '@/app/components/ui/priority-flag';
+import { PRIORITY_COLORS, type PriorityKey } from '@/app/components/ui/priority-flag';
 import { MatrixTaskRow } from './matrix-task-row';
 import type { TaskDTO } from './queries';
 
@@ -52,7 +52,6 @@ export function QuadrantPanel({
 }: QuadrantPanelProps) {
   const { title, subtitle } = QUADRANT_INFO[priorityKey];
   const color = PRIORITY_COLORS[priorityKey];
-  const onColor = PRIORITY_ON_COLORS[priorityKey];
 
   return (
     <div
@@ -67,30 +66,27 @@ export function QuadrantPanel({
         minHeight: 0,
         overflow: 'hidden',
         borderRadius: 'var(--radius-lg)',
-        border: `1px solid ${isDropTarget ? color : `color-mix(in oklch, ${color} 35%, var(--border-1))`}`,
-        background: isDropTarget ? `color-mix(in oklch, ${color} 8%, var(--surface-1))` : 'var(--surface-1)',
-        boxShadow: isDropTarget ? `0 0 0 3px color-mix(in oklch, ${color} 25%, transparent)` : undefined,
+        border: `1.5px solid ${isDropTarget ? color : `color-mix(in oklch, ${color} 55%, var(--border-1))`}`,
+        background: isDropTarget ? `color-mix(in oklch, ${color} 6%, var(--surface-1))` : 'var(--surface-1)',
+        boxShadow: isDropTarget ? `0 0 0 3px color-mix(in oklch, ${color} 20%, transparent)` : undefined,
         transition: 'background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out)',
       }}
     >
       <div
         data-quad-header
-        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', flex: 'none', background: color, color: onColor }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '10px 14px 8px',
+          flex: 'none',
+          borderBottom: `1px solid color-mix(in oklch, ${color} 20%, var(--border-1))`,
+        }}
       >
-        <span style={{ fontWeight: 600, fontSize: 'var(--text-base)', whiteSpace: 'nowrap' }}>{title}</span>
-        <span className="pw-quad-subtitle" style={{ fontSize: 'var(--text-sm)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</span>
-        <span
-          style={{
-            marginLeft: 'auto',
-            minWidth: 22,
-            padding: '1px 7px',
-            borderRadius: 999,
-            textAlign: 'center',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 'var(--text-xs)',
-            background: `color-mix(in oklch, ${onColor} 20%, transparent)`,
-          }}
-        >
+        <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 999, background: color, flex: 'none' }} />
+        <span style={{ fontWeight: 600, fontSize: 'var(--text-base)', color: 'var(--fg-1)', whiteSpace: 'nowrap' }}>{title}</span>
+        <span className="pw-quad-subtitle" style={{ fontSize: 'var(--text-sm)', color: 'var(--fg-3)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</span>
+        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', color: 'var(--fg-3)' }}>
           {tasks.length}
         </span>
       </div>
