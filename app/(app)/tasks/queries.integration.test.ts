@@ -40,12 +40,12 @@ describe('getTaskLists', () => {
   });
 
   test('returns lists ordered by order, each with its tasks ordered by order, due serialized as a date string', async () => {
-    const listB = await prisma.taskList.create({ data: { name: 'QueryTest B', order: 1 } });
-    const listA = await prisma.taskList.create({ data: { name: 'QueryTest A', order: 0 } });
+    const listB = await prisma.taskList.create({ data: { userId: 'owner', name: 'QueryTest B', order: 1 } });
+    const listA = await prisma.taskList.create({ data: { userId: 'owner', name: 'QueryTest A', order: 0 } });
 
-    await prisma.task.create({ data: { text: 'QueryTest second', listId: listA.id, order: 1 } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'QueryTest second', listId: listA.id, order: 1 } });
     await prisma.task.create({
-      data: { text: 'QueryTest first', listId: listA.id, order: 0, due: new Date('2026-03-01'), priority: 'RED' },
+      data: { userId: 'owner', text: 'QueryTest first', listId: listA.id, order: 0, due: new Date('2026-03-01'), priority: 'RED' },
     });
 
     const result = await getTaskLists();

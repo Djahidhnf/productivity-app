@@ -8,11 +8,14 @@ datasource db {
 
 model TaskList {
   id        String   @id @default(cuid())
+  /// Owning account id (app/lib/accounts.ts).
+  userId    String
   name      String
   order     Int
   createdAt DateTime @default(now())
   tasks     Task[]
 
+  @@index([userId])
   @@map("task_lists")
 }
 
@@ -24,24 +27,30 @@ enum Priority {
 }
 
 model Task {
-  id          String    @id @default(cuid())
-  text        String
-  list        TaskList  @relation(fields: [listId], references: [id], onDelete: Cascade)
-  listId      String
-  priority    Priority?
-  due         DateTime? @db.Date
-  dueTime     Int?
-  duration    Int       @default(60)
-  done        Boolean   @default(false)
+  id             String    @id @default(cuid())
+  /// Owning account id; always the same as its list's.
+  userId         String
+  text           String
+  list           TaskList  @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId         String
+  priority       Priority?
+  due            DateTime? @db.Date
+  dueTime        Int?
+  duration       Int       @default(60)
+  done           Boolean   @default(false)
   /// When the task was last marked done; null while open. Done tasks are purged 72h after this.
-  completedAt DateTime?
-  order       Int
+  completedAt    DateTime?
+  order          Int
   /// Position within its Eisenhower-matrix group (quadrant or unflagged); null = not yet placed, sorts last.
-  matrixOrder Int?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  matrixOrder    Int?
+  /// Minutes before the due time to send a reminder; null = never, 0 = on time.
+  /// Untimed tasks count from 09:00 local and only use whole days (multiples of 1440).
+  reminderOffset Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([listId])
+  @@index([userId])
   @@map("tasks")
 }
 
@@ -51,16 +60,25 @@ enum FreqType {
 }
 
 model Habit {
-  id           String     @id @default(cuid())
-  name         String
-  color        String
-  freqType     FreqType
-  timesPerWeek Int?
-  startDate    DateTime   @db.Date
-  order        Int
-  createdAt    DateTime   @default(now())
-  logs         HabitLog[]
+  id             String     @id @default(cuid())
+  /// Owning account id (app/lib/accounts.ts).
+  userId         String
+  name           String
+  color          String
+  freqType       FreqType
+  timesPerWeek   Int?
+  startDate      DateTime   @db.Date
+  /// Time of day in minutes after local midnight; reminders need it.
+  time           Int?
+  /// Minutes before `time` to send a reminder; null = never, 0 = on time.
+  reminderOffset Int?
+  /// WEEKLY habits: 7-bit weekday mask of reminder days, bit 0 = Monday … bit 6 = Sunday.
+  reminderDays   Int?
+  order          Int
+  createdAt      DateTime   @default(now())
+  logs           HabitLog[]
 
+  @@index([userId])
   @@map("habits")
 }
 
@@ -76,11 +94,14 @@ model HabitLog {
 
 model Note {
   id        String   @id @default(cuid())
+  /// Owning account id (app/lib/accounts.ts).
+  userId    String
   text      String
   pinned    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId])
   @@map("notes")
 }
 
@@ -91,6 +112,8 @@ enum EntryType {
 
 model FinanceEntry {
   id        String    @id @default(cuid())
+  /// Owning account id (app/lib/accounts.ts).
+  userId    String
   type      EntryType
   /// Amount in centimes (1/100 DZD), always positive; `type` gives the sign.
   amount    Int
@@ -99,7 +122,47 @@ model FinanceEntry {
   date      DateTime  @db.Date
   createdAt DateTime  @default(now())
 
-  @@index([date])
+  @@index([userId, date])
   @@map("finance_entries")
 }
 
+/// One browser/device that has enabled push notifications for an account.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+enum ReminderKind {
+  TASK
+  HABIT
+}
+
+/// Reminders already sent, so each (item, fire time) goes out once. Pruned after 7 days.
+model ReminderLog {
+  id     String       @id @default(cuid())
+  kind   ReminderKind
+  itemId String
+  fireAt DateTime
+  sentAt DateTime     @default(now())
+
+  @@unique([kind, itemId, fireAt])
+  @@index([sentAt])
+  @@map("reminder_logs")
+}
+
+/// Per-account settings. The time zone is captured from the browser when
+/// notifications are enabled; reminder times are computed in it.
+model UserSettings {
+  userId   String @id
+  timeZone String @default("UTC")
+
+  @@map("user_settings")
+}

@@ -11,6 +11,16 @@ describe('session encrypt/decrypt', () => {
     expect(payload?.sub).toBe('owner');
   });
 
+  test('round-trips the second account', async () => {
+    const token = await encryptSession({ sub: 'second', expiresAt: Date.now() + 60_000 });
+    await expect(decryptSession(token)).resolves.toMatchObject({ sub: 'second' });
+  });
+
+  test('rejects a token for an unknown account', async () => {
+    const token = await encryptSession({ sub: 'intruder' as never, expiresAt: Date.now() + 60_000 });
+    await expect(decryptSession(token)).resolves.toBeNull();
+  });
+
   test('rejects a garbage token', async () => {
     await expect(decryptSession('not-a-real-token')).resolves.toBeNull();
   });

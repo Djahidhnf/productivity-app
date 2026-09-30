@@ -29,7 +29,7 @@ describe('dashboard queries', () => {
   beforeAll(async () => {
     const token = await encryptSession({ sub: 'owner', expiresAt: Date.now() + 60_000 });
     cookieStore.set(SESSION_COOKIE_NAME, token);
-    const list = await prisma.taskList.create({ data: { name: 'DashboardQueryTest', order: 999 } });
+    const list = await prisma.taskList.create({ data: { userId: 'owner', name: 'DashboardQueryTest', order: 999 } });
     listId = list.id;
   });
 
@@ -40,7 +40,7 @@ describe('dashboard queries', () => {
 
   test('getDashboardTasks returns open tasks plus done ones dated within a day of today', async () => {
     const make = (text: string, done: boolean, due: string | null) =>
-      prisma.task.create({ data: { text, listId, order: 0, done, due: due ? new Date(due) : null } });
+      prisma.task.create({ data: { userId: 'owner', text, listId, order: 0, done, due: due ? new Date(due) : null } });
     await make('DQ open undated', false, null);
     await make('DQ done yesterday', true, '2026-09-25');
     await make('DQ done tomorrow', true, '2026-09-27');
@@ -56,7 +56,7 @@ describe('dashboard queries', () => {
       ['DQ note new', '2099-01-03T00:00:00Z'],
       ['DQ note mid', '2099-01-02T00:00:00Z'],
     ] as const) {
-      const note = await prisma.note.create({ data: { text, updatedAt: new Date(updatedAt) } });
+      const note = await prisma.note.create({ data: { userId: 'owner', text, updatedAt: new Date(updatedAt) } });
       noteIds.push(note.id);
     }
     expect((await getRecentNotes(2)).map((n) => n.text)).toEqual(['DQ note new', 'DQ note mid']);

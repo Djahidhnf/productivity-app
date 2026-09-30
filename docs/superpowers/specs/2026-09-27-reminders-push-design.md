@@ -128,3 +128,15 @@ Errors from any step show an inline message in the panel; the state is re-read a
 ## Out of scope
 
 Snooze / notification action buttons, email or SMS, offline caching, a settings page, a configurable default time for untimed tasks (fixed 09:00), multiple users.
+
+## Amendments (2026-09-30, implemented)
+
+Built together with the rename to **Klivr** and the second account, so "multiple users" is no longer out of scope:
+
+- Accounts: `owner` (`AUTH_EMAIL`/`AUTH_PASSWORD_HASH`) and `second` (`AUTH_EMAIL_2`/`AUTH_PASSWORD_HASH_2`). Every data row has a `userId`; existing rows belong to `owner`.
+- `PushSubscription.userId`; saving a subscription upserts by endpoint and moves the device to the signed-in account (the panel re-saves on open, so switching accounts re-links the device).
+- `AppSettings` became `UserSettings` keyed by `userId` (`timeZone`).
+- The dispatcher runs per account that has at least one device, in that account's time zone, and sends only to that account's devices.
+- The bell panel also shows "Signed in as …" and **Sign out**, which first removes this device's subscription.
+- DST: a wall time in a spring-forward gap resolves to just after the jump; in a fall-back overlap, to the earlier instant.
+- Calendar drag-to-reschedule keeps the reminder; the server refits it to the new date/time (e.g. to "on the day" when moved to all-day).

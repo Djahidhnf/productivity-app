@@ -2,7 +2,15 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import { HabitDialog, type HabitDialogValues } from './habit-dialog';
 
-const baseValues: HabitDialogValues = { name: '', freqType: 'DAILY', timesPerWeek: '3', startDate: '2026-09-23' };
+const baseValues: HabitDialogValues = {
+  name: '',
+  freqType: 'DAILY',
+  timesPerWeek: '3',
+  startDate: '2026-09-23',
+  time: '',
+  reminderOffset: null,
+  reminderDays: 0b1111111,
+};
 
 describe('HabitDialog', () => {
   test('does not render when closed', () => {
@@ -22,7 +30,7 @@ describe('HabitDialog', () => {
     render(<HabitDialog open mode="create" initialValues={baseValues} onClose={vi.fn()} onSave={onSave} />);
     fireEvent.change(screen.getByLabelText('Habit name'), { target: { value: 'Stretch' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save habit' }));
-    expect(onSave).toHaveBeenCalledWith({ name: 'Stretch', freqType: 'DAILY', timesPerWeek: '3', startDate: '2026-09-23' });
+    expect(onSave).toHaveBeenCalledWith({ ...baseValues, name: 'Stretch' });
   });
 
   test('shows Delete only in edit mode, and calls onDelete', () => {
@@ -48,6 +56,39 @@ describe('HabitDialog', () => {
     expect(saveButton).toBeDisabled();
     fireEvent.click(saveButton);
     expect(onSave).not.toHaveBeenCalled();
+  });
+
+  test('the reminder is disabled until a time is set, then saves the chosen offset', () => {
+    const onSave = vi.fn();
+    render(<HabitDialog open mode="create" initialValues={{ ...baseValues, name: 'Stretch' }} onClose={vi.fn()} onSave={onSave} />);
+    expect(screen.getByLabelText('Reminder')).toBeDisabled();
+    expect(screen.getByText('Set a time to get a reminder')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Time'), { target: { value: '07:30' } });
+    fireEvent.change(screen.getByLabelText('Reminder'), { target: { value: '30' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save habit' }));
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ time: '07:30', reminderOffset: 30 }));
+  });
+
+  test('weekly habits with a reminder need at least one reminder day', () => {
+    const onSave = vi.fn();
+    render(
+      <HabitDialog
+        open
+        mode="edit"
+        initialValues={{ ...baseValues, name: 'Run', freqType: 'WEEKLY', time: '18:00', reminderOffset: 0, reminderDays: 0b0000001 }}
+        onClose={vi.fn()}
+        onSave={onSave}
+      />
+    );
+    const monday = screen.getByRole('button', { name: 'Monday' });
+    expect(monday).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(monday);
+    expect(screen.getByRole('alert')).toHaveTextContent('Pick at least one day.');
+    fireEvent.click(screen.getByRole('button', { name: 'Save habit' }));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Friday' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save habit' }));
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ reminderDays: 0b0010000 }));
   });
 
   test('resets its fields when a new initialValues object is passed in', () => {

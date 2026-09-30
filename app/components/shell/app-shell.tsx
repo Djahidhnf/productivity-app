@@ -6,17 +6,20 @@ import { Sidebar } from './sidebar';
 import { BottomNav } from './bottom-nav';
 import { NAV_ITEMS } from './nav-items';
 import { ThemeContext } from './theme-toggle';
+import { AccountContext } from './notifications-button';
 
 export interface AppShellProps {
   initialTheme: 'dark' | 'light';
   initialSidebarOpen: boolean;
+  /** Signed-in account's email, shown in the notifications panel. */
+  accountEmail?: string;
   children: ReactNode;
 }
 
 // The sidebar is desktop-only and the bottom nav phone-only; which one shows
 // is decided purely in CSS (layout.css, 860px breakpoint) so there is no
 // hydration flash.
-export function AppShell({ initialTheme, initialSidebarOpen, children }: AppShellProps) {
+export function AppShell({ initialTheme, initialSidebarOpen, accountEmail = '', children }: AppShellProps) {
   const [theme, setTheme] = useState(initialTheme);
   const [sidebarOpen, setSidebarOpen] = useState(initialSidebarOpen);
   const pathname = usePathname();
@@ -38,6 +41,7 @@ export function AppShell({ initialTheme, initialSidebarOpen, children }: AppShel
   const activeKey = NAV_ITEMS.find((item) => pathname?.startsWith(item.href))?.key ?? 'dashboard';
 
   return (
+    <AccountContext value={accountEmail}>
     <div className="pw-shell">
       <Sidebar
         items={NAV_ITEMS}
@@ -52,5 +56,6 @@ export function AppShell({ initialTheme, initialSidebarOpen, children }: AppShel
       </main>
       <BottomNav items={NAV_ITEMS} activeKey={activeKey} />
     </div>
+    </AccountContext>
   );
 }

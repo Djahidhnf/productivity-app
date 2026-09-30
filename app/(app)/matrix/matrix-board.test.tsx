@@ -17,6 +17,7 @@ vi.mock('../tasks/actions', () => ({
     duration: 60,
     done: false,
     completedAt: null,
+    reminderOffset: null,
     order: 0,
   })),
   deleteTask: vi.fn(async () => {}),
@@ -31,6 +32,7 @@ vi.mock('../tasks/actions', () => ({
     duration: 60,
     done: true,
     completedAt: null,
+    reminderOffset: null,
     order: 0,
   })),
 }));
@@ -48,6 +50,7 @@ function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
     duration: 60,
     done: false,
     completedAt: null,
+    reminderOffset: null,
     order: 0,
     ...overrides,
   };

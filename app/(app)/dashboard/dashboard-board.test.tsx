@@ -14,11 +14,11 @@ vi.mock('../notes/actions', () => ({ createNote: vi.fn() }));
 const TODAY = '2026-09-26';
 
 function task(id: string, overrides: Partial<TaskDTO> = {}): TaskDTO {
-  return { id, text: `Task ${id}`, listId: 'inbox', priority: null, due: TODAY, dueTime: null, duration: 60, done: false, completedAt: null, order: 0, ...overrides };
+  return { id, text: `Task ${id}`, listId: 'inbox', priority: null, due: TODAY, dueTime: null, duration: 60, done: false, completedAt: null, reminderOffset: null, order: 0, ...overrides };
 }
 
 function habit(id: string, overrides: Partial<HabitDTO> = {}): HabitDTO {
-  return { id, name: `Habit ${id}`, color: 'moss', freqType: 'DAILY', timesPerWeek: null, startDate: '2026-09-01', order: 0, logs: [], ...overrides };
+  return { id, name: `Habit ${id}`, color: 'moss', freqType: 'DAILY', timesPerWeek: null, startDate: '2026-09-01', time: null, reminderOffset: null, reminderDays: null, order: 0, logs: [], ...overrides };
 }
 
 function note(id: string, text: string): NoteDTO {

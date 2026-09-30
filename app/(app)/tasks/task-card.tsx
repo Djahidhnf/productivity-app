@@ -3,6 +3,7 @@
 import type { DragEvent, MouseEvent, TouchEvent } from 'react';
 import { CheckToggle } from '@/app/components/ui/check-toggle';
 import { PriorityFlag } from '@/app/components/ui/priority-flag';
+import { Icon } from '@/app/components/icons';
 import { formatDueLabel, todayKey } from '@/app/lib/date-format';
 import type { TaskDTO } from './queries';
 
@@ -60,6 +61,9 @@ export function TaskCard({
         {task.text}
       </span>
       {task.priority && <PriorityFlag priority={task.priority} />}
+      {task.due && task.reminderOffset != null && (
+        <Icon name="bell" size={12} aria-label="Reminder set" aria-hidden={false} role="img" style={{ color: 'var(--fg-3)', flex: 'none' }} />
+      )}
       {dueLabel && (
         <span className="st-due" data-overdue={overdue || undefined}>
           {dueLabel}

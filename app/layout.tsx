@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Daybook",
+  title: "Klivr",
   description: "Personal productivity: tasks, calendar, matrix, habits, notes, finance.",
 };
 

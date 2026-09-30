@@ -17,7 +17,7 @@ export default function LoginPage() {
     >
       <div style={{ width: '100%', maxWidth: 340, display: 'flex', flexDirection: 'column', gap: 32 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span className="pw-wordmark" style={{ fontSize: 'var(--text-xl)' }}>daybook</span>
+          <span className="pw-wordmark" style={{ fontSize: 'var(--text-xl)' }}>klivr</span>
           <span style={{ fontSize: 'var(--text-sm)', color: 'var(--fg-3)' }}>Sign in to continue.</span>
         </div>
         <LoginForm action={login} />

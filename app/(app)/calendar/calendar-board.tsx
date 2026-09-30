@@ -159,6 +159,7 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
             priority: values.priority,
             due: values.due || null,
             dueTime,
+            reminderOffset: values.reminderOffset ?? null,
           });
           setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
         } catch {
@@ -178,6 +179,7 @@ export function CalendarBoard({ initialTasks, lists }: CalendarBoardProps) {
             due: values.due || null,
             dueTime,
             duration: values.duration,
+            reminderOffset: values.reminderOffset ?? null,
           });
           setTasks((prev) => [...prev, updated]);
         } catch {

@@ -15,6 +15,7 @@ function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
     duration: 60,
     done: false,
     completedAt: null,
+    reminderOffset: null,
     order: 0,
     ...overrides,
   };

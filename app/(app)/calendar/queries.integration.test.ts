@@ -28,7 +28,7 @@ describe('getCalendarTasks', () => {
   beforeAll(async () => {
     const token = await encryptSession({ sub: 'owner', expiresAt: Date.now() + 60_000 });
     cookieStore.set(SESSION_COOKIE_NAME, token);
-    const list = await prisma.taskList.create({ data: { name: 'CalendarTest List', order: 0 } });
+    const list = await prisma.taskList.create({ data: { userId: 'owner', name: 'CalendarTest List', order: 0 } });
     listId = list.id;
   });
 
@@ -41,8 +41,8 @@ describe('getCalendarTasks', () => {
   });
 
   test('excludes tasks with no due date', async () => {
-    await prisma.task.create({ data: { text: 'CalendarTest no due', listId, order: 0 } });
-    await prisma.task.create({ data: { text: 'CalendarTest has due', listId, order: 1, due: new Date('2026-10-05') } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'CalendarTest no due', listId, order: 0 } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'CalendarTest has due', listId, order: 1, due: new Date('2026-10-05') } });
     const result = await getCalendarTasks();
     const texts = result.map((t) => t.text);
     expect(texts).toContain('CalendarTest has due');
@@ -50,7 +50,7 @@ describe('getCalendarTasks', () => {
   });
 
   test('includes done tasks (unlike Matrix)', async () => {
-    await prisma.task.create({ data: { text: 'CalendarTest done', listId, order: 2, due: new Date('2026-10-06'), done: true } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'CalendarTest done', listId, order: 2, due: new Date('2026-10-06'), done: true } });
     const result = await getCalendarTasks();
     const found = result.find((t) => t.text === 'CalendarTest done');
     expect(found).toBeDefined();
@@ -58,8 +58,8 @@ describe('getCalendarTasks', () => {
   });
 
   test('orders by due date then dueTime', async () => {
-    await prisma.task.create({ data: { text: 'CalendarTest later time', listId, order: 3, due: new Date('2026-10-07'), dueTime: 600 } });
-    await prisma.task.create({ data: { text: 'CalendarTest earlier time', listId, order: 4, due: new Date('2026-10-07'), dueTime: 120 } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'CalendarTest later time', listId, order: 3, due: new Date('2026-10-07'), dueTime: 600 } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'CalendarTest earlier time', listId, order: 4, due: new Date('2026-10-07'), dueTime: 120 } });
     const result = await getCalendarTasks();
     const sameDay = result.filter((t) => t.due === '2026-10-07');
     expect(sameDay.map((t) => t.text)).toEqual(['CalendarTest earlier time', 'CalendarTest later time']);

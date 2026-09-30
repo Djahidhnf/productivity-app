@@ -90,6 +90,9 @@ export function MatrixTaskRow({
           <span className="st-row-text" style={{ textDecoration: task.done ? 'line-through' : 'none' }}>
             {task.text}
           </span>
+          {task.due && task.reminderOffset != null && (
+            <Icon name="bell" size={12} aria-label="Reminder set" aria-hidden={false} role="img" style={{ color: 'var(--fg-3)', flex: 'none' }} />
+          )}
           {dueLabel && (
             <span className="pw-mrow-due" data-overdue={overdue || undefined}>
               {dueLabel}

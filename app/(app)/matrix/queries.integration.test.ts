@@ -33,7 +33,7 @@ describe('getMatrixTasks', () => {
   beforeAll(async () => {
     const token = await encryptSession({ sub: 'owner', expiresAt: Date.now() + 60_000 });
     cookieStore.set(SESSION_COOKIE_NAME, token);
-    const list = await prisma.taskList.create({ data: { name: 'MatrixTest List', order: 0 } });
+    const list = await prisma.taskList.create({ data: { userId: 'owner', name: 'MatrixTest List', order: 0 } });
     listId = list.id;
   });
 
@@ -46,8 +46,8 @@ describe('getMatrixTasks', () => {
   });
 
   test('excludes done tasks', async () => {
-    await prisma.task.create({ data: { text: 'MatrixTest done', listId, order: 0, done: true } });
-    await prisma.task.create({ data: { text: 'MatrixTest not done', listId, order: 1, done: false } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'MatrixTest done', listId, order: 0, done: true } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'MatrixTest not done', listId, order: 1, done: false } });
     const result = await getMatrixTasks();
     const texts = result.map((t) => t.text);
     expect(texts).toContain('MatrixTest not done');
@@ -55,8 +55,8 @@ describe('getMatrixTasks', () => {
   });
 
   test('includes both flagged and unflagged non-done tasks with their real priority', async () => {
-    await prisma.task.create({ data: { text: 'MatrixTest flagged', listId, order: 2, priority: 'RED' } });
-    await prisma.task.create({ data: { text: 'MatrixTest unflagged', listId, order: 3 } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'MatrixTest flagged', listId, order: 2, priority: 'RED' } });
+    await prisma.task.create({ data: { userId: 'owner', text: 'MatrixTest unflagged', listId, order: 3 } });
     const result = await getMatrixTasks();
     const flagged = result.find((t) => t.text === 'MatrixTest flagged');
     const unflagged = result.find((t) => t.text === 'MatrixTest unflagged');

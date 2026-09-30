@@ -35,10 +35,10 @@ describe('getHabits', () => {
 
   test('returns habits ordered by order, with their logs as date-key strings', async () => {
     const b = await prisma.habit.create({
-      data: { name: 'HabitsQueryTest B', color: '#60a5fa', freqType: 'DAILY', startDate: new Date('2026-01-01'), order: 1 },
+      data: { userId: 'owner', name: 'HabitsQueryTest B', color: '#60a5fa', freqType: 'DAILY', startDate: new Date('2026-01-01'), order: 1 },
     });
     const a = await prisma.habit.create({
-      data: { name: 'HabitsQueryTest A', color: '#c6ff34', freqType: 'WEEKLY', timesPerWeek: 3, startDate: new Date('2026-01-01'), order: 0 },
+      data: { userId: 'owner', name: 'HabitsQueryTest A', color: '#c6ff34', freqType: 'WEEKLY', timesPerWeek: 3, startDate: new Date('2026-01-01'), order: 0 },
     });
     await prisma.habitLog.create({ data: { habitId: a.id, date: new Date('2026-09-20') } });
     await prisma.habitLog.create({ data: { habitId: a.id, date: new Date('2026-09-21') } });

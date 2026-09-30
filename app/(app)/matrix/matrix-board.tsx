@@ -168,6 +168,7 @@ export function MatrixBoard({ initialTasks, lists }: MatrixBoardProps) {
           priority: values.priority,
           due: values.due || null,
           dueTime,
+          reminderOffset: values.reminderOffset ?? null,
         });
         // The dialog never changes `done`, so the task always stays in this
         // flat, done=false-only array — no filter/append branching needed,

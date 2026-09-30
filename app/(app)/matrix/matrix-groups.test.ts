@@ -14,6 +14,7 @@ function makeTask(overrides: Partial<TaskDTO> = {}): TaskDTO {
     duration: 60,
     done: false,
     completedAt: null,
+    reminderOffset: null,
     order: 0,
     ...overrides,
   };
@@ -54,7 +55,7 @@ describe('groupTasksByPriority', () => {
 
 describe('placeTask / groupTaskIds', () => {
   const t = (id: string, priority: TaskDTO['priority'] = null): TaskDTO => ({
-    id, text: id, listId: 'l', priority, due: null, dueTime: null, duration: 60, done: false, completedAt: null, order: 0,
+    id, text: id, listId: 'l', priority, due: null, dueTime: null, duration: 60, done: false, completedAt: null, reminderOffset: null, order: 0,
   });
   const base = [t('r1', 'RED'), t('u1'), t('r2', 'RED'), t('u2')];
 

@@ -6,6 +6,8 @@ import { Dialog } from '@/app/components/ui/dialog';
 import { Input } from '@/app/components/ui/input';
 import { PillToggle } from '@/app/components/ui/pill-toggle';
 import { Button } from '@/app/components/ui/button';
+import { ReminderPicker } from '@/app/components/ui/reminder-picker';
+import { weekdayBit } from '@/app/lib/reminders/offsets';
 import { Icon } from '@/app/components/icons';
 
 export interface HabitDialogValues {
@@ -13,7 +15,23 @@ export interface HabitDialogValues {
   freqType: FreqType;
   timesPerWeek: string;
   startDate: string;
+  /** 'HH:MM', or '' for no time. */
+  time: string;
+  /** Minutes before `time`; null = never. */
+  reminderOffset: number | null;
+  /** Weekly reminder days, bit 0 = Monday. */
+  reminderDays: number;
 }
+
+const WEEKDAYS = [
+  { short: 'M', name: 'Monday' },
+  { short: 'T', name: 'Tuesday' },
+  { short: 'W', name: 'Wednesday' },
+  { short: 'T', name: 'Thursday' },
+  { short: 'F', name: 'Friday' },
+  { short: 'S', name: 'Saturday' },
+  { short: 'S', name: 'Sunday' },
+];
 
 export interface HabitDialogProps {
   open: boolean;
@@ -28,19 +46,24 @@ export interface HabitDialogProps {
 export function HabitDialog({ open, mode, initialValues, saving, onClose, onSave, onDelete }: HabitDialogProps) {
   const [values, setValues] = useState(initialValues);
   const [prevInitialValues, setPrevInitialValues] = useState(initialValues);
+  const [formKey, setFormKey] = useState(0);
 
   if (initialValues !== prevInitialValues) {
     setPrevInitialValues(initialValues);
     setValues(initialValues);
+    setFormKey((k) => k + 1);
   }
+
+  const hasTime = values.time !== '';
+  const needsDays = hasTime && values.reminderOffset != null && values.freqType === 'WEEKLY' && values.reminderDays === 0;
 
   return (
     <Dialog open={open} onClose={onClose} title={mode === 'create' ? 'New habit' : 'Edit habit'}>
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          if (saving || !values.name.trim()) return;
-          onSave(values);
+          if (saving || !values.name.trim() || needsDays) return;
+          onSave({ ...values, reminderOffset: hasTime ? values.reminderOffset : null });
         }}
         style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
       >
@@ -79,6 +102,44 @@ export function HabitDialog({ open, mode, initialValues, saving, onClose, onSave
           value={values.startDate}
           onChange={(event) => setValues((v) => ({ ...v, startDate: event.target.value }))}
         />
+        <div className="pw-two" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, alignItems: 'start' }}>
+          <Input
+            label="Time"
+            type="time"
+            value={values.time}
+            onChange={(event) => setValues((v) => ({ ...v, time: event.target.value }))}
+          />
+          <ReminderPicker
+            key={`${formKey}-${hasTime}`}
+            mode={hasTime ? 'timed' : 'disabled'}
+            value={hasTime ? values.reminderOffset : null}
+            onChange={(reminderOffset) => setValues((v) => ({ ...v, reminderOffset }))}
+            disabledHint="Set a time to get a reminder"
+          />
+        </div>
+        {values.freqType === 'WEEKLY' && hasTime && values.reminderOffset != null && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg-2)' }}>Remind me on</span>
+            <div role="group" aria-label="Reminder days" style={{ display: 'flex', gap: 6 }}>
+              {WEEKDAYS.map((day, index) => {
+                const on = (values.reminderDays & weekdayBit(index)) !== 0;
+                return (
+                  <button
+                    key={day.name}
+                    type="button"
+                    aria-label={day.name}
+                    aria-pressed={on}
+                    className="pw-weekday"
+                    onClick={() => setValues((v) => ({ ...v, reminderDays: v.reminderDays ^ weekdayBit(index) }))}
+                  >
+                    {day.short}
+                  </button>
+                );
+              })}
+            </div>
+            {needsDays && <span role="alert" style={{ fontSize: 12, color: 'var(--danger-fg)' }}>Pick at least one day.</span>}
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, paddingTop: 8 }}>
           {mode === 'edit' && onDelete ? (
             <Button type="button" variant="ghost" size="sm" onClick={onDelete} disabled={saving}>

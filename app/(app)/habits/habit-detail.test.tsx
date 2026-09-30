@@ -10,6 +10,9 @@ const habit: HabitDTO = {
   freqType: 'DAILY',
   timesPerWeek: null,
   startDate: '2026-08-01',
+  time: null,
+  reminderOffset: null,
+  reminderDays: null,
   order: 0,
   logs: ['2026-09-21', '2026-09-22', '2026-09-23'],
 };

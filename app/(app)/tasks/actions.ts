@@ -1,31 +1,37 @@
 'use server';
 
 import { prisma } from '@/app/lib/prisma';
-import { verifySession } from '@/app/lib/dal';
+import { requireUserId } from '@/app/lib/dal';
 import { revalidatePath } from 'next/cache';
 import type { Priority } from '@prisma/client';
 import { serializeTask, type TaskDTO } from '@/app/lib/task-dto';
+import { normalizeReminderOffset, taskReminderMode } from '@/app/lib/reminders/offsets';
+
+/** Throws unless the list exists and belongs to this account. */
+async function assertOwnList(userId: string, listId: string): Promise<void> {
+  await prisma.taskList.findFirstOrThrow({ where: { id: listId, userId }, select: { id: true } });
+}
 
 export async function createList(name: string): Promise<{ id: string; name: string; order: number }> {
-  await verifySession();
+  const userId = await requireUserId();
   const trimmed = name.trim();
   if (!trimmed) throw new Error('List name is required');
-  const maxOrder = await prisma.taskList.aggregate({ _max: { order: true } });
-  const list = await prisma.taskList.create({ data: { name: trimmed, order: (maxOrder._max.order ?? -1) + 1 } });
+  const maxOrder = await prisma.taskList.aggregate({ where: { userId }, _max: { order: true } });
+  const list = await prisma.taskList.create({ data: { userId, name: trimmed, order: (maxOrder._max.order ?? -1) + 1 } });
   revalidatePath('/tasks', 'layout');
   return { id: list.id, name: list.name, order: list.order };
 }
 
 export async function deleteList(listId: string): Promise<void> {
-  await verifySession();
-  await prisma.taskList.delete({ where: { id: listId } });
+  const userId = await requireUserId();
+  await prisma.taskList.delete({ where: { id: listId, userId } });
   revalidatePath('/tasks', 'layout');
 }
 
 export async function reorderLists(orderedIds: string[]): Promise<void> {
-  await verifySession();
+  const userId = await requireUserId();
   await prisma.$transaction(
-    orderedIds.map((id, index) => prisma.taskList.update({ where: { id }, data: { order: index } }))
+    orderedIds.map((id, index) => prisma.taskList.update({ where: { id, userId }, data: { order: index } }))
   );
   revalidatePath('/tasks', 'layout');
 }
@@ -38,12 +44,14 @@ export interface CreateTaskInput {
 }
 
 export async function createTask(input: CreateTaskInput): Promise<TaskDTO> {
-  await verifySession();
+  const userId = await requireUserId();
   const trimmed = input.text.trim();
   if (!trimmed) throw new Error('Task text is required');
+  await assertOwnList(userId, input.listId);
   const maxOrder = await prisma.task.aggregate({ where: { listId: input.listId }, _max: { order: true } });
   const task = await prisma.task.create({
     data: {
+      userId,
       text: trimmed,
       listId: input.listId,
       order: (maxOrder._max.order ?? -1) + 1,
@@ -63,15 +71,24 @@ export interface UpdateTaskInput {
   dueTime: number | null;
   /** Minutes; left unchanged when omitted. */
   duration?: number;
+  /** Minutes before due (null = never); left unchanged when omitted, but always refitted to the new due date/time. */
+  reminderOffset?: number | null;
 }
 
 export async function updateTask(input: UpdateTaskInput): Promise<TaskDTO> {
-  await verifySession();
+  const userId = await requireUserId();
   const trimmed = input.text.trim();
   if (!trimmed) throw new Error('Task text is required');
+  await assertOwnList(userId, input.listId);
+  if (input.reminderOffset != null && !Number.isFinite(input.reminderOffset)) throw new Error('Invalid reminder');
+  const reminderOffset =
+    input.reminderOffset !== undefined
+      ? input.reminderOffset
+      : (await prisma.task.findUniqueOrThrow({ where: { id: input.id, userId }, select: { reminderOffset: true } })).reminderOffset;
   const task = await prisma.task.update({
-    where: { id: input.id },
+    where: { id: input.id, userId },
     data: {
+      reminderOffset: normalizeReminderOffset(reminderOffset, taskReminderMode(input.due, input.dueTime)),
       text: trimmed,
       listId: input.listId,
       priority: input.priority,
@@ -85,17 +102,17 @@ export async function updateTask(input: UpdateTaskInput): Promise<TaskDTO> {
 }
 
 export async function deleteTask(taskId: string): Promise<void> {
-  await verifySession();
-  await prisma.task.delete({ where: { id: taskId } });
+  const userId = await requireUserId();
+  await prisma.task.delete({ where: { id: taskId, userId } });
   revalidatePath('/tasks', 'layout');
 }
 
 export async function toggleTaskDone(taskId: string): Promise<TaskDTO> {
-  await verifySession();
-  const existing = await prisma.task.findUniqueOrThrow({ where: { id: taskId } });
+  const userId = await requireUserId();
+  const existing = await prisma.task.findUniqueOrThrow({ where: { id: taskId, userId } });
   const done = !existing.done;
   const task = await prisma.task.update({
-    where: { id: taskId },
+    where: { id: taskId, userId },
     data: { done, completedAt: done ? new Date() : null },
   });
   revalidatePath('/tasks', 'layout');
@@ -108,10 +125,11 @@ export interface ReorderTasksInput {
 }
 
 export async function reorderTasks(input: ReorderTasksInput): Promise<void> {
-  await verifySession();
+  const userId = await requireUserId();
+  await assertOwnList(userId, input.listId);
   await prisma.$transaction(
     input.orderedTaskIds.map((id, index) =>
-      prisma.task.update({ where: { id }, data: { listId: input.listId, order: index } })
+      prisma.task.update({ where: { id, userId }, data: { listId: input.listId, order: index } })
     )
   );
   revalidatePath('/tasks', 'layout');
@@ -126,10 +144,10 @@ export interface PlaceMatrixTaskInput {
 
 /** Sets a task's matrix group (priority) and saves that group's order in one transaction. */
 export async function placeMatrixTask(input: PlaceMatrixTaskInput): Promise<void> {
-  await verifySession();
+  const userId = await requireUserId();
   await prisma.$transaction([
-    prisma.task.update({ where: { id: input.taskId }, data: { priority: input.priority } }),
-    ...input.orderedTaskIds.map((id, index) => prisma.task.update({ where: { id }, data: { matrixOrder: index } })),
+    prisma.task.update({ where: { id: input.taskId, userId }, data: { priority: input.priority } }),
+    ...input.orderedTaskIds.map((id, index) => prisma.task.update({ where: { id, userId }, data: { matrixOrder: index } })),
   ]);
   revalidatePath('/tasks', 'layout');
 }

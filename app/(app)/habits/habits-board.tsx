@@ -13,6 +13,8 @@ import { useMediaQuery } from '@/app/lib/use-media-query';
 import { todayKey as getTodayKey } from '@/app/lib/date-format';
 import { addMonths } from '@/app/lib/calendar-dates';
 import type { HabitDTO } from './queries';
+import { parseDueTime } from '../tasks/task-dialog';
+import { ALL_WEEKDAYS_MASK } from '@/app/lib/reminders/offsets';
 
 const HEAT_WEEKS_NARROW = 14;
 const HEAT_WEEKS_WIDE = 30;
@@ -27,7 +29,14 @@ function habitToDialogValues(habit: HabitDTO): HabitDialogValues {
     freqType: habit.freqType,
     timesPerWeek: String(habit.timesPerWeek ?? 3),
     startDate: habit.startDate,
+    time: habit.time == null ? '' : minutesToTimeInput(habit.time),
+    reminderOffset: habit.reminderOffset,
+    reminderDays: habit.reminderDays ?? ALL_WEEKDAYS_MASK,
   };
+}
+
+function minutesToTimeInput(minutes: number): string {
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 }
 
 export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
@@ -101,14 +110,15 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
     const editingId = dialog?.habit?.id ?? null;
     const timesPerWeek = values.freqType === 'WEEKLY' ? Number(values.timesPerWeek) || 1 : null;
     const startDate = values.startDate || todayKey;
+    const reminder = { time: parseDueTime(values.time), reminderOffset: values.reminderOffset, reminderDays: values.reminderDays };
     startTransition(async () => {
       try {
         if (editingId) {
-          const updated = await updateHabit({ id: editingId, name: values.name, freqType: values.freqType, timesPerWeek, startDate });
+          const updated = await updateHabit({ id: editingId, name: values.name, freqType: values.freqType, timesPerWeek, startDate, ...reminder });
           setHabits((prev) => prev.map((h) => (h.id === editingId ? updated : h)));
           setDialog(null);
         } else {
-          const created = await createHabit({ name: values.name, freqType: values.freqType, timesPerWeek, startDate });
+          const created = await createHabit({ name: values.name, freqType: values.freqType, timesPerWeek, startDate, ...reminder });
           setHabits((prev) => [...prev, created]);
           setSelectedHabitId((prev) => prev ?? created.id);
           setDialog(null);
@@ -148,7 +158,7 @@ export function HabitsBoard({ initialHabits }: HabitsBoardProps) {
           <Button
             size="sm"
             onClick={() =>
-              setDialog({ habit: null, values: { name: '', freqType: 'DAILY', timesPerWeek: '3', startDate: todayKey } })
+              setDialog({ habit: null, values: { name: '', freqType: 'DAILY', timesPerWeek: '3', startDate: todayKey, time: '', reminderOffset: null, reminderDays: ALL_WEEKDAYS_MASK } })
             }
           >
             <Icon name="plus" size={15} />
