@@ -11,6 +11,7 @@
     "test:watch": "vitest --exclude \"**/*.integration.test.ts\"",
     "test:integration": "vitest run integration.test.ts",
     "hash-password": "node scripts/hash-password.mjs",
+    "icons": "node scripts/generate-icons.mjs",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate"
   },

@@ -61,8 +61,8 @@ export function QuadrantPanel({
         overflow: 'hidden',
         borderRadius: 'var(--radius-lg)',
         border: '1px solid var(--border-1)',
-        background: isDropTarget ? `color-mix(in oklch, ${color} 6%, var(--surface-1))` : 'var(--surface-1)',
-        boxShadow: isDropTarget ? `0 0 0 3px color-mix(in oklch, ${color} 20%, transparent)` : undefined,
+        background: isDropTarget ? `color-mix(in oklab, ${color} 6%, var(--surface-1))` : 'var(--surface-1)',
+        boxShadow: isDropTarget ? `0 0 0 3px color-mix(in oklab, ${color} 20%, transparent)` : undefined,
         transition: 'background var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out)',
       }}
     >
@@ -80,7 +80,7 @@ export function QuadrantPanel({
         <span
           aria-hidden="true"
           className="pw-quad-numeral"
-          style={{ color: `color-mix(in oklch, ${color} 70%, var(--fg-2))`, background: `color-mix(in oklch, ${color} 10%, transparent)` }}
+          style={{ color: `color-mix(in oklab, ${color} 70%, var(--fg-2))`, background: `color-mix(in oklab, ${color} 10%, transparent)` }}
         >
           {numeral}
         </span>

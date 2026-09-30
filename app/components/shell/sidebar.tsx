@@ -18,7 +18,7 @@ export function Sidebar({ items, activeKey, open, onToggleOpen, theme, onToggleT
   return (
     <aside className="pw-sidebar" data-open={open}>
       <div className="pw-sidebar-head">
-        {open && <span className="pw-wordmark">daybook</span>}
+        {open && <span className="pw-wordmark">klivr</span>}
         <IconButton label="Toggle sidebar" size="sm" onClick={onToggleOpen}>
           <Icon name={open ? 'panel-close' : 'panel-open'} size={16} />
         </IconButton>

@@ -26,7 +26,7 @@ describe('Sidebar', () => {
     render(
       <Sidebar items={NAV_ITEMS} activeKey="tasks" open={false} theme="dark" onToggleOpen={vi.fn()} onToggleTheme={vi.fn()} />
     );
-    expect(screen.queryByText('daybook')).not.toBeInTheDocument();
+    expect(screen.queryByText('klivr')).not.toBeInTheDocument();
     expect(screen.queryByText('Tasks')).not.toBeInTheDocument();
     expect(screen.getAllByRole('link')).toHaveLength(NAV_ITEMS.length);
   });

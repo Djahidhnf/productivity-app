@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   sodipodi:docname="app icon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"><inkscape:page
+       x="0"
+       y="0"
+       width="512"
+       height="512"
+       id="page2"
+       margin="0"
+       bleed="0" /></sodipodi:namedview><defs
+     id="defs1" /><g
+     id="g1"><rect
+       style="fill:#1a1a1a;fill-opacity:1;stroke-width:3.77953;stroke-linecap:round;stroke-miterlimit:100"
+       id="rect1"
+       width="512"
+       height="512"
+       x="0"
+       y="0"
+       ry="79.81955" /><path
+       id="path1181"
+       style="fill:#ececec;fill-opacity:1;stroke:none;stroke-width:2.37304;stroke-linecap:round;stroke-miterlimit:100"
+       d="M 305.04763,121.28866 175.06735,254.27362 V 121.82396 L 45.244264,254.40079 175.04768,254.2943 l -0.0201,0.0201 V 390.6046 L 306.87515,255.96022 V 390.71161 H 436.41663 L 306.94741,255.89264 438.75574,121.28839 Z" /></g></svg>
