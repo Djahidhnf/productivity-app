@@ -1,5 +1,6 @@
 import 'server-only';
 import webpush from 'web-push';
+import { cleanEnvKey } from './env-key';
 
 export interface PushTarget {
   endpoint: string;
@@ -23,9 +24,9 @@ let configured = false;
 
 function configure() {
   if (configured) return;
-  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT;
+  const publicKey = cleanEnvKey(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+  const privateKey = cleanEnvKey(process.env.VAPID_PRIVATE_KEY);
+  const subject = cleanEnvKey(process.env.VAPID_SUBJECT);
   if (!publicKey || !privateKey || !subject) {
     throw new Error('NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT must be set');
   }

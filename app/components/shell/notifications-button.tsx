@@ -7,6 +7,7 @@ import { Button } from '@/app/components/ui/button';
 import { Icon } from '@/app/components/icons';
 import { deletePushSubscription, savePushSubscription, sendTestNotification } from '@/app/lib/push/actions';
 import { logout } from '@/app/login/actions';
+import { cleanEnvKey } from '@/app/lib/push/env-key';
 
 /** Email of the signed-in account; provided by AppShell. */
 export const AccountContext = createContext<string>('');
@@ -21,9 +22,21 @@ function isStandalone(): boolean {
   return window.matchMedia?.('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
 }
 
-function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
-  const padded = (base64 + '='.repeat((4 - (base64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = window.atob(padded);
+/** Decodes the VAPID public key: an uncompressed P-256 point is 65 bytes starting with 0x04. */
+export function vapidKeyToBytes(key: string): Uint8Array<ArrayBuffer> {
+  const clean = cleanEnvKey(key);
+  const padded = (clean + '='.repeat((4 - (clean.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+  let raw: string;
+  try {
+    raw = window.atob(padded);
+  } catch {
+    raw = '';
+  }
+  if (raw.length !== 65 || raw.charCodeAt(0) !== 4) {
+    throw new Error(
+      'NEXT_PUBLIC_VAPID_PUBLIC_KEY is not a valid public key. In Vercel, paste the public key (about 87 characters, starting with "B") without quotes, then redeploy.'
+    );
+  }
   const bytes = new Uint8Array(new ArrayBuffer(raw.length));
   for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
   return bytes;
@@ -108,7 +121,7 @@ export function NotificationsPanel() {
     if (permission !== 'granted') return;
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+      applicationServerKey: vapidKeyToBytes(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
     });
     await saveSubscription(subscription);
   }
