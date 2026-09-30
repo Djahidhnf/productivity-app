@@ -16,9 +16,9 @@ describe('purgeExpiredTasks', () => {
   test('deletes tasks completed more than 72h ago and keeps everything else', async () => {
     expect(COMPLETED_TASK_TTL_MS).toBe(72 * HOUR);
     const now = new Date('2026-09-27T12:00:00.000Z');
-    const list = await prisma.taskList.create({ data: { name: 'PurgeTest list', order: 9999 } });
+    const list = await prisma.taskList.create({ data: { userId: 'owner', name: 'PurgeTest list', order: 9999 } });
     const make = (text: string, done: boolean, completedAt: Date | null) =>
-      prisma.task.create({ data: { text, listId: list.id, order: 0, done, completedAt } });
+      prisma.task.create({ data: { userId: 'owner', text, listId: list.id, order: 0, done, completedAt } });
 
     const expired = await make('PurgeTest expired', true, new Date(now.getTime() - 73 * HOUR));
     const recent = await make('PurgeTest recent', true, new Date(now.getTime() - 71 * HOUR));

@@ -16,13 +16,13 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
     return { error: 'Enter your email and password.' };
   }
 
-  const valid = await verifyCredentials(email, password);
-  if (!valid) {
+  const accountId = await verifyCredentials(email, password);
+  if (!accountId) {
     return { error: 'Incorrect email or password.' };
   }
 
   const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-  const token = await encryptSession({ sub: 'owner', expiresAt });
+  const token = await encryptSession({ sub: accountId, expiresAt });
 
   const store = await cookies();
   store.set(SESSION_COOKIE_NAME, token, {

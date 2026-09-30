@@ -21,3 +21,6 @@ process.env.SESSION_SECRET = 'test-session-secret-please-do-not-use-in-prod';
 process.env.AUTH_EMAIL = 'owner@example.com';
 // Low cost factor (4) keeps the test suite fast; never use this factor in production.
 process.env.AUTH_PASSWORD_HASH = bcrypt.hashSync('correct-password', 4);
+// The second account is opt-in per test; never pick it up from a real .env.
+delete process.env.AUTH_EMAIL_2;
+delete process.env.AUTH_PASSWORD_HASH_2;

@@ -1,7 +1,9 @@
 import 'server-only';
 import { SignJWT, jwtVerify } from 'jose';
+import { isAccountId, type AccountId } from '@/app/lib/accounts';
 
-export type SessionPayload = { sub: 'owner'; expiresAt: number };
+/** `sub` is the signed-in account's id (see app/lib/accounts.ts). */
+export type SessionPayload = { sub: AccountId; expiresAt: number };
 
 function encodedKey() {
   const secret = process.env.SESSION_SECRET;
@@ -21,8 +23,8 @@ export async function decryptSession(token: string | undefined): Promise<Session
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, encodedKey(), { algorithms: ['HS256'] });
-    if (payload.sub !== 'owner' || typeof payload.exp !== 'number') return null;
-    return { sub: 'owner', expiresAt: payload.exp * 1000 };
+    if (!isAccountId(payload.sub) || typeof payload.exp !== 'number') return null;
+    return { sub: payload.sub, expiresAt: payload.exp * 1000 };
   } catch {
     return null;
   }

@@ -1,6 +1,6 @@
 import 'server-only';
 import { prisma } from '@/app/lib/prisma';
-import { verifySession } from '@/app/lib/dal';
+import { requireUserId } from '@/app/lib/dal';
 import { purgeExpiredTasks } from '@/app/lib/task-purge';
 import { addDays } from '@/app/lib/calendar-dates';
 import { serializeTask, type TaskDTO } from '@/app/lib/task-dto';
@@ -12,10 +12,11 @@ import { serializeNote, type NoteDTO } from '@/app/lib/note-dto';
  * still lists finished tasks).
  */
 export async function getDashboardTasks(todayKey: string): Promise<TaskDTO[]> {
-  await verifySession();
+  const userId = await requireUserId();
   await purgeExpiredTasks();
   const tasks = await prisma.task.findMany({
     where: {
+      userId,
       OR: [
         { done: false },
         { due: { gte: new Date(addDays(todayKey, -1)), lte: new Date(addDays(todayKey, 1)) } },
@@ -27,7 +28,7 @@ export async function getDashboardTasks(todayKey: string): Promise<TaskDTO[]> {
 }
 
 export async function getRecentNotes(limit: number): Promise<NoteDTO[]> {
-  await verifySession();
-  const notes = await prisma.note.findMany({ orderBy: { updatedAt: 'desc' }, take: limit });
+  const userId = await requireUserId();
+  const notes = await prisma.note.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: limit });
   return notes.map(serializeNote);
 }

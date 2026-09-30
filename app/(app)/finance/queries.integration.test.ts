@@ -37,7 +37,7 @@ describe('getFinanceEntries', () => {
 
   test('returns entries from the first day of fromMonth through the last day of toMonth, newest first', async () => {
     for (const date of DATES) {
-      await prisma.financeEntry.create({ data: { type: 'EXPENSE', amount: 1000, category: 'Other', date: new Date(date) } });
+      await prisma.financeEntry.create({ data: { userId: 'owner', type: 'EXPENSE', amount: 1000, category: 'Other', date: new Date(date) } });
     }
     const result = await getFinanceEntries('2091-03', '2091-08');
     expect(result.map((e) => e.date)).toEqual(['2091-08-31', '2091-05-15', '2091-03-01']);

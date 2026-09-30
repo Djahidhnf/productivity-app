@@ -8,11 +8,14 @@ datasource db {
 
 model TaskList {
   id        String   @id @default(cuid())
+  /// Owning account id (app/lib/accounts.ts).
+  userId    String
   name      String
   order     Int
   createdAt DateTime @default(now())
   tasks     Task[]
 
+  @@index([userId])
   @@map("task_lists")
 }
 
@@ -25,6 +28,8 @@ enum Priority {
 
 model Task {
   id          String    @id @default(cuid())
+  /// Owning account id; always the same as its list's.
+  userId      String
   text        String
   list        TaskList  @relation(fields: [listId], references: [id], onDelete: Cascade)
   listId      String
@@ -42,6 +47,7 @@ model Task {
   updatedAt   DateTime  @updatedAt
 
   @@index([listId])
+  @@index([userId])
   @@map("tasks")
 }
 
@@ -52,6 +58,8 @@ enum FreqType {
 
 model Habit {
   id           String     @id @default(cuid())
+  /// Owning account id (app/lib/accounts.ts).
+  userId       String
   name         String
   color        String
   freqType     FreqType
@@ -61,6 +69,7 @@ model Habit {
   createdAt    DateTime   @default(now())
   logs         HabitLog[]
 
+  @@index([userId])
   @@map("habits")
 }
 
@@ -76,11 +85,14 @@ model HabitLog {
 
 model Note {
   id        String   @id @default(cuid())
+  /// Owning account id (app/lib/accounts.ts).
+  userId    String
   text      String
   pinned    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId])
   @@map("notes")
 }
 
@@ -91,6 +103,8 @@ enum EntryType {
 
 model FinanceEntry {
   id        String    @id @default(cuid())
+  /// Owning account id (app/lib/accounts.ts).
+  userId    String
   type      EntryType
   /// Amount in centimes (1/100 DZD), always positive; `type` gives the sign.
   amount    Int
@@ -99,7 +113,6 @@ model FinanceEntry {
   date      DateTime  @db.Date
   createdAt DateTime  @default(now())
 
-  @@index([date])
+  @@index([userId, date])
   @@map("finance_entries")
 }
-

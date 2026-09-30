@@ -35,7 +35,7 @@ describe('getNotes', () => {
   });
 
   test('returns notes serialized with ISO timestamps', async () => {
-    const note = await prisma.note.create({ data: { text: 'Query test note', pinned: true } });
+    const note = await prisma.note.create({ data: { userId: 'owner', text: 'Query test note', pinned: true } });
     created.push(note.id);
 
     const result = await getNotes();

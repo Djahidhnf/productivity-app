@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/app/lib/prisma';
-import { verifySession } from '@/app/lib/dal';
+import { requireUserId } from '@/app/lib/dal';
 import { revalidatePath } from 'next/cache';
 import { categoriesFor, MAX_AMOUNT, type EntryKind } from '@/app/lib/finance';
 import { serializeFinanceEntry, type FinanceEntryDTO } from '@/app/lib/finance-dto';
@@ -28,7 +28,7 @@ function isRealDate(key: string): boolean {
 }
 
 export async function createFinanceEntry(input: CreateFinanceEntryInput): Promise<FinanceEntryDTO> {
-  await verifySession();
+  const userId = await requireUserId();
   if (input.type !== 'EXPENSE' && input.type !== 'INCOME') throw new Error('Invalid entry type');
   if (!Number.isInteger(input.amount) || input.amount <= 0 || input.amount > MAX_AMOUNT) throw new Error('Invalid amount');
   if (!categoriesFor(input.type).includes(input.category)) throw new Error('Invalid category');
@@ -36,6 +36,7 @@ export async function createFinanceEntry(input: CreateFinanceEntryInput): Promis
   if (typeof input.note !== 'string') throw new Error('Invalid note');
   const entry = await prisma.financeEntry.create({
     data: {
+      userId,
       type: input.type,
       amount: input.amount,
       category: input.category,
@@ -48,7 +49,7 @@ export async function createFinanceEntry(input: CreateFinanceEntryInput): Promis
 }
 
 export async function deleteFinanceEntry(id: string): Promise<void> {
-  await verifySession();
-  await prisma.financeEntry.delete({ where: { id } });
+  const userId = await requireUserId();
+  await prisma.financeEntry.delete({ where: { id, userId } });
   revalidatePath('/finance');
 }
