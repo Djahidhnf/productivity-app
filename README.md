@@ -1,4 +1,22 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Klivr
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app). See `.env.example` for every setting.
+
+## Accounts
+
+Two fixed accounts, each with its own data. `AUTH_EMAIL` / `AUTH_PASSWORD_HASH` is the main account (all data from before accounts existed belongs to it); `AUTH_EMAIL_2` / `AUTH_PASSWORD_HASH_2` is the optional second one. Hash passwords with `npm run hash-password -- "the-password"` and escape every `$` as `\$` in `.env`. Sign out from the bell (Notifications) panel.
+
+## Reminders (push notifications)
+
+1. `npm run vapid-keys`; put both keys, `VAPID_SUBJECT="mailto:<you>"` and a random `CRON_SECRET` into `.env` and the Vercel env vars, then redeploy.
+2. On [cron-job.org](https://cron-job.org), create a job: `POST https://<your-app>/api/reminders/dispatch` every minute, with header `Authorization: Bearer <CRON_SECRET>`.
+3. On each device, sign in, open the bell → **Enable on this device**. On iPhone/iPad, first add Klivr to the Home Screen and open it from there.
+
+Reminders are set per task (needs a due date) or per habit (needs a time) in their dialogs. Missed reminders older than 15 minutes are skipped rather than sent late.
+
+## App icons
+
+`public/productivity-app.svg` is the source; `npm run icons` regenerates `app/icon.svg`, `app/apple-icon.png` and `public/icons/*`.
 
 ## Getting Started
 

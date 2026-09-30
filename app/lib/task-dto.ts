@@ -11,6 +11,8 @@ export interface TaskDTO {
   done: boolean;
   completedAt: string | null;
   order: number;
+  /** Minutes before due; null = no reminder. See app/lib/reminders/offsets.ts. */
+  reminderOffset: number | null;
 }
 
 // Task.due is a Postgres `@db.Date` column, which Prisma always returns as a
@@ -34,6 +36,7 @@ export function serializeTask(task: {
   done: boolean;
   completedAt: Date | null;
   order: number;
+  reminderOffset: number | null;
 }): TaskDTO {
   return {
     id: task.id,
@@ -46,5 +49,6 @@ export function serializeTask(task: {
     done: task.done,
     completedAt: task.completedAt ? task.completedAt.toISOString() : null,
     order: task.order,
+    reminderOffset: task.reminderOffset,
   };
 }

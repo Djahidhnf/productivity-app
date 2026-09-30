@@ -5,6 +5,7 @@ import { requireUserId } from '@/app/lib/dal';
 import { revalidatePath } from 'next/cache';
 import type { FreqType } from '@prisma/client';
 import { serializeHabit, type HabitDTO } from '@/app/lib/habit-dto';
+import { ALL_WEEKDAYS_MASK, normalizeReminderOffset } from '@/app/lib/reminders/offsets';
 
 const HABIT_COLORS = ['#c6ff34', '#60a5fa', '#4ade80', '#fbbf24', '#f87171', '#d9ff70'];
 
@@ -14,7 +15,26 @@ function clampTimesPerWeek(freqType: FreqType, timesPerWeek: number | null): num
   return Math.min(7, Math.max(1, n));
 }
 
-export interface CreateHabitInput {
+export interface HabitReminderInput {
+  /** Minutes after local midnight; null = no time. */
+  time?: number | null;
+  /** Minutes before `time`; null = never. Needs a time. */
+  reminderOffset?: number | null;
+  /** WEEKLY only: weekday mask, bit 0 = Monday. */
+  reminderDays?: number | null;
+}
+
+/** Validated reminder columns; omitted input fields read as "none". */
+function habitReminderData(freqType: FreqType, input: HabitReminderInput) {
+  const time = Number.isInteger(input.time) && input.time! >= 0 && input.time! < 24 * 60 ? input.time! : null;
+  const offset = typeof input.reminderOffset === 'number' ? input.reminderOffset : null;
+  const reminderOffset = normalizeReminderOffset(offset, time == null ? 'disabled' : 'timed');
+  const reminderDays =
+    freqType === 'WEEKLY' && Number.isInteger(input.reminderDays) ? input.reminderDays! & ALL_WEEKDAYS_MASK : null;
+  return { time, reminderOffset, reminderDays };
+}
+
+export interface CreateHabitInput extends HabitReminderInput {
   name: string;
   freqType: FreqType;
   timesPerWeek: number | null;
@@ -34,6 +54,7 @@ export async function createHabit(input: CreateHabitInput): Promise<HabitDTO> {
       freqType: input.freqType,
       timesPerWeek: clampTimesPerWeek(input.freqType, input.timesPerWeek),
       startDate: new Date(input.startDate),
+      ...habitReminderData(input.freqType, input),
       order,
       color: HABIT_COLORS[order % HABIT_COLORS.length],
     },
@@ -43,7 +64,7 @@ export async function createHabit(input: CreateHabitInput): Promise<HabitDTO> {
   return serializeHabit(habit);
 }
 
-export interface UpdateHabitInput {
+export interface UpdateHabitInput extends HabitReminderInput {
   id: string;
   name: string;
   freqType: FreqType;
@@ -62,6 +83,7 @@ export async function updateHabit(input: UpdateHabitInput): Promise<HabitDTO> {
       freqType: input.freqType,
       timesPerWeek: clampTimesPerWeek(input.freqType, input.timesPerWeek),
       startDate: new Date(input.startDate),
+      ...habitReminderData(input.freqType, input),
     },
     include: { logs: true },
   });

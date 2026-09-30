@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/app/components/shell/page-header';
 import { ThemeToggle } from '@/app/components/shell/theme-toggle';
+import { NotificationsButton } from '@/app/components/shell/notifications-button';
 import { Icon, type IconName } from '@/app/components/icons';
 import { Input } from '@/app/components/ui/input';
 import { CheckToggle } from '@/app/components/ui/check-toggle';
@@ -110,6 +111,7 @@ export function DashboardBoard({ initialTasks, lists, initialHabits, initialNote
         priority: values.priority,
         due: values.due || null,
         dueTime: parseDueTime(values.dueTime),
+        reminderOffset: values.reminderOffset ?? null,
       });
       setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
     } catch {
@@ -164,8 +166,13 @@ export function DashboardBoard({ initialTasks, lists, initialHabits, initialNote
         title="Today"
         eyebrow={longDateLabel(today)}
         className="pw-todayhead"
-        // The sidebar holds the theme switch on desktop; phones have no sidebar.
-        actions={<ThemeToggle className="pw-phone-only" />}
+        // The sidebar holds these on desktop; phones have no sidebar.
+        actions={
+          <>
+            <NotificationsButton className="pw-phone-only" />
+            <ThemeToggle className="pw-phone-only" />
+          </>
+        }
       />
       <div className="pw-today">
         <Section title="Schedule" href="/calendar" linkLabel="Calendar">

@@ -7,7 +7,7 @@ const ALL_ICONS: IconName[] = [
   'plus', 'check', 'left', 'right', 'trash', 'pencil', 'grip',
   'flag', 'panel', 'menu', 'ban', 'sun', 'moon',
   'x', 'list-checks', 'repeat', 'grid-2x2', 'panel-close', 'panel-open',
-  'chevrons-up-down', 'folder-plus', 'sticky-note', 'wallet', 'search', 'pin',
+  'chevrons-up-down', 'folder-plus', 'sticky-note', 'wallet', 'search', 'pin', 'bell',
 ];
 
 describe('Icon', () => {

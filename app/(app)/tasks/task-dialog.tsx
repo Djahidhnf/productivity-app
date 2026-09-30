@@ -6,6 +6,8 @@ import { Input } from '@/app/components/ui/input';
 import { Select } from '@/app/components/ui/select';
 import { Button } from '@/app/components/ui/button';
 import { PillToggle } from '@/app/components/ui/pill-toggle';
+import { ReminderPicker } from '@/app/components/ui/reminder-picker';
+import { normalizeReminderOffset, taskReminderMode } from '@/app/lib/reminders/offsets';
 import { Icon } from '@/app/components/icons';
 import type { PriorityKey } from '@/app/components/ui/priority-flag';
 import type { TaskDTO, TaskListDTO } from './queries';
@@ -18,6 +20,8 @@ export interface TaskDialogValues {
   dueTime: string;
   /** Block length in minutes; not edited in the form, just carried through to onSave. */
   duration?: number;
+  /** Minutes before due; null = never. Omitted = Never for new tasks. */
+  reminderOffset?: number | null;
 }
 
 export function taskToDialogValues(task: TaskDTO): TaskDialogValues {
@@ -25,7 +29,13 @@ export function taskToDialogValues(task: TaskDTO): TaskDialogValues {
     task.dueTime == null
       ? ''
       : `${String(Math.floor(task.dueTime / 60)).padStart(2, '0')}:${String(task.dueTime % 60).padStart(2, '0')}`;
-  return { text: task.text, listId: task.listId, priority: task.priority, due: task.due ?? '', dueTime };
+  return { text: task.text, listId: task.listId, priority: task.priority, due: task.due ?? '', dueTime, reminderOffset: task.reminderOffset };
+}
+
+/** Applies a due date/time change, refitting the reminder to what the new date/time allows. */
+function withDue(values: TaskDialogValues, due: string, dueTime: string): TaskDialogValues {
+  const mode = taskReminderMode(due, parseDueTime(dueTime));
+  return { ...values, due, dueTime, reminderOffset: mode === 'disabled' ? values.reminderOffset : normalizeReminderOffset(values.reminderOffset, mode) };
 }
 
 /** 'HH:MM' → minutes since midnight; '' → null. */
@@ -59,20 +69,23 @@ const PRIORITY_OPTIONS: { value: PriorityValue; label: string }[] = [
 export function TaskDialog({ open, mode, lists, initialValues, onClose, onSave, onDelete }: TaskDialogProps) {
   const [values, setValues] = useState(initialValues);
   const [prevInitialValues, setPrevInitialValues] = useState(initialValues);
+  const [formKey, setFormKey] = useState(0);
 
   // Reset the form whenever a new initialValues object is passed in (e.g. opening the
   // dialog for a different task), without introducing a state-syncing Effect.
   if (initialValues !== prevInitialValues) {
     setPrevInitialValues(initialValues);
     setValues(initialValues);
+    setFormKey((k) => k + 1);
   }
+  const reminderMode = taskReminderMode(values.due, parseDueTime(values.dueTime));
 
   return (
     <Dialog open={open} onClose={onClose} title={mode === 'create' ? 'New task' : 'Edit task'}>
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          onSave(values);
+          onSave({ ...values, reminderOffset: reminderMode === 'disabled' ? null : (values.reminderOffset ?? null) });
         }}
         style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
       >
@@ -94,15 +107,22 @@ export function TaskDialog({ open, mode, lists, initialValues, onClose, onSave, 
             label="Due"
             type="date"
             value={values.due}
-            onChange={(event) => setValues((v) => ({ ...v, due: event.target.value }))}
+            onChange={(event) => setValues((v) => withDue(v, event.target.value, v.dueTime))}
           />
           <Input
             label="Time"
             type="time"
             value={values.dueTime}
-            onChange={(event) => setValues((v) => ({ ...v, dueTime: event.target.value }))}
+            onChange={(event) => setValues((v) => withDue(v, v.due, event.target.value))}
           />
         </div>
+        <ReminderPicker
+          key={`${formKey}-${reminderMode}`}
+          mode={reminderMode}
+          value={reminderMode === 'disabled' ? null : (values.reminderOffset ?? null)}
+          onChange={(reminderOffset) => setValues((v) => ({ ...v, reminderOffset }))}
+          disabledHint="Set a due date to get a reminder"
+        />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg-2)' }}>Priority</span>
           <PillToggle

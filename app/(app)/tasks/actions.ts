@@ -5,6 +5,7 @@ import { requireUserId } from '@/app/lib/dal';
 import { revalidatePath } from 'next/cache';
 import type { Priority } from '@prisma/client';
 import { serializeTask, type TaskDTO } from '@/app/lib/task-dto';
+import { normalizeReminderOffset, taskReminderMode } from '@/app/lib/reminders/offsets';
 
 /** Throws unless the list exists and belongs to this account. */
 async function assertOwnList(userId: string, listId: string): Promise<void> {
@@ -70,6 +71,8 @@ export interface UpdateTaskInput {
   dueTime: number | null;
   /** Minutes; left unchanged when omitted. */
   duration?: number;
+  /** Minutes before due (null = never); left unchanged when omitted, but always refitted to the new due date/time. */
+  reminderOffset?: number | null;
 }
 
 export async function updateTask(input: UpdateTaskInput): Promise<TaskDTO> {
@@ -77,9 +80,15 @@ export async function updateTask(input: UpdateTaskInput): Promise<TaskDTO> {
   const trimmed = input.text.trim();
   if (!trimmed) throw new Error('Task text is required');
   await assertOwnList(userId, input.listId);
+  if (input.reminderOffset != null && !Number.isFinite(input.reminderOffset)) throw new Error('Invalid reminder');
+  const reminderOffset =
+    input.reminderOffset !== undefined
+      ? input.reminderOffset
+      : (await prisma.task.findUniqueOrThrow({ where: { id: input.id, userId }, select: { reminderOffset: true } })).reminderOffset;
   const task = await prisma.task.update({
     where: { id: input.id, userId },
     data: {
+      reminderOffset: normalizeReminderOffset(reminderOffset, taskReminderMode(input.due, input.dueTime)),
       text: trimmed,
       listId: input.listId,
       priority: input.priority,

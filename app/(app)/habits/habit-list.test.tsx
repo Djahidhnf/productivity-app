@@ -4,7 +4,7 @@ import { HabitList } from './habit-list';
 import type { HabitDTO } from './queries';
 
 function makeHabit(id: string, order: number): HabitDTO {
-  return { id, name: `Habit ${id}`, color: '#c6ff34', freqType: 'DAILY', timesPerWeek: null, startDate: '2026-08-01', order, logs: [] };
+  return { id, name: `Habit ${id}`, color: '#c6ff34', freqType: 'DAILY', timesPerWeek: null, startDate: '2026-08-01', time: null, reminderOffset: null, reminderDays: null, order, logs: [] };
 }
 
 describe('HabitList', () => {

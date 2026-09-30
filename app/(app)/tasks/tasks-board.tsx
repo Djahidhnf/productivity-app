@@ -138,6 +138,7 @@ export function TasksBoard({ initialLists }: TasksBoardProps) {
           priority: values.priority,
           due: values.due || null,
           dueTime,
+          reminderOffset: values.reminderOffset ?? null,
         });
         setLists((prev) =>
           prev.map((list) => {

@@ -59,7 +59,10 @@ export function HabitCard({
         <CheckToggle checked={loggedToday} onToggle={() => onToggleLog(habit.id, todayKey)} label={habit.name} />
         <span style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{habit.name}</span>
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--fg-3)' }}>{freqLabel}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)', color: 'var(--fg-3)' }}>
+            {freqLabel}
+            {habit.time != null && habit.reminderOffset != null && <Icon name="bell" size={11} aria-label="Reminder set" aria-hidden={false} role="img" />}
+          </span>
         </span>
         {streak > 0 && (
           <span title="Day streak" style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', color: 'var(--fg-2)', flex: 'none' }}>
