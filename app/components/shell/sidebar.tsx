@@ -5,6 +5,7 @@ import { Icon } from '@/app/components/icons';
 import { IconButton } from '@/app/components/ui/icon-button';
 import type { NavItem } from './nav-items';
 import { NotificationsButton } from './notifications-button';
+import { InstallButton } from './install-button';
 
 export interface SidebarProps {
   items: readonly NavItem[];
@@ -41,6 +42,7 @@ export function Sidebar({ items, activeKey, open, onToggleOpen, theme, onToggleT
       <div className="pw-sidebar-foot">
         {open && <span className="pw-sidebar-note">Synced to your account</span>}
         <span className="pw-sidebar-actions">
+          <InstallButton />
           <NotificationsButton size="sm" />
           <IconButton label="Toggle theme" size="sm" onClick={onToggleTheme}>
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={16} />

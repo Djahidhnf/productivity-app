@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi } from 'vitest';
 import { Sidebar } from '@/app/components/shell/sidebar';
@@ -47,5 +47,20 @@ describe('Sidebar', () => {
     );
     await userEvent.click(screen.getByRole('button', { name: 'Toggle theme' }));
     expect(onToggleTheme).toHaveBeenCalledOnce();
+  });
+
+  test('shows the Install button first in the footer once the app can be installed', () => {
+    const { container } = render(
+      <Sidebar items={NAV_ITEMS} activeKey="tasks" open theme="dark" onToggleOpen={vi.fn()} onToggleTheme={vi.fn()} />
+    );
+    const event = Object.assign(new Event('beforeinstallprompt', { cancelable: true }), { prompt: vi.fn(async () => {}) });
+    act(() => {
+      window.dispatchEvent(event);
+    });
+    const actions = container.querySelector('.pw-sidebar-actions');
+    expect(actions?.firstElementChild).toHaveAccessibleName('Install Klivr');
+    act(() => {
+      window.dispatchEvent(new Event('appinstalled'));
+    });
   });
 });

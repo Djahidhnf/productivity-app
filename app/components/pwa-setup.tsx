@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
+// Loaded here so the install event is caught on every page, including /login.
+import '@/app/lib/install-prompt';
 
 /** Registers the service worker on every page. Renders nothing. */
 export function PwaSetup() {

@@ -5,7 +5,7 @@ export type IconName =
   | 'plus' | 'check' | 'left' | 'right' | 'trash' | 'pencil' | 'grip'
   | 'flag' | 'panel' | 'menu' | 'ban' | 'sun' | 'moon'
   | 'x' | 'list-checks' | 'repeat' | 'grid-2x2' | 'panel-close' | 'panel-open'
-  | 'chevrons-up-down' | 'folder-plus' | 'sticky-note' | 'wallet' | 'search' | 'pin' | 'bell';
+  | 'chevrons-up-down' | 'folder-plus' | 'sticky-note' | 'wallet' | 'search' | 'pin' | 'bell' | 'download';
 
 const PATHS: Record<IconName, ReactNode> = {
   home: (
@@ -94,6 +94,13 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M4 6h16" />
       <path d="M4 12h16" />
       <path d="M4 18h16" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 15V3" />
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="m7 10 5 5 5-5" />
     </>
   ),
   bell: (
