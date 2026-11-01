@@ -59,6 +59,22 @@ describe('AppShell', () => {
     const tasksLinks = screen.getAllByRole('link', { name: /Tasks/ });
     expect(tasksLinks.every((link) => link.getAttribute('aria-current') === 'page')).toBe(true);
   });
+
+  test('keeps the theme-color meta tag in step with the theme', async () => {
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    meta.content = '#000000';
+    document.head.append(meta);
+    render(
+      <AppShell initialTheme="dark" initialSidebarOpen>
+        <p>content</p>
+      </AppShell>
+    );
+    expect(meta.content).toBe('#0a0d10');
+    await userEvent.click(screen.getByRole('button', { name: 'Toggle theme' }));
+    expect(meta.content).toBe('#f8f9fb');
+    meta.remove();
+  });
 });
 
 describe('ThemeToggle', () => {

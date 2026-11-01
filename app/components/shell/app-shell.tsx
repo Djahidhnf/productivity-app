@@ -7,6 +7,7 @@ import { BottomNav } from './bottom-nav';
 import { NAV_ITEMS } from './nav-items';
 import { ThemeContext } from './theme-toggle';
 import { AccountContext } from './notifications-button';
+import { THEME_COLORS } from '@/app/lib/theme-colors';
 
 export interface AppShellProps {
   initialTheme: 'dark' | 'light';
@@ -36,6 +37,11 @@ export function AppShell({ initialTheme, initialSidebarOpen, accountEmail = '', 
   useEffect(() => {
     document.cookie = `daybook_sidebar=${sidebarOpen}; path=/; max-age=31536000`;
   }, [sidebarOpen]);
+
+  // Also runs on navigation: Next can restore the tag from a page rendered before the last toggle.
+  useEffect(() => {
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[theme]);
+  }, [theme, pathname]);
 
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
   const activeKey = NAV_ITEMS.find((item) => pathname?.startsWith(item.href))?.key ?? 'dashboard';
