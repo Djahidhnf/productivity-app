@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
+import { PwaSetup } from "@/app/components/pwa-setup";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +18,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   return (
     <html lang="en" data-theme={theme}>
-      <body>{children}</body>
+      <body>
+        <PwaSetup />
+        {children}
+      </body>
     </html>
   );
 }
