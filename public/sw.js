@@ -1,8 +1,40 @@
-// Klivr push-only service worker: shows reminders, opens the app on click.
-// No fetch handler, so nothing is cached offline.
+// Klivr service worker: shows push reminders, opens the app on click, and shows
+// an offline screen when a page can't load. Only that screen is ever cached, so
+// no account data is stored here.
 
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+// Bump the version when offline.html changes, so the new copy gets cached.
+const OFFLINE_CACHE = 'klivr-offline-v1';
+const OFFLINE_URL = '/offline.html';
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(OFFLINE_CACHE);
+      await cache.add(OFFLINE_URL);
+      await self.skipWaiting();
+    })()
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      const names = await caches.keys();
+      await Promise.all(
+        names.filter((name) => name.startsWith('klivr-offline-') && name !== OFFLINE_CACHE).map((name) => caches.delete(name))
+      );
+      await self.clients.claim();
+    })()
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  // Only full page loads. Everything else goes straight to the network, as if there were no worker.
+  if (event.request.mode !== 'navigate') return;
+  event.respondWith(
+    fetch(event.request).catch(async () => (await caches.match(OFFLINE_URL)) ?? Response.error())
+  );
+});
 
 self.addEventListener('push', (event) => {
   let data = {};
